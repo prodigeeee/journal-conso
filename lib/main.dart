@@ -643,8 +643,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.file(
-              File('assets/background.jpg'),
+            child: Image.asset(
+              'assets/images/background.jpg',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: widget.isDarkMode
@@ -3713,20 +3713,12 @@ Widget _glassModule({
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(24),
       boxShadow: [
-        // Subtle ambient shadow
+        // Dark outer shadow for depth
         BoxShadow(
-          color: Colors.black.withValues(alpha: isDarkMode ? 0.5 : 0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
+          color: Colors.black.withValues(alpha: isDarkMode ? 0.6 : 0.05),
+          blurRadius: 15,
+          offset: const Offset(0, 6),
         ),
-        // INTENSE Orange Liquid Halo at the bottom
-        if (isDarkMode)
-          BoxShadow(
-            color: const Color(0xFFFF9800).withValues(alpha: 0.35),
-            blurRadius: 40,
-            offset: const Offset(0, 18),
-            spreadRadius: -10,
-          ),
       ],
     ),
     child: ClipRRect(
@@ -3734,15 +3726,14 @@ Widget _glassModule({
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          padding: padding ?? const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDarkMode
                   ? [
-                      const Color(0xFF1E272E).withValues(alpha: 0.8),
-                      const Color(0xFF000000).withValues(alpha: 0.5),
+                      const Color(0xFF1E272E).withValues(alpha: 0.3),
+                      const Color(0xFF000000).withValues(alpha: 0.15),
                     ]
                   : [
                       Colors.white.withValues(alpha: 0.9),
@@ -3752,14 +3743,34 @@ Widget _glassModule({
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: borderColor ?? (isDarkMode
-                  ? Colors.white.withValues(alpha: 0.08)
+                  ? Colors.white.withValues(alpha: 0.1)
                   : Colors.black.withValues(alpha: 0.1)),
               width: 0.8,
             ),
           ),
           child: Stack(
             children: [
-              // Liquid sheen highlight
+              // INTERNAL ORANGE HALO (Hugging the bottom border to the edge)
+              if (isDarkMode)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.transparent,
+                          const Color(0xFFFF9800).withValues(alpha: 0.05),
+                          const Color(0xFFFF9800).withValues(alpha: 0.5),
+                        ],
+                        stops: const [0.0, 0.6, 0.85, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+              // Liquid sheen highlight (top-left)
               Positioned(
                 top: -50,
                 left: -50,
@@ -3777,7 +3788,11 @@ Widget _glassModule({
                   ),
                 ),
               ),
-              child,
+              // Content With Padding
+              Padding(
+                padding: padding ?? const EdgeInsets.all(12),
+                child: child,
+              ),
             ],
           ),
         ),
