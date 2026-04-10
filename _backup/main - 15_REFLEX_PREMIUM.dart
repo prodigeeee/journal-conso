@@ -16,7 +16,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -26,7 +25,6 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initializeDateFormatting('fr_FR', null);
 
   tz.initializeTimeZones();
@@ -306,13 +304,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   List<UserProfile> _profiles = [];
   Map<String, String> _contexts = {};
   String _activeUserId = '';
-  late DateTime _currentJournalDate;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _currentJournalDate = now.hour < 6 ? now.subtract(const Duration(days: 1)) : now;
     _initApp();
     _requestNotificationPermissions();
   }
@@ -643,8 +638,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.file(
-              File('assets/background.jpg'),
+            child: Image.asset(
+              'assets/images/background.jpg',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: widget.isDarkMode
@@ -813,7 +808,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       isDarkMode: widget.isDarkMode,
                       accentColor: widget.accentColor,
                       activeUser: activeUser,
-                      onDateSelected: (date) => setState(() => _currentJournalDate = date),
                       onAddOrUpdate: (c) {
                         final i = _allConsumptions.indexWhere(
                           (item) => item.id == c.id,
@@ -899,13 +893,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ],
       ),
       floatingActionButton: _selectedIndex == 0
-          ? _LiquidGlassFAB(
-              accentColor: widget.accentColor,
+          ? FloatingActionButton(
               onPressed: () {
                 final now = DateTime.now();
                 String moment = 'Soir';
-                
-                // On garde l'heure actuelle mais sur la date sélectionnée
                 if (now.hour >= 6 && now.hour < 11) {
                   moment = 'Matin';
                 } else if (now.hour >= 11 && now.hour < 15) {
@@ -918,14 +909,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   moment = 'Soirée';
                 }
 
-                // Utiliser la date du journal, mais avec l'heure actuelle si c'est aujourd'hui
-                DateTime finalDate = DateTime(
-                  _currentJournalDate.year,
-                  _currentJournalDate.month,
-                  _currentJournalDate.day,
-                  now.hour,
-                  now.minute,
-                );
+                final date = now.hour < 6 ? now.subtract(const Duration(days: 1)) : now;
 
                 showModalBottomSheet(
                   context: context,
@@ -933,7 +917,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   backgroundColor: Colors.transparent,
                   builder: (context) => _SaisieSheet(
                     moment: moment,
-                    date: finalDate,
+                    date: date,
                     activeUserId: _activeUserId,
                     onSave: (conso) async {
                       setState(() {
@@ -947,6 +931,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                 );
               },
+              backgroundColor: widget.accentColor,
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -1056,7 +1042,6 @@ class HomeScreen extends StatefulWidget {
   final bool isDarkMode;
   final Color accentColor;
   final UserProfile activeUser;
-  final Function(DateTime)? onDateSelected;
   const HomeScreen({
     super.key,
     required this.consumptions,
@@ -1069,7 +1054,6 @@ class HomeScreen extends StatefulWidget {
     required this.isDarkMode,
     required this.accentColor,
     required this.activeUser,
-    this.onDateSelected,
   });
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -1247,40 +1231,48 @@ class _HomeScreenState extends State<HomeScreen> {
           (c) => belongsToLogicalDay(c.date, date),
         );
 
+        final bezelColor = Colors.white.withOpacity(0.8);
+        final baseColor = widget.accentColor;
+        final shadeColor = widget.isDarkMode
+            ? const Color(0xFF6D3F00)
+            : const Color(0xFF0A1E35);
+
         return GestureDetector(
-          onTap: isFuture
-              ? null
-              : () {
-                  setState(() => _selectedDate = date);
-                  widget.onDateSelected?.call(date);
-                },
+          onTap: isFuture ? null : () => setState(() => _selectedDate = date),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSel
-                  ? widget.accentColor
-                  : (hasC
-                      ? widget.accentColor.withValues(alpha: 0.4)
-                      : (widget.isDarkMode
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03))),
-              border: Border.all(
-                color: isSel ? Colors.white.withValues(alpha: 0.5) : Colors.transparent,
-                width: 1.5,
-              ),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: isSel
                   ? [
                       BoxShadow(
-                        color: widget.accentColor.withValues(alpha: 0.4),
-                        blurRadius: 10,
+                        color: widget.accentColor.withOpacity(0.6),
+                        blurRadius: 15,
                         spreadRadius: 1,
-                      )
+                      ),
                     ]
                   : [],
+              border: isSel
+                  ? Border.all(color: widget.accentColor, width: 0.8)
+                  : Border.all(color: Colors.transparent),
+              gradient: isSel
+                  ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [baseColor.withOpacity(0.95), shadeColor],
+                      stops: const [0.0, 1.0],
+                    )
+                  : null,
+              color: !isSel
+                  ? (hasC
+                        ? widget.accentColor.withOpacity(0.4)
+                        : (widget.isDarkMode
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.black.withOpacity(0.05)))
+                  : null,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               child: Stack(
                 children: [
                   if (isSel)
@@ -1288,10 +1280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: Container(
-                        height: 1.5,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
+                      child: Container(height: 1.5, color: bezelColor),
                     ),
                   if (isSel)
                     Positioned.fill(
@@ -1301,25 +1290,31 @@ class _HomeScreenState extends State<HomeScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Colors.white.withValues(alpha: 0.25),
-                              Colors.white.withValues(alpha: 0.05),
+                              Colors.white.withOpacity(0.35),
+                              Colors.white.withOpacity(0.1),
                               Colors.transparent,
                               Colors.transparent,
                             ],
-                            stops: const [0.0, 0.4, 0.41, 1.0],
+                            stops: const [0.0, 0.45, 0.46, 1.0],
                           ),
                         ),
                       ),
                     ),
                   Center(
                     child: Text(
-                      dayNum.toString(),
+                      '$dayNum',
                       style: TextStyle(
-                        fontSize: isSel ? 13 : 10,
-                        color: (isSel || hasC)
-                            ? Colors.white
-                            : (widget.isDarkMode ? Colors.white38 : Colors.black38),
-                        fontWeight: (isSel || hasC) ? FontWeight.bold : FontWeight.normal,
+                        fontSize: isSel ? 14 : 10,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        color: isFuture
+                            ? (widget.isDarkMode
+                                  ? Colors.white10
+                                  : Colors.black12)
+                            : (isSel
+                                  ? Colors.white
+                                  : (widget.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black87)),
                       ),
                     ),
                   ),
@@ -3708,85 +3703,30 @@ Widget _glassModule({
   required bool isDarkMode,
   EdgeInsets? padding,
 }) {
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        // Subtle ambient shadow
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDarkMode ? 0.5 : 0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-        // INTENSE Orange Liquid Halo at the bottom
-        if (isDarkMode)
-          BoxShadow(
-            color: const Color(0xFFFF9800).withValues(alpha: 0.35),
-            blurRadius: 40,
-            offset: const Offset(0, 18),
-            spreadRadius: -10,
-          ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding ?? const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDarkMode
-                  ? [
-                      const Color(0xFF1E272E).withValues(alpha: 0.8),
-                      const Color(0xFF000000).withValues(alpha: 0.5),
-                    ]
-                  : [
-                      Colors.white.withValues(alpha: 0.9),
-                      Colors.white.withValues(alpha: 0.6),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: borderColor ?? (isDarkMode
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.1)),
-              width: 0.8,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Liquid sheen highlight
-              Positioned(
-                top: -50,
-                left: -50,
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: isDarkMode ? 0.05 : 0.2),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              child,
-            ],
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: BackdropFilter(
+      filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+      child: Container(
+        padding: padding ?? const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDarkMode
+              ? const Color(0xFF3A4750).withOpacity(0.25)
+              : Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color:
+                borderColor ??
+                (isDarkMode
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.08)),
           ),
         ),
+        child: child,
       ),
     ),
   );
 }
-
-
 
 class _SobrietyTestSheet extends StatefulWidget {
   final bool isDarkMode;
@@ -4033,108 +3973,3 @@ class _SobrietyTestSheetState extends State<_SobrietyTestSheet> with SingleTicke
     );
   }
 }
-
-class _LiquidGlassFAB extends StatefulWidget {
-  final Color accentColor;
-  final VoidCallback onPressed;
-  const _LiquidGlassFAB({required this.accentColor, required this.onPressed});
-  @override
-  State<_LiquidGlassFAB> createState() => _LiquidGlassFABState();
-}
-
-class _LiquidGlassFABState extends State<_LiquidGlassFAB> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat();
-  }
-  @override
-  void dispose() { _controller.dispose(); super.dispose(); }
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onPressed,
-      child: Container(
-        width: 65,
-        height: 65,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.4),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Liquid Background
-              Container(color: widget.accentColor.withValues(alpha: 0.2)),
-              // Animated Liquid Waves
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return CustomPaint(
-                    size: const Size(65, 65),
-                    painter: _WavePainter(
-                      color: widget.accentColor,
-                      progress: _controller.value,
-                    ),
-                  );
-                },
-              ),
-              // Glass Sheen
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.4),
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.1),
-                    ],
-                  ),
-                ),
-              ),
-              // Sharp Icon
-              const Icon(Icons.add, color: Colors.white, size: 35),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WavePainter extends CustomPainter {
-  final Color color;
-  final double progress;
-  _WavePainter({required this.color, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final path = Path();
-    double y = size.height * (0.6 + sin(progress * 2 * pi) * 0.05); // Level
-    path.moveTo(0, y);
-    for (double x = 0; x <= size.width; x++) {
-      double sine = sin((progress * 2 * pi) + (x * 0.15));
-      path.lineTo(x, y + (sine * 3));
-    }
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_WavePainter oldDelegate) => true;
-}
-
-
