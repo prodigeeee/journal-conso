@@ -656,14 +656,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           Container(
             color: Colors.black.withOpacity(widget.isDarkMode ? 0.7 : 0.4),
           ),
-
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 120,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black87, Colors.transparent],
+                ),
+              ),
+            ),
+          ),
           Column(
             children: [
-              Image.asset(
-                'assets/images/title.png',
-                width: double.infinity,
-                fit: BoxFit.fitWidth,
-              ),
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -672,6 +681,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                   child: _glassModule(
                     isDarkMode: widget.isDarkMode,
+                    showHalo: false,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 4,
@@ -1463,6 +1473,7 @@ class _HomeScreenState extends State<HomeScreen> {
           duration: const Duration(milliseconds: 200),
           child: _glassModule(
             isDarkMode: widget.isDarkMode,
+            showHalo: false,
             borderColor: candidateData.isNotEmpty ? widget.accentColor : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1719,6 +1730,23 @@ class _StatsScreenState extends State<StatsScreen> {
         )
         .toList();
 
+    int daysToLookBack = (_period == 'Semaine') ? 7 : (_period == 'Mois') ? 30 : 365;
+    DateTime startDate = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToLookBack - 1));
+    Set<String> datesWithDrinks = widget.consumptions
+        .where((c) => !c.date.isBefore(startDate))
+        .map((c) => "${c.date.year}-${c.date.month}-${c.date.day}")
+        .toSet();
+    int dryDays = daysToLookBack - datesWithDrinks.length;
+    double totalKcal = 0;
+    for (var c in widget.consumptions.where((c) => !c.date.isBefore(startDate))) {
+      double vol = double.tryParse(c.volume.replaceAll('cl', '')) ?? 0;
+      if (c.type == 'Bière') totalKcal += vol * 4.3;
+      else if (c.type == 'Vin') totalKcal += vol * 8.3;
+      else if (c.type == 'Spiritueux') totalKcal += vol * 23.1;
+      else totalKcal += vol * 10.0;
+    }
+    int calories = totalKcal.toInt();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1785,6 +1813,7 @@ class _StatsScreenState extends State<StatsScreen> {
           const SizedBox(height: 15),
           _glassModule(
             isDarkMode: widget.isDarkMode,
+            showHalo: false,
             borderColor: isDanger
                 ? Colors.red.withOpacity(0.3)
                 : widget.accentColor.withOpacity(0.3),
@@ -1886,41 +1915,101 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "STATISTIQUES (${_period.toUpperCase()})",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                ),
+              ),
+              DropdownButton<String>(
+                value: _period,
+                underline: const SizedBox(),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.accentColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                onChanged: (n) => setState(() => _period = n!),
+                items: ['Semaine', 'Mois', 'Année']
+                    .map(
+                      (p) => DropdownMenuItem(value: p, child: Text(p)),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Expanded(
+                child: _glassModule(
+                  isDarkMode: widget.isDarkMode,
+                  showHalo: false,
+                  child: Column(
+                    children: [
+                      const Text(
+                        "JOURS VERTS",
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "$dryDays",
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: widget.isDarkMode ? Colors.white : Colors.black),
+                      ),
+                      Text(
+                        "sur $daysToLookBack jours",
+                        style: const TextStyle(fontSize: 9, color: Colors.blueGrey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _glassModule(
+                  isDarkMode: widget.isDarkMode,
+                  showHalo: false,
+                  child: Column(
+                    children: [
+                      Text(
+                        "CALORIES",
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: widget.accentColor),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "$calories",
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: widget.isDarkMode ? Colors.white : Colors.black),
+                      ),
+                      const Text(
+                        "kcal alcool (est.)",
+                        style: TextStyle(fontSize: 9, color: Colors.blueGrey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 10),
           _glassModule(
             isDarkMode: widget.isDarkMode,
+            showHalo: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "TENDANCE",
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: widget.accentColor,
-                      ),
-                    ),
-                    DropdownButton<String>(
-                      value: _period,
-                      underline: const SizedBox(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: widget.accentColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      onChanged: (n) => setState(() => _period = n!),
-                      items: ['Semaine', 'Mois', 'Année']
-                          .map(
-                            (p) => DropdownMenuItem(value: p, child: Text(p)),
-                          )
-                          .toList(),
-                    ),
-                  ],
+                Text(
+                  "TENDANCE",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: widget.accentColor,
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 SizedBox(
                   height: 200,
                   child: Row(
@@ -1946,6 +2035,7 @@ class _StatsScreenState extends State<StatsScreen> {
           const SizedBox(height: 20),
           _glassModule(
             isDarkMode: widget.isDarkMode,
+            showHalo: false,
             child: Column(
               children: [
                 Align(
@@ -2780,6 +2870,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     const SizedBox(height: 160),
                     _glassModule(
                       isDarkMode: true,
+                      showHalo: false,
                       child: Column(
                         children: [
                           const Text(
@@ -2825,6 +2916,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     const Spacer(),
                     _glassModule(
                       isDarkMode: true,
+                      showHalo: false,
                       child: ListTile(
                         dense: true,
                         title: Center(
@@ -2993,6 +3085,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ),
         _glassModule(
           isDarkMode: widget.isDarkMode,
+          showHalo: false,
           child: ListTile(
             dense: true,
             leading: Icon(
@@ -3019,6 +3112,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 10),
         _glassModule(
           isDarkMode: widget.isDarkMode,
+          showHalo: false,
           child: Column(
             children: [
               SwitchListTile(
@@ -3067,6 +3161,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 10),
         _glassModule(
           isDarkMode: widget.isDarkMode,
+          showHalo: false,
           child: Column(
             children: [
               _legalTile(
@@ -3707,6 +3802,7 @@ Widget _glassModule({
   Color? borderColor,
   required bool isDarkMode,
   EdgeInsets? padding,
+  bool showHalo = true,
 }) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
@@ -3751,7 +3847,7 @@ Widget _glassModule({
           child: Stack(
             children: [
               // INTERNAL ORANGE HALO (Hugging the bottom border to the edge)
-              if (isDarkMode)
+              if (isDarkMode && showHalo)
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -3762,8 +3858,8 @@ Widget _glassModule({
                         colors: [
                           Colors.transparent,
                           Colors.transparent,
-                          const Color(0xFFFF9800).withValues(alpha: 0.05),
-                          const Color(0xFFFF9800).withValues(alpha: 0.5),
+                          const Color(0xFFFF9800).withValues(alpha: 0.02),
+                          const Color(0xFFFF9800).withValues(alpha: 0.25),
                         ],
                         stops: const [0.0, 0.6, 0.85, 1.0],
                       ),
