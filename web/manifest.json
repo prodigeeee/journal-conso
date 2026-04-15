@@ -1,11 +1,11 @@
 {
-    "name": "alcohol_tracker",
-    "short_name": "alcohol_tracker",
+    "name": "Journal Conso",
+    "short_name": "Journal Conso",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1A1F26",
+    "theme_color": "#FF9800",
+    "description": "Journal Conso - Suivez votre consommation d'alcool en toute simplicité.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.alcohol_tracker"
+    namespace = "com.chrisk.journal_conso"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.alcohol_tracker"
+        applicationId = "com.chrisk.journal_conso"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

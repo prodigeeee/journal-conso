@@ -1,154 +1,52 @@
 import 'dart:convert';
-import 'dart:ui' as ui;
-import 'dart:io';
 import 'dart:async';
-import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // Ajout pour le support Web
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'widgets/sobriety_test_sheet.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+// On n'importe dart:io que si on n'est PAS sur le web pour éviter les crashs de compilation
+import 'dart:io' show File; 
+
+import 'models/models.dart';
+import 'utils/helpers.dart';
+import 'widgets/glass_widgets.dart';
+import 'utils/storage_service.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/auth_screen.dart'; // Ajout de l'écran auth
+import 'utils/supabase_service.dart'; // Import du service de synchro
+
+import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // On lance l'uninitialisation en arrière-plan
+  Supabase.initialize(
+    url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
+  ).then((_) => print("✅ Supabase initialisé"))
+   .catchError((e) => print("⚠️ Erreur Supabase : $e"));
+
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await initializeDateFormatting('fr_FR', null);
-
-  tz.initializeTimeZones();
-  try {
-    tz.setLocalLocation(tz.getLocation('Europe/Paris'));
-  } catch (e) {
-    debugPrint("Erreur Timezone: $e. Bascule sur UTC.");
-    tz.setLocalLocation(tz.UTC);
-  }
-
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const DarwinInitializationSettings initializationSettingsDarwin =
-      DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-  );
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsDarwin,
-  );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
+  await initializeDateFormatting('fr_FR', null); // On réactive les dates
   runApp(const AlcoholTrackerApp());
 }
 
-// --- UTILITAIRES ---
-String cleanDisplay(String? text) {
-  if (text == null) return '';
-  return text
-      .replaceAll("´e", "é")
-      .replaceAll("`e", "è")
-      .replaceAll("^e", "ê")
-      .replaceAll("Ã©", "é")
-      .replaceAll("Ã¨", "è")
-      .replaceAll("`a", "à");
-}
+// --- MODÈLES ET UTILITAIRES DÉPLACÉS ---
 
-bool belongsToLogicalDay(DateTime consumptionDate, DateTime dayInCalendar) {
-  DateTime logical = consumptionDate.hour < 6
-      ? consumptionDate.subtract(const Duration(days: 1))
-      : consumptionDate;
-  return logical.year == dayInCalendar.year &&
-      logical.month == dayInCalendar.month &&
-      logical.day == dayInCalendar.day;
-}
-
-// --- MODÈLES ---
-class UserProfile {
-  String id;
-  String name;
-  String gender;
-  int age;
-  int weight;
-  int colorValue;
-  String? imagePath;
-  UserProfile({
-    required this.id,
-    required this.name,
-    required this.gender,
-    required this.age,
-    this.weight = 70,
-    this.colorValue = 0xFFEA9216,
-    this.imagePath,
-  });
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'gender': gender,
-    'age': age,
-    'weight': weight,
-    'colorValue': colorValue,
-    'imagePath': imagePath,
-  };
-  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-    id: json['id'],
-    name: json['name'] ?? '',
-    gender: json['gender'] ?? 'Homme',
-    age: (json['age'] as num).toInt(),
-    weight: (json['weight'] as num?)?.toInt() ?? 70,
-    colorValue: json['colorValue'] ?? 0xFFEA9216,
-    imagePath: json['imagePath'],
-  );
-}
-
-class Consumption {
-  String id;
-  DateTime date;
-  String moment;
-  String type;
-  String volume;
-  double degree;
-  String userId;
-  Consumption({
-    required this.id,
-    required this.date,
-    required this.moment,
-    required this.type,
-    required this.volume,
-    required this.degree,
-    required this.userId,
-  });
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'date': date.toIso8601String(),
-    'moment': moment,
-    'type': type,
-    'volume': volume,
-    'degree': degree,
-    'userId': userId,
-  };
-  factory Consumption.fromJson(Map<String, dynamic> json) => Consumption(
-    id: json['id'],
-    date: DateTime.parse(json['date']),
-    moment: json['moment'] ?? 'Soir',
-    type: json['type'],
-    volume: json['volume'],
-    degree: (json['degree'] as num).toDouble(),
-    userId: json['userId'] ?? '1',
-  );
-}
 
 class AlcoholTrackerApp extends StatefulWidget {
   const AlcoholTrackerApp({super.key});
@@ -165,15 +63,8 @@ class _AlcoholTrackerAppState extends State<AlcoholTrackerApp> {
   }
 
   Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => _isDarkMode = prefs.getBool('isDarkMode') ?? true);
-  }
-
-  void _updateTheme(bool dark) {
-    setState(() => _isDarkMode = dark);
-    SharedPreferences.getInstance().then(
-      (prefs) => prefs.setBool('isDarkMode', dark),
-    );
+    final data = await StorageService.loadAppData();
+    setState(() => _isDarkMode = data['isDarkMode']);
   }
 
   @override
@@ -220,12 +111,28 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
+    final data = await StorageService.loadAppData();
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-    );
+
+    if (data['isFirstLaunch'] == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnboardingScreen(
+            onDone: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+            ),
+          ),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+      );
+    }
   }
 
   @override
@@ -254,6 +161,10 @@ class MainNavigationWrapper extends StatefulWidget {
 
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   bool _isDarkMode = true;
+  bool _isYoungDriver = false;
+  bool _unitMl = false;
+  bool _isFirstLaunch = false;
+
   @override
   void initState() {
     super.initState();
@@ -261,26 +172,67 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() => _isDarkMode = prefs.getBool('isDarkMode') ?? true);
+    final data = await StorageService.loadAppData();
+    setState(() {
+      _isDarkMode = data['isDarkMode'] ?? true;
+      _isYoungDriver = data['isYoungDriver'] ?? false;
+      _unitMl = data['unitMl'] ?? false;
+      _isFirstLaunch = data['isFirstLaunch'] ?? true;
+    });
   }
 
   void _updateTheme(bool dark) {
     setState(() => _isDarkMode = dark);
-    SharedPreferences.getInstance().then(
-      (prefs) => prefs.setBool('isDarkMode', dark),
-    );
+    StorageService.savePref('isDarkMode', dark);
+  }
+
+  void _updateYoungDriver(bool val) {
+    setState(() => _isYoungDriver = val);
+    StorageService.savePref('isYoungDriver', val);
+  }
+
+  void _updateUnitMl(bool val) {
+    setState(() => _unitMl = val);
+    StorageService.savePref('unitMl', val);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Vérification de la session Supabase
+    final Session? session = Supabase.instance.client.auth.currentSession;
+
     final accentColor = _isDarkMode
         ? const Color(0xFFEA9216)
         : const Color(0xFF1A3A5F);
+
+    if (session == null) {
+      return AuthScreen(
+        onAuthSuccess: () => setState(() {
+          // On recharge les données au succès de l'auth
+          _loadTheme();
+        }),
+        accentColor: accentColor,
+        isDarkMode: _isDarkMode,
+      );
+    }
+    // Si c'est la première fois, on montre l'Onboarding
+    if (_isFirstLaunch) {
+      return OnboardingScreen(
+        onDone: () {
+          setState(() => _isFirstLaunch = false);
+          StorageService.setFirstLaunchDone();
+        },
+      );
+    }
+
     return MainNavigationScreen(
       isDarkMode: _isDarkMode,
       onThemeChanged: _updateTheme,
       accentColor: accentColor,
+      isYoungDriver: _isYoungDriver,
+      onYoungDriverChanged: _updateYoungDriver,
+      unitMl: _unitMl,
+      onUnitMlChanged: _updateUnitMl,
     );
   }
 }
@@ -289,80 +241,134 @@ class MainNavigationScreen extends StatefulWidget {
   final bool isDarkMode;
   final Function(bool) onThemeChanged;
   final Color accentColor;
+  final bool isYoungDriver;
+  final Function(bool) onYoungDriverChanged;
+  final bool unitMl;
+  final Function(bool) onUnitMlChanged;
+
   const MainNavigationScreen({
     super.key,
     required this.isDarkMode,
     required this.onThemeChanged,
     required this.accentColor,
+    required this.isYoungDriver,
+    required this.onYoungDriverChanged,
+    required this.unitMl,
+    required this.onUnitMlChanged,
   });
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends State<MainNavigationScreen> with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
   List<Consumption> _allConsumptions = [];
   List<UserProfile> _profiles = [];
   Map<String, String> _contexts = {};
   String _activeUserId = '';
+  // On n'a plus besoin du _syncId manuel car on utilise l'ID Supabase
   late DateTime _currentJournalDate;
+  Timer? _syncTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final now = DateTime.now();
-    _currentJournalDate = now.hour < 6 ? now.subtract(const Duration(days: 1)) : now;
+    _currentJournalDate = now.hour < 6
+        ? now.subtract(const Duration(days: 1))
+        : now;
     _initApp();
-    _requestNotificationPermissions();
+    
+    // Timer de synchro auto toutes les 30 min (plus économe)
+    _syncTimer = Timer.periodic(const Duration(minutes: 30), (_) => _saveAll());
   }
 
-  Future<void> _requestNotificationPermissions() async {
-    if (Platform.isAndroid) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
-      await androidImplementation?.requestNotificationsPermission();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // On resynchronise quand l'utilisateur revient sur l'app
+      _pullFromCloud();
     }
   }
 
   Future<void> _initApp() async {
-    final prefs = await SharedPreferences.getInstance();
+    final data = await StorageService.loadAppData();
+    final user = Supabase.instance.client.auth.currentUser;
+
     setState(() {
-      _profiles = (jsonDecode(prefs.getString('profiles') ?? '[]') as List)
-          .map((i) => UserProfile.fromJson(i))
-          .toList();
-      if (_profiles.isEmpty) {
+      _profiles = data['profiles'];
+      
+      // Si on n'a pas de profil local mais qu'on a des infos d'inscription
+      if (_profiles.isEmpty && user != null && user.userMetadata != null) {
+        final meta = user.userMetadata!;
         _profiles = [
-          UserProfile(id: '1', name: 'Chris', gender: 'Homme', age: 35),
+          UserProfile(
+            id: '1',
+            name: meta['display_name'] ?? 'Moi',
+            gender: meta['gender'] ?? 'Homme',
+            age: (meta['age'] as num?)?.toInt() ?? 35,
+            weight: (meta['weight'] as num?)?.toInt() ?? 70,
+            imagePath: meta['image_path'],
+          )
         ];
+      } else if (_profiles.isEmpty) {
+        _profiles = [UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35)];
       }
-      _activeUserId = prefs.getString('active_user_id') ?? _profiles.first.id;
-      _contexts = Map<String, String>.from(
-        jsonDecode(prefs.getString('momentsContexts') ?? '{}'),
-      );
-      _allConsumptions =
-          (jsonDecode(prefs.getString('consumptions') ?? '[]') as List)
-              .map((i) => Consumption.fromJson(i))
-              .toList();
+
+      _activeUserId = data['activeUserId'];
+      _contexts = data['contexts'];
+      _allConsumptions = data['consumptions'];
     });
+    // On lance une synchro Cloud au démarrage pour être certain d'avoir le dernier état
+    _pullFromCloud();
   }
 
   Future<void> _saveAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'profiles',
-      jsonEncode(_profiles.map((e) => e.toJson()).toList()),
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    await StorageService.saveAll(
+      profiles: _profiles,
+      contexts: _contexts,
+      consumptions: _allConsumptions,
+      activeUserId: _activeUserId,
     );
-    await prefs.setString('momentsContexts', jsonEncode(_contexts));
-    await prefs.setString(
-      'consumptions',
-      jsonEncode(_allConsumptions.map((e) => e.toJson()).toList()),
-    );
-    await prefs.setString('active_user_id', _activeUserId);
+    
+    // Synchronisation vers Supabase avec l'UID réel
+    SupabaseService.syncProfiles(_profiles, user.id);
+    SupabaseService.syncConsumptions(_allConsumptions, user.id);
+    
     setState(() {});
+  }
+
+  Future<void> _exportFullProject() async {
+    final data = {
+      'profiles': _profiles.map((e) => e.toJson()).toList(),
+      'consumptions': _allConsumptions.map((e) => e.toJson()).toList(),
+      'momentsContexts': _contexts,
+      'activeUserId': _activeUserId,
+    };
+    final jsonStr = jsonEncode(data);
+    
+    if (kIsWeb) {
+      final bytes = utf8.encode(jsonStr);
+      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'alcohol_tracker_full_backup.json');
+      await Share.shareXFiles([xfile], text: 'Sauvegarde complète Alcohol Tracker');
+    } else {
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/alcohol_tracker_full_backup.json');
+      await file.writeAsString(jsonStr);
+      await Share.shareXFiles([XFile(file.path)], text: 'Sauvegarde complète Alcohol Tracker');
+    }
   }
 
   void _deleteProfile(String id) {
@@ -382,6 +388,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     });
     _saveAll();
   }
+  
+  Future<void> _pullFromCloud() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final data = await SupabaseService.fetchAllData(user.id);
+      final List<UserProfile> cloudProfiles = List<UserProfile>.from(data['profiles']);
+      final List<Consumption> cloudConsos = List<Consumption>.from(data['consumptions']);
+      
+      if (cloudProfiles.isNotEmpty) {
+        setState(() {
+          _profiles = cloudProfiles;
+          _allConsumptions = cloudConsos;
+          if (!_profiles.any((p) => p.id == _activeUserId)) {
+            _activeUserId = _profiles.first.id;
+          }
+        });
+        await StorageService.saveAll(
+          profiles: _profiles,
+          contexts: _contexts,
+          consumptions: _allConsumptions,
+          activeUserId: _activeUserId,
+        );
+      }
+    } catch (e) {
+      print("Sync Cloud Silencieuse (Echec): $e");
+    }
+  }
 
   Future<void> _exportProfile(UserProfile p) async {
     final userConsos = _allConsumptions.where((c) => c.userId == p.id).toList();
@@ -390,21 +425,42 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       'consumptions': userConsos.map((e) => e.toJson()).toList(),
     };
     final String jsonString = jsonEncode(data);
-    final directory = await getTemporaryDirectory();
-    final file = File('${directory.path}/export_${p.name}.json');
-    await file.writeAsString(jsonString);
-    await Share.shareXFiles([
-      XFile(file.path),
-    ], text: 'Export du profil ${p.name}');
+
+    if (kIsWeb) {
+      final bytes = utf8.encode(jsonString);
+      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'export_${p.name}.json');
+      await Share.shareXFiles([xfile], text: 'Export du profil ${p.name}');
+    } else {
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/export_${p.name}.json');
+      await file.writeAsString(jsonString);
+      await Share.shareXFiles([XFile(file.path)], text: 'Export du profil ${p.name}');
+    }
   }
 
   Future<void> _importToProfile(UserProfile p) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
-      File file = File(result.files.single.path!);
-      String content = await file.readAsString();
+      String content;
+      if (kIsWeb) {
+        content = utf8.decode(result.files.single.bytes!);
+      } else {
+        File file = File(result.files.single.path!);
+        content = await file.readAsString();
+      }
       final data = jsonDecode(content);
       setState(() {
+        // Supporte 'profiles' ou 'Profiles'
+        final profilesData = data['profiles'] ?? data['Profiles'];
+        if (profilesData != null && (profilesData as List).isNotEmpty) {
+          final impP = UserProfile.fromJson(profilesData[0]);
+          p.name = impP.name;
+          p.age = impP.age;
+          p.weight = impP.weight;
+          p.gender = impP.gender;
+          p.colorValue = impP.colorValue;
+        }
+
         _allConsumptions.removeWhere((c) => c.userId == p.id);
         final importedConsos = (data['consumptions'] as List).map((i) {
           final c = Consumption.fromJson(i);
@@ -416,11 +472,102 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Données importées pour ${p.name}")),
+          SnackBar(content: Text("Profil et données importés pour ${p.name}")),
         );
       }
     }
   }
+
+  Future<void> _importFullProject() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      String content;
+      if (kIsWeb) {
+        content = utf8.decode(result.files.single.bytes!);
+      } else {
+        File file = File(result.files.single.path!);
+        content = await file.readAsString();
+      }
+      final data = jsonDecode(content);
+      setState(() {
+        final profilesData = data['profiles'] ?? data['Profiles'];
+        if (profilesData != null) {
+          _profiles = (profilesData as List)
+              .map((i) => UserProfile.fromJson(i))
+              .toList();
+        }
+        _allConsumptions = (data['consumptions'] as List)
+            .map((i) => Consumption.fromJson(i))
+            .toList();
+        _contexts = Map<String, String>.from(data['momentsContexts'] ?? {});
+        if (_profiles.isNotEmpty) {
+          _activeUserId = _profiles.first.id;
+        }
+      });
+      await _saveAll();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Application entièrement restaurée")),
+        );
+      }
+    }
+  }
+
+  Future<void> _importAsNewProfile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      if (result == null) return;
+
+      String content;
+      if (kIsWeb) {
+        content = utf8.decode(result.files.single.bytes!);
+      } else {
+        File file = File(result.files.single.path!);
+        content = await file.readAsString();
+      }
+      final data = jsonDecode(content);
+      
+      setState(() {
+        dynamic profilesData = data['profiles'] ?? data['profile'] ?? data['Profiles'] ?? data['userProfiles'] ?? data['users'];
+        
+        if (profilesData == null) {
+          try {
+            profilesData = data.values.firstWhere((v) => v is List && v.isNotEmpty && v.first['name'] != null);
+          } catch (_) { profilesData = null; }
+        }
+
+        if (profilesData == null) throw "Format de fichier non reconnu";
+        if (profilesData is Map) profilesData = [profilesData];
+        if ((profilesData as List).isEmpty) throw "Aucun profil trouvé";
+
+        final newP = UserProfile.fromJson(profilesData[0]);
+        newP.id = DateTime.now().millisecondsSinceEpoch.toString();
+        _profiles.add(newP);
+        
+        final importedConsos = (data['consumptions'] as List).map((i) {
+          final c = Consumption.fromJson(i);
+          c.userId = newP.id;
+          return c;
+        }).toList();
+        _allConsumptions.addAll(importedConsos);
+        _activeUserId = newP.id;
+      });
+      
+      await _saveAll();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profil importé avec succès !"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Échec de l'importation : $e"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
 
   Future<void> _printProfile(UserProfile p, {DateTime? specificMonth}) async {
     final pdf = pw.Document();
@@ -643,19 +790,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: widget.isDarkMode
-                ? Image.asset(
-                    'assets/images/background.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        Container(color: Colors.black),
-                  )
-                : Container(color: const Color(0xFFF3F5F9)), // Soft UI background
-          ),
-          if (widget.isDarkMode)
-            Container(
-              color: Colors.black.withOpacity(0.7),
+            child: Image.asset(
+              widget.isDarkMode
+                  ? 'assets/images/background.jpg'
+                  : 'assets/images/light_background.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: widget.isDarkMode
+                    ? Colors.black
+                    : const Color(0xFFF7F3F0),
+              ),
             ),
+          ),
+          Container(
+            color: widget.isDarkMode
+                ? Colors.transparent 
+                : Colors.black.withValues(alpha: 0.15), // Voile léger pour protéger les yeux en Light Mode
+          ),
           Positioned(
             top: 0,
             left: 0,
@@ -668,20 +819,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   end: Alignment.bottomCenter,
                   colors: widget.isDarkMode
                       ? [Colors.black87, Colors.transparent]
-                      : [const Color(0xFFF3F5F9).withOpacity(0.9), Colors.transparent],
+                      : [Colors.white.withValues(alpha: 0.9), Colors.transparent],
                 ),
               ),
             ),
           ),
-          Column(
-            children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              width: 600,
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                children: [
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 5,
                   ),
-                  child: _glassModule(
+                  child: glassModule(
                     isDarkMode: widget.isDarkMode,
                     showHalo: false,
                     padding: const EdgeInsets.symmetric(
@@ -693,9 +849,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         CircleAvatar(
                           backgroundColor: Color(activeUser.colorValue),
                           radius: 16,
-                          backgroundImage: activeUser.imagePath != null
-                              ? FileImage(File(activeUser.imagePath!))
-                              : null,
+                          backgroundImage: getProfileImage(activeUser.imagePath),
                           child: activeUser.imagePath == null
                               ? const Icon(
                                   Icons.person,
@@ -717,15 +871,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                   fontWeight: FontWeight.bold,
                                   color: widget.isDarkMode
                                       ? Colors.white38
-                                      : Colors.black54,
+                                      : Colors.black87,
                                   letterSpacing: 0.5,
                                 ),
                               ),
                               Text(
                                 activeUser.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
+                                  color: widget.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
                                 ),
                               ),
                             ],
@@ -769,9 +926,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                                         CircleAvatar(
                                           backgroundColor: Color(p.colorValue),
                                           radius: 12,
-                                          backgroundImage: p.imagePath != null
-                                              ? FileImage(File(p.imagePath!))
-                                              : null,
+                                          backgroundImage: getProfileImage(p.imagePath),
                                           child: p.imagePath == null
                                               ? const Icon(
                                                   Icons.person,
@@ -825,7 +980,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       isDarkMode: widget.isDarkMode,
                       accentColor: widget.accentColor,
                       activeUser: activeUser,
-                      onDateSelected: (date) => setState(() => _currentJournalDate = date),
+                      onDateSelected: (date) =>
+                          setState(() => _currentJournalDate = date),
                       onAddOrUpdate: (c) {
                         final i = _allConsumptions.indexWhere(
                           (item) => item.id == c.id,
@@ -836,14 +992,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           _allConsumptions.add(c);
                         }
                         _saveAll();
-                        _checkBACAndNotify();
                       },
                       onDelete: (id) {
                         setState(
                           () => _allConsumptions.removeWhere((c) => c.id == id),
                         );
                         _saveAll();
-                        _checkBACAndNotify();
                       },
                       onUpdateContext: (key, val) {
                         setState(() {
@@ -857,14 +1011,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       },
                       onPrint: (m) =>
                           _printProfile(activeUser, specificMonth: m),
+                      unitMl: widget.unitMl,
                     ),
                     StatsScreen(
                       consumptions: userConsos,
+                      contexts: _contexts,
                       isDarkMode: widget.isDarkMode,
                       accentColor: widget.accentColor,
                       activeUser: activeUser,
+                      isYoungDriver: widget.isYoungDriver,
                     ),
                     OptionsScreen(
+                      key: ValueKey('opt_${_profiles.length}_$_activeUserId'),
                       profiles: _profiles,
                       onProfilesChanged: _saveAll,
                       onReset: () {
@@ -881,12 +1039,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       onExportProfile: _exportProfile,
                       onImportProfile: _importToProfile,
                       onPrintProfile: _printProfile,
+                      onImportFullProject: _importFullProject,
+                      onImportAsNew: _importAsNewProfile,
+                      onExportFullProject: _exportFullProject,
+                      isYoungDriver: widget.isYoungDriver,
+                      onYoungDriverChanged: widget.onYoungDriverChanged,
+                      unitMl: widget.unitMl,
+                      onUnitMlChanged: widget.onUnitMlChanged,
+                      onSyncCloud: _pullFromCloud,
+                      onLogout: () async {
+                        await Supabase.instance.client.auth.signOut();
+                        // Pas besoin de setState car le parent (MainNavigationWrapper) détectera le changement de session
+                      },
                     ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
 
           Positioned(
             top: 0,
@@ -899,10 +1071,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.9),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withValues(alpha: 0.9), Colors.transparent],
                   ),
                 ),
               ),
@@ -911,12 +1080,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ],
       ),
       floatingActionButton: _selectedIndex == 0
-          ? _LiquidGlassFAB(
+          ? LiquidGlassFAB(
               accentColor: widget.accentColor,
               onPressed: () {
                 final now = DateTime.now();
                 String moment = 'Soir';
-                
+
                 // On garde l'heure actuelle mais sur la date sélectionnée
                 if (now.hour >= 6 && now.hour < 11) {
                   moment = 'Matin';
@@ -952,10 +1121,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         _allConsumptions.add(conso);
                       });
                       await _saveAll();
-                      await _checkBACAndNotify();
                     },
                     isDarkMode: widget.isDarkMode,
                     accentColor: widget.accentColor,
+                    unitMl: widget.unitMl,
                   ),
                 );
               },
@@ -965,7 +1134,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         backgroundColor: widget.isDarkMode
-            ? Colors.black.withOpacity(0.9)
+            ? Colors.black.withValues(alpha: 0.9)
             : Colors.white,
         selectedItemColor: widget.accentColor,
         unselectedItemColor: widget.isDarkMode
@@ -992,69 +1161,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
     );
   }
-
-  Future<void> _checkBACAndNotify() async {
-    if (_profiles.isEmpty) return;
-    UserProfile active = _profiles.firstWhere((p) => p.id == _activeUserId);
-    double r = active.gender == 'Homme' ? 0.7 : 0.6;
-    final now = DateTime.now();
-    double total = 0.0;
-    final recentConsos = _allConsumptions
-        .where((c) => now.difference(c.date).inHours < 15 && c.date.isBefore(now))
-        .toList();
-
-    for (var c in recentConsos) {
-      double vol = double.tryParse(c.volume.replaceAll('cl', '').replaceAll('ml', '')) ?? 0;
-      double grammes = (vol * 10 * c.degree * 0.8) / 100;
-      double hoursSinceDrink = now.difference(c.date).inMinutes / 60.0;
-      double eliminationHours = (hoursSinceDrink - 0.75).clamp(0.0, double.infinity);
-      double bac = (grammes / (active.weight * r)) - (0.15 * eliminationHours);
-      if (bac > 0) total += bac;
-    }
-
-    if (total >= 0.5) {
-      double hoursToSafe = (total - 0.49) / 0.15;
-      int minutes = (hoursToSafe * 60).round();
-      if (minutes < 1) minutes = 1;
-
-      const androidDetails = AndroidNotificationDetails(
-        'bac_return_channel',
-        'Retour au seuil légal',
-        channelDescription: 'Alerte auto quand l\'alcoolémie descend sous 0.5g/L',
-        importance: Importance.max,
-        priority: Priority.high,
-        color: Colors.red,
-      );
-
-      await flutterLocalNotificationsPlugin.cancelAll();
-
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        0,
-        '🎉 Seuil légal atteint',
-        'Votre alcoolémie estimée est repassée sous les 0.50g/L. Restez prudent !',
-        tz.TZDateTime.now(tz.local).add(Duration(minutes: minutes)),
-        const NotificationDetails(android: androidDetails),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.notifications_active, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                Text('Alerte programmée dans ${minutes}min'),
-              ],
-            ),
-            backgroundColor: widget.accentColor,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
-  }
 }
 
 class HomeScreen extends StatefulWidget {
@@ -1069,6 +1175,7 @@ class HomeScreen extends StatefulWidget {
   final Color accentColor;
   final UserProfile activeUser;
   final Function(DateTime)? onDateSelected;
+  final bool unitMl;
   const HomeScreen({
     super.key,
     required this.consumptions,
@@ -1082,6 +1189,7 @@ class HomeScreen extends StatefulWidget {
     required this.accentColor,
     required this.activeUser,
     this.onDateSelected,
+    required this.unitMl,
   });
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -1100,13 +1208,290 @@ class _HomeScreenState extends State<HomeScreen> {
     _focusedMonth = DateTime(_selectedDate.year, _selectedDate.month);
   }
 
+  void _showSetPartyGoalDialog() {
+    String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
+    String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
+    int currentVal = 3;
+    if (widget.contexts.containsKey(partyKey)) {
+      currentVal = int.tryParse(widget.contexts[partyKey]!) ?? 3;
+    }
+
+    int selectedVal = currentVal;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black26, // Plus clair pour mieux voir le flou
+      builder: (c) {
+        return StatefulBuilder(
+          builder: (context, setStateSB) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(20), // Réduit de 24 à 20
+                      decoration: BoxDecoration(
+                        color: widget.isDarkMode 
+                            ? Colors.white.withValues(alpha: 0.08) // Beaucoup plus transparent
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Material( // Nécessaire pour les InkWells/Buttons
+                        color: Colors.transparent,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.nightlife, color: widget.accentColor, size: 24),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    "Objectif du jour",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: widget.isDarkMode ? Colors.white : Colors.black87,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 15), // Réduit
+                            Text(
+                              "Combien de verres maximum prévoyez-vous aujourd'hui ?",
+                              style: TextStyle(
+                                color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 20), // Réduit
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle, size: 40),
+                                  color: selectedVal > 1 ? widget.accentColor : Colors.white24,
+                                  onPressed: selectedVal > 1 ? () => setStateSB(() => selectedVal--) : null,
+                                ),
+                                const SizedBox(width: 20),
+                                Text(
+                                  "$selectedVal",
+                                  style: TextStyle(
+                                    fontSize: 42,
+                                    fontWeight: FontWeight.w900,
+                                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                IconButton(
+                                  icon: const Icon(Icons.add_circle, size: 40),
+                                  color: selectedVal < 20 ? widget.accentColor : Colors.white24,
+                                  onPressed: selectedVal < 20 ? () => setStateSB(() => selectedVal++) : null,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 25), // Réduit
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(c),
+                                  child: Text(
+                                    "Annuler",
+                                    style: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    widget.onUpdateContext(partyKey, selectedVal.toString());
+                                    Navigator.pop(c);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: widget.accentColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text("Activer la limite", style: TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildPartyModeWidget() {
+    String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
+    String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
+    int? currentGoal;
+    
+    if (widget.contexts.containsKey(partyKey)) {
+      currentGoal = int.tryParse(widget.contexts[partyKey]!);
+    }
+    
+    int currentDrinks = widget.consumptions.where((c) => DateFormat('yyyyMMdd').format(c.date) == logicalKeyDate).length;
+
+    if (currentGoal == null) {
+      return GestureDetector(
+        onTap: _showSetPartyGoalDialog,
+        child: glassModule(
+          isDarkMode: widget.isDarkMode,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: widget.accentColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.nightlife, color: widget.accentColor, size: 20),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Activer un objectif",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      "Fixez-vous une limite pour cette journée",
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: widget.accentColor),
+            ],
+          ),
+        ),
+      );
+    } else {
+      double progress = (currentDrinks / currentGoal).clamp(0.0, 1.0);
+      Color progressColor = Colors.green;
+      if (progress >= 1.0) {
+        progressColor = Colors.redAccent;
+      } else if (progress >= 0.7) {
+        progressColor = Colors.orange;
+      }
+
+      return GestureDetector(
+         onTap: _showSetPartyGoalDialog,
+         child: glassModule(
+          isDarkMode: widget.isDarkMode,
+          borderColor: progressColor.withValues(alpha: 0.3),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Objectif Journalier",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          "$currentDrinks / $currentGoal verres",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: progressColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 8,
+                        backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
+                        valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                      ),
+                    ),
+                    if (progress >= 1.0)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          "Objectif atteint ou dépassé, restez prudent !",
+                          style: TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 15),
+              IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                onPressed: () => widget.onUpdateContext(partyKey, ""),
+                tooltip: "Annuler l'objectif",
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _glassModule(
+          Text(
+            "Bonjour ${widget.activeUser.name} 👋",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: widget.isDarkMode ? Colors.white : Colors.black87,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 15),
+          _buildPartyModeWidget(),
+          const SizedBox(height: 15),
+          glassModule(
             isDarkMode: widget.isDarkMode,
             child: Column(
               children: [
@@ -1266,19 +1651,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() => _selectedDate = date);
                   widget.onDateSelected?.call(date);
                 },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+          child: Opacity(
+            opacity: isFuture ? 0.25 : 1.0,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: isSel
                   ? widget.accentColor
                   : (hasC
-                      ? widget.accentColor.withValues(alpha: 0.4)
-                      : (widget.isDarkMode
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.03))),
+                        ? widget.accentColor.withValues(alpha: 0.4)
+                        : (widget.isDarkMode
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03))),
               border: Border.all(
-                color: isSel ? Colors.white.withValues(alpha: 0.5) : Colors.transparent,
+                color: isSel
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : Colors.transparent,
                 width: 1.5,
               ),
               boxShadow: isSel
@@ -1287,7 +1676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: widget.accentColor.withValues(alpha: 0.4),
                         blurRadius: 10,
                         spreadRadius: 1,
-                      )
+                      ),
                     ]
                   : [],
             ),
@@ -1330,8 +1719,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: isSel ? 13 : 10,
                         color: (isSel || hasC)
                             ? Colors.white
-                            : (widget.isDarkMode ? Colors.white38 : Colors.black38),
-                        fontWeight: (isSel || hasC) ? FontWeight.bold : FontWeight.normal,
+                            : (widget.isDarkMode
+                                  ? Colors.white38
+                                  : Colors.black38),
+                        fontWeight: (isSel || hasC)
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -1339,7 +1732,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        );
+        ),
+      );
       },
     );
   }
@@ -1413,7 +1807,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _verticalDivider() {
     return VerticalDivider(
-      color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.1),
+      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(alpha: 0.1),
       thickness: 1,
       width: 1,
       indent: 4,
@@ -1473,7 +1867,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: AnimatedScale(
           scale: candidateData.isNotEmpty ? 1.05 : 1.0,
           duration: const Duration(milliseconds: 200),
-          child: _glassModule(
+          child: glassModule(
             isDarkMode: widget.isDarkMode,
             showHalo: false,
             borderColor: candidateData.isNotEmpty ? widget.accentColor : null,
@@ -1497,13 +1891,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => _showContextDialog(moment, momentContext ?? ''),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 15, left: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: widget.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                      color: widget.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: (momentContext != null && momentContext.trim().isNotEmpty)
-                            ? widget.accentColor.withOpacity(0.3)
+                        color:
+                            (momentContext != null &&
+                                momentContext.trim().isNotEmpty)
+                            ? widget.accentColor.withValues(alpha: 0.3)
                             : Colors.transparent,
                       ),
                     ),
@@ -1512,20 +1913,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.edit_note,
                           size: 16,
-                          color: (momentContext != null && momentContext.trim().isNotEmpty)
+                          color:
+                              (momentContext != null &&
+                                  momentContext.trim().isNotEmpty)
                               ? widget.accentColor
-                              : (widget.isDarkMode ? Colors.white24 : Colors.black26),
+                              : (widget.isDarkMode
+                                    ? Colors.white24
+                                    : Colors.black26),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            (momentContext != null && momentContext.trim().isNotEmpty)
+                            (momentContext != null &&
+                                    momentContext.trim().isNotEmpty)
                                 ? cleanDisplay(momentContext)
                                 : 'Ajouter un contexte...',
                             style: TextStyle(
-                              color: (momentContext != null && momentContext.trim().isNotEmpty)
-                                  ? (widget.isDarkMode ? const Color(0xFFB2EBF2) : Colors.blueGrey)
-                                  : (widget.isDarkMode ? Colors.white24 : Colors.black26),
+                              color:
+                                  (momentContext != null &&
+                                      momentContext.trim().isNotEmpty)
+                                  ? (widget.isDarkMode
+                                        ? const Color(0xFFB2EBF2)
+                                        : Colors.blueGrey)
+                                  : (widget.isDarkMode
+                                        ? Colors.white24
+                                        : Colors.black26),
                               fontSize: 11,
                               fontStyle: FontStyle.italic,
                             ),
@@ -1555,9 +1967,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: widget.accentColor.withOpacity(0.1),
+        color: widget.accentColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: widget.accentColor.withOpacity(0.3)),
+        border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1580,7 +1992,7 @@ class _HomeScreenState extends State<HomeScreen> {
           GestureDetector(
             onTap: () => _showSaisie(c.moment, existingConso: c),
             child: Text(
-              '${c.type} ${c.volume} (${DateFormat('HH:mm').format(c.date)})',
+              '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
               style: TextStyle(
                 fontSize: 10,
                 color: widget.accentColor,
@@ -1669,22 +2081,36 @@ class _HomeScreenState extends State<HomeScreen> {
         activeUserId: widget.activeUserId,
         existingConso: existingConso,
         onSave: (conso) => widget.onAddOrUpdate(conso),
+        unitMl: widget.unitMl,
       ),
     );
+  }
+
+  String _formatVol(String v) {
+    if (!widget.unitMl) return v;
+    if (v.contains('cl')) {
+      double val = double.tryParse(v.replaceAll('cl', '')) ?? 0;
+      return "${(val * 10).toInt()}ml";
+    }
+    return v;
   }
 }
 
 class StatsScreen extends StatefulWidget {
   final List<Consumption> consumptions;
+  final Map<String, String> contexts;
   final bool isDarkMode;
   final Color accentColor;
   final UserProfile activeUser;
+  final bool isYoungDriver;
   const StatsScreen({
     super.key,
     required this.consumptions,
+    required this.contexts,
     required this.isDarkMode,
     required this.accentColor,
     required this.activeUser,
+    required this.isYoungDriver,
   });
   @override
   State<StatsScreen> createState() => _StatsScreenState();
@@ -1703,7 +2129,13 @@ class _StatsScreenState extends State<StatsScreen> {
         )
         .toList();
     for (var c in recentConsos) {
-      double vol = double.tryParse(c.volume.replaceAll('cl', '')) ?? 0;
+      double vol = 0;
+      String vStr = c.volume.toLowerCase();
+      if (vStr.contains('ml')) {
+        vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0; // Conversion ml -> cl pour le calcul
+      } else {
+        vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+      }
       double grammes = (vol * 10 * c.degree * 0.8) / 100;
       double hoursSinceDrink = now.difference(c.date).inMinutes / 60.0;
       double eliminationHours = (hoursSinceDrink - 0.75).clamp(
@@ -1721,9 +2153,10 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     double currentBac = _calculateCurrentBAC();
-    bool isDanger = currentBac >= 0.5;
-    String countdownText = currentBac > 0.5
-        ? "${((currentBac - 0.5) / 0.15).floor()}h ${(((currentBac - 0.5) / 0.15 - ((currentBac - 0.5) / 0.15).floor()) * 60).round()}min"
+    double threshold = widget.isYoungDriver ? 0.2 : 0.5;
+    bool isDanger = currentBac >= threshold;
+    String countdownText = currentBac > threshold
+        ? "${((currentBac - threshold) / 0.15).floor()}h ${(((currentBac - threshold) / 0.15 - ((currentBac - threshold) / 0.15).floor()) * 60).round()}min"
         : "Prêt à conduire";
     final now = DateTime.now();
     final countedDrinks = widget.consumptions
@@ -1732,32 +2165,72 @@ class _StatsScreenState extends State<StatsScreen> {
         )
         .toList();
 
-    int daysToLookBack = (_period == 'Semaine') ? 7 : (_period == 'Mois') ? 30 : 365;
-    DateTime startDate = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysToLookBack - 1));
+    int daysToLookBack = (_period == 'Semaine')
+        ? 7
+        : (_period == 'Mois')
+        ? 30
+        : 365;
+    DateTime startDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: daysToLookBack - 1));
     Set<String> datesWithDrinks = widget.consumptions
         .where((c) => !c.date.isBefore(startDate))
         .map((c) => "${c.date.year}-${c.date.month}-${c.date.day}")
         .toSet();
     int dryDays = daysToLookBack - datesWithDrinks.length;
     double totalGrams = 0;
-    for (var c in widget.consumptions.where((c) => !c.date.isBefore(startDate))) {
+    for (var c in widget.consumptions.where(
+      (c) => !c.date.isBefore(startDate),
+    )) {
       double vol = double.tryParse(c.volume.replaceAll('cl', '')) ?? 0;
       double grammes = (vol * 10 * c.degree * 0.8) / 100;
       totalGrams += grammes;
     }
     int unities = (totalGrams / 10).round();
 
+    int countTotalGoals = 0;
+    int countSuccessGoals = 0;
+    
+    widget.contexts.keys.where((k) => k.startsWith("${widget.activeUser.id}_") && k.endsWith("_partyGoal")).forEach((k) {
+      var parts = k.split('_');
+      if (parts.length >= 3) {
+        String dateStr = parts[1];
+        if (dateStr.length == 8) {
+          int year = int.tryParse(dateStr.substring(0,4)) ?? 0;
+          int month = int.tryParse(dateStr.substring(4,6)) ?? 0;
+          int day = int.tryParse(dateStr.substring(6,8)) ?? 0;
+          if (year > 0) {
+            DateTime d = DateTime(year, month, day);
+            if (!d.isBefore(startDate)) {
+              countTotalGoals++;
+              int goal = int.tryParse(widget.contexts[k]!) ?? 0;
+              int drinksCount = widget.consumptions.where((c) {
+                return c.date.year == d.year && c.date.month == d.month && c.date.day == d.day;
+              }).length;
+              if (drinksCount <= goal) countSuccessGoals++;
+            }
+          }
+        }
+      }
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          _glassModule(
+          glassModule(
             isDarkMode: widget.isDarkMode,
             child: Column(
               children: [
-                const Text(
+                Text(
                   "ALCOOLÉMIE ESTIMÉE (WIDMARK + PIC)",
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 15),
                 Stack(
@@ -1770,21 +2243,24 @@ class _StatsScreenState extends State<StatsScreen> {
                         value: (currentBac / 1.5).clamp(0, 1),
                         strokeWidth: 8,
                         color: isDanger ? Colors.red : widget.accentColor,
-                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
                       ),
                     ),
                     Text(
                       currentBac.toStringAsFixed(2),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: widget.isDarkMode
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isDanger ? "⚠️ SEUIL DÉPASSÉ (0.50g/L)" : "SÉCURITÉ OK",
+                  isDanger ? "⚠️ SEUIL DÉPASSÉ (${threshold.toStringAsFixed(1)}g/L)" : "SÉCURITÉ OK",
                   style: TextStyle(
                     color: isDanger ? Colors.red : Colors.green,
                     fontSize: 10,
@@ -1793,16 +2269,24 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 if (countedDrinks.isNotEmpty) ...[
                   const Divider(height: 30),
-                  const Text(
+                  Text(
                     "Verres comptés (12h glissantes) :",
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode
+                          ? Colors.white70
+                          : Colors.black87,
+                    ),
                   ),
                   ...countedDrinks.map(
                     (c) => Text(
                       "• ${c.type} (${DateFormat('HH:mm').format(c.date)})",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.blueGrey,
+                        color: widget.isDarkMode
+                            ? Colors.white54
+                            : Colors.black54,
                       ),
                     ),
                   ),
@@ -1811,12 +2295,12 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
           const SizedBox(height: 15),
-          _glassModule(
+          glassModule(
             isDarkMode: widget.isDarkMode,
             showHalo: false,
             borderColor: isDanger
-                ? Colors.red.withOpacity(0.3)
-                : widget.accentColor.withOpacity(0.3),
+                ? Colors.red.withValues(alpha: 0.3)
+                : (currentBac > 0 ? Colors.orange.withValues(alpha: 0.3) : widget.accentColor.withValues(alpha: 0.3)),
             child: Column(
               children: [
                 Text(
@@ -1824,7 +2308,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                    color: widget.isDarkMode ? Colors.white70 : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1862,12 +2346,15 @@ class _StatsScreenState extends State<StatsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [widget.accentColor, const Color(0xFFE94E77)], // Dégradé dynamique
+                  colors: [
+                    widget.accentColor,
+                    const Color(0xFFE94E77),
+                  ], // Dégradé dynamique
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.accentColor.withOpacity(0.4),
+                    color: widget.accentColor.withValues(alpha: 0.4),
                     blurRadius: 15,
                     spreadRadius: 2,
                   ),
@@ -1926,7 +2413,9 @@ class _StatsScreenState extends State<StatsScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color: widget.isDarkMode
+                          ? Colors.white70
+                          : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1935,7 +2424,9 @@ class _StatsScreenState extends State<StatsScreen> {
                     style: TextStyle(
                       fontSize: 9,
                       fontStyle: FontStyle.italic,
-                      color: widget.isDarkMode ? Colors.white38 : Colors.black45,
+                      color: widget.isDarkMode
+                          ? Colors.white54
+                          : Colors.black87,
                     ),
                   ),
                 ],
@@ -1943,7 +2434,9 @@ class _StatsScreenState extends State<StatsScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: widget.isDarkMode ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
+                  color: widget.isDarkMode
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -1952,18 +2445,40 @@ class _StatsScreenState extends State<StatsScreen> {
                     return GestureDetector(
                       onTap: () => setState(() => _period = p),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected ? (widget.isDarkMode ? Colors.white.withOpacity(0.15) : Colors.white) : Colors.transparent,
+                          color: isSelected
+                              ? (widget.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : Colors.white)
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: isSelected && !widget.isDarkMode ? const [BoxShadow(color: Colors.black12, blurRadius: 4)] : [],
+                          boxShadow: isSelected && !widget.isDarkMode
+                              ? const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                  ),
+                                ]
+                              : [],
                         ),
                         child: Text(
                           p,
                           style: TextStyle(
                             fontSize: 10,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                            color: isSelected ? (widget.isDarkMode ? Colors.white : Colors.black) : (widget.isDarkMode ? Colors.white54 : Colors.black54),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w600,
+                            color: isSelected
+                                ? (widget.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black)
+                                : (widget.isDarkMode
+                                      ? Colors.white54
+                                      : Colors.black54),
                           ),
                         ),
                       ),
@@ -1977,46 +2492,76 @@ class _StatsScreenState extends State<StatsScreen> {
           Row(
             children: [
               Expanded(
-                child: _glassModule(
+                child: glassModule(
                   isDarkMode: widget.isDarkMode,
                   showHalo: false,
                   child: Column(
                     children: [
                       const Text(
                         "JOURS VERTS",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         "$dryDays",
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: widget.isDarkMode ? Colors.white : Colors.black),
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                       Text(
                         "sur $daysToLookBack jours",
-                        style: const TextStyle(fontSize: 9, color: Colors.blueGrey),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: widget.isDarkMode
+                              ? Colors.white54
+                              : Colors.black54,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
               Expanded(
-                child: _glassModule(
+                child: glassModule(
                   isDarkMode: widget.isDarkMode,
                   showHalo: false,
                   child: Column(
                     children: [
                       Text(
                         "UNITÉS OMS",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: widget.accentColor),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: widget.accentColor,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         "$unities",
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: widget.isDarkMode ? Colors.white : Colors.black),
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
-                      const Text(
+                      Text(
                         "verres standards",
-                        style: TextStyle(fontSize: 9, color: Colors.blueGrey),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: widget.isDarkMode
+                              ? Colors.white54
+                              : Colors.black54,
+                        ),
                       ),
                     ],
                   ),
@@ -2025,6 +2570,87 @@ class _StatsScreenState extends State<StatsScreen> {
             ],
           ),
           const SizedBox(height: 6),
+          if (countTotalGoals > 0) ...[
+            glassModule(
+              isDarkMode: widget.isDarkMode,
+              showHalo: false,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: countSuccessGoals == countTotalGoals ? Colors.green.withValues(alpha: 0.2) : widget.accentColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      countSuccessGoals == countTotalGoals ? Icons.emoji_events : Icons.track_changes,
+                      color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "OBJECTIFS RESPECTÉS",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "$countSuccessGoals / $countTotalGoals",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: widget.isDarkMode ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          "Objectifs tenus sur la période",
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 45,
+                    width: 45,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: countSuccessGoals / countTotalGoals,
+                          color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                          backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
+                          strokeWidth: 4,
+                        ),
+                        Center(
+                          child: Text(
+                            "${((countSuccessGoals / countTotalGoals) * 100).toInt()}%",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
@@ -2033,13 +2659,13 @@ class _StatsScreenState extends State<StatsScreen> {
                 fontSize: 9,
                 height: 1.4,
                 fontStyle: FontStyle.italic,
-                color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                color: widget.isDarkMode ? Colors.white54 : Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 15),
-          _glassModule(
+          glassModule(
             isDarkMode: widget.isDarkMode,
             showHalo: false,
             child: Column(
@@ -2077,7 +2703,7 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          _glassModule(
+          glassModule(
             isDarkMode: widget.isDarkMode,
             showHalo: false,
             child: Column(
@@ -2118,7 +2744,7 @@ class _StatsScreenState extends State<StatsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (c) => _SobrietyTestSheet(
+      builder: (c) => SobrietyTestSheet(
         isDarkMode: widget.isDarkMode,
         accentColor: widget.accentColor,
       ),
@@ -2282,11 +2908,20 @@ class _StatsScreenState extends State<StatsScreen> {
           isCurved: true,
           curveSmoothness: 0.35,
           barWidth: 2.0,
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFB74D), Color(0xFFFF9800)],
+          gradient: LinearGradient(
+            colors: widget.isDarkMode
+                ? const [Color(0xFFFFB74D), Color(0xFFFF9800)]
+                : const [
+                    Color(0xFFFF5722),
+                    Color(0xFFD84315),
+                  ], // Deeper orange/red for contrast
           ),
           shadow: BoxShadow(
-            color: const Color(0xFFFF9800).withOpacity(widget.isDarkMode ? 0.4 : 0.2),
+            color: widget.isDarkMode
+                ? const Color(0xFFFF9800).withValues(alpha: 0.4)
+                : const Color(
+                    0xFFE64A19,
+                  ).withValues(alpha: 0.4), // Stronger shadow in light mode
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -2295,13 +2930,20 @@ class _StatsScreenState extends State<StatsScreen> {
             getDotPainter: (spot, percent, barData, index) {
               // Highlight only the last point to mimic the blue reference image
               if (index != spots.length - 1) {
-                return FlDotCirclePainter(radius: 0, color: Colors.transparent, strokeWidth: 0, strokeColor: Colors.transparent);
+                return FlDotCirclePainter(
+                  radius: 0,
+                  color: Colors.transparent,
+                  strokeWidth: 0,
+                  strokeColor: Colors.transparent,
+                );
               }
               return FlDotCirclePainter(
                 radius: 6,
                 color: Colors.white,
                 strokeWidth: 3,
-                strokeColor: const Color(0xFFFF9800),
+                strokeColor: widget.isDarkMode
+                    ? const Color(0xFFFF9800)
+                    : const Color(0xFFD84315),
               );
             },
           ),
@@ -2311,8 +2953,8 @@ class _StatsScreenState extends State<StatsScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.redAccent.withOpacity(widget.isDarkMode ? 0.6 : 0.4),
-                Colors.orange.withOpacity(widget.isDarkMode ? 0.2 : 0.1),
+                Colors.redAccent.withValues(alpha: widget.isDarkMode ? 0.6 : 0.4),
+                Colors.orange.withValues(alpha: widget.isDarkMode ? 0.2 : 0.1),
                 Colors.transparent,
               ],
               stops: const [0.0, 0.4, 1.0],
@@ -2457,6 +3099,16 @@ class OptionsScreen extends StatefulWidget {
   final Function(UserProfile) onExportProfile;
   final Function(UserProfile) onImportProfile;
   final Function(UserProfile) onPrintProfile;
+  final Future<void> Function() onImportFullProject;
+  final Future<void> Function() onImportAsNew;
+  final Future<void> Function() onExportFullProject;
+  final bool isYoungDriver;
+  final Function(bool) onYoungDriverChanged;
+  final bool unitMl;
+  final Function(bool) onUnitMlChanged;
+  final VoidCallback? onSyncCloud;
+  final VoidCallback onLogout;
+
   const OptionsScreen({
     super.key,
     required this.profiles,
@@ -2469,6 +3121,15 @@ class OptionsScreen extends StatefulWidget {
     required this.onExportProfile,
     required this.onImportProfile,
     required this.onPrintProfile,
+    required this.onImportFullProject,
+    required this.onImportAsNew,
+    required this.onExportFullProject,
+    required this.isYoungDriver,
+    required this.onYoungDriverChanged,
+    required this.unitMl,
+    required this.onUnitMlChanged,
+    this.onSyncCloud,
+    required this.onLogout,
   });
   @override
   State<OptionsScreen> createState() => _OptionsScreenState();
@@ -2612,7 +3273,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: widget.accentColor.withOpacity(0.3),
+                  color: widget.accentColor.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -2715,7 +3376,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: widget.accentColor.withOpacity(0.3),
+                  color: widget.accentColor.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -2781,7 +3442,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: widget.accentColor.withOpacity(0.3),
+                color: widget.accentColor.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
               margin: const EdgeInsets.only(bottom: 20),
@@ -2817,7 +3478,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     url,
                     mode: LaunchMode.externalApplication,
                   )) {
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text("Impossible d'ouvrir PayPal"),
@@ -2890,7 +3551,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.black87,
-                      Colors.black.withOpacity(0.3),
+                      Colors.black.withValues(alpha: 0.3),
                       Colors.black,
                     ],
                     stops: const [0.0, 0.5, 1.0],
@@ -2907,7 +3568,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: widget.accentColor.withOpacity(0.3),
+                        color: widget.accentColor.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                       margin: const EdgeInsets.only(bottom: 20),
@@ -2921,7 +3582,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       ),
                     ),
                     const SizedBox(height: 160),
-                    _glassModule(
+                    glassModule(
                       isDarkMode: true,
                       showHalo: false,
                       child: Column(
@@ -2949,7 +3610,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                               height: 1.5,
                             ),
                           ),
@@ -2967,7 +3628,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       ),
                     ),
                     const Spacer(),
-                    _glassModule(
+                    glassModule(
                       isDarkMode: true,
                       showHalo: false,
                       child: ListTile(
@@ -3027,6 +3688,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        // ---------------------------
         Text(
           "PROFILS",
           style: TextStyle(
@@ -3039,7 +3701,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ...widget.profiles.map(
           (p) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _glassModule(
+            child: glassModule(
               isDarkMode: widget.isDarkMode,
               child: Column(
                 children: [
@@ -3050,9 +3712,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                         CircleAvatar(
                           backgroundColor: Color(p.colorValue),
                           radius: 24,
-                          backgroundImage: p.imagePath != null
-                              ? FileImage(File(p.imagePath!))
-                              : null,
+                          backgroundImage: getProfileImage(p.imagePath),
                           child: p.imagePath == null
                               ? const Icon(Icons.person, color: Colors.white)
                               : null,
@@ -3136,21 +3796,101 @@ class _OptionsScreenState extends State<OptionsScreen> {
             ),
           ),
         ),
-        _glassModule(
+        Row(
+          children: [
+            Expanded(
+              child: glassModule(
+                isDarkMode: widget.isDarkMode,
+                child: ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  leading: Icon(Icons.person_add_alt_1, color: widget.accentColor, size: 20),
+                   title: Text(
+                    "Créer un profil",
+                    style: TextStyle(
+                      color: widget.accentColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  onTap: () => _editProfile(null),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: glassModule(
+                isDarkMode: widget.isDarkMode,
+                child: ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  leading: Icon(Icons.file_download_outlined, color: widget.accentColor, size: 20),
+                  title: Text(
+                    "Importer un profil Json",
+                    style: TextStyle(
+                      color: widget.accentColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  onTap: widget.onImportAsNew,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        glassModule(
           isDarkMode: widget.isDarkMode,
-          showHalo: false,
-          child: ListTile(
-            dense: true,
-            leading: Icon(
-              Icons.person_add_alt_1,
-              color: widget.accentColor,
-              size: 20,
-            ),
-            title: Text(
-              "Ajouter un profil",
-              style: TextStyle(color: widget.accentColor, fontSize: 13),
-            ),
-            onTap: () => _editProfile(null),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.account_circle_outlined, color: widget.accentColor, size: 24),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Compte connecté", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: widget.accentColor, letterSpacing: 1.1)),
+                          Text(
+                            Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
+                            style: TextStyle(
+                              color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: widget.onLogout,
+                      child: Text("Déconnexion", style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                    ),
+                  ],
+                ),
+              ),
+              _divider(),
+              ListTile(
+                dense: true,
+                leading: Icon(Icons.cloud_download_rounded, color: widget.accentColor),
+                title: Text(
+                  "Récupérer depuis le Cloud",
+                  style: TextStyle(
+                    color: widget.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                subtitle: Text("Synchroniser vos profils sur cet appareil", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                onTap: widget.onSyncCloud,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 25),
@@ -3163,7 +3903,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        _glassModule(
+        glassModule(
           isDarkMode: widget.isDarkMode,
           showHalo: false,
           child: Column(
@@ -3182,22 +3922,21 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   size: 20,
                 ),
               ),
-              Divider(
-                height: 1,
-                color: widget.isDarkMode ? Colors.white10 : Colors.black12,
-              ),
-              ListTile(
+              _divider(),
+              SwitchListTile(
                 dense: true,
-                leading: const Icon(
-                  Icons.delete_forever,
-                  color: Colors.redAccent,
-                  size: 20,
-                ),
-                title: Text(
-                  "Réinitialisation totale",
-                  style: TextStyle(color: itemTxt, fontSize: 13),
-                ),
-                onTap: widget.onReset,
+                secondary: Icon(Icons.warning_amber_rounded, color: widget.accentColor, size: 20),
+                title: const Text("Jeune conducteur (0.2g/L)", style: TextStyle(fontSize: 13)),
+                value: widget.isYoungDriver,
+                onChanged: widget.onYoungDriverChanged,
+              ),
+              _divider(),
+              SwitchListTile(
+                dense: true,
+                secondary: Icon(Icons.straighten, color: widget.accentColor, size: 20),
+                title: const Text("Unités en ML (ex: 250ml)", style: TextStyle(fontSize: 13)),
+                value: widget.unitMl,
+                onChanged: widget.onUnitMlChanged,
               ),
             ],
           ),
@@ -3212,7 +3951,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        _glassModule(
+        glassModule(
           isDarkMode: widget.isDarkMode,
           showHalo: false,
           child: Column(
@@ -3236,23 +3975,95 @@ class _OptionsScreenState extends State<OptionsScreen> {
               ),
               _divider(),
               _legalTile(
-                Icons.notifications_active_outlined,
-                "Tester les notifications",
-                _testNotification,
-              ),
-              _divider(),
-              _legalTile(
                 Icons.favorite_outline,
                 "Soutenir le projet",
                 _showDonationDialog,
               ),
               _divider(),
-              _legalTile(Icons.info_outline, "Crédits & Contacts", _showCreditsDialog),
+              _legalTile(
+                Icons.info_outline,
+                "Crédits & Contacts",
+                _showCreditsDialog,
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 30),
+        glassModule(
+          isDarkMode: widget.isDarkMode,
+          child: Column(
+            children: [
+              _legalTile(
+                Icons.cloud_upload_outlined,
+                "Sauvegarder tout le projet (JSON)",
+                widget.onExportFullProject,
+              ),
+              _divider(),
+              _legalTile(
+                Icons.restore,
+                "Restaurer tout l'historique (JSON)",
+                widget.onImportFullProject,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 30),
+        Text(
+          "ZONE DE DANGER",
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.redAccent.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: 10),
+        glassModule(
+          isDarkMode: widget.isDarkMode,
+          showHalo: false,
+          borderColor: Colors.redAccent.withValues(alpha: 0.3),
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
+            title: const Text(
+              "Réinitialiser toutes les données",
+              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
+            onTap: () => _confirmFullReset(),
+          ),
+        ),
+        const SizedBox(height: 120),
       ],
+    );
+  }
+
+  void _confirmFullReset() {
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text("Réinitialisation totale ?"),
+        content: const Text(
+          "ATTENTION : Cette action supprimera TOUTES les données de l'application (profils, historique, consommations) et est irréversible.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: const Text("ANNULER"),
+          ),
+          TextButton(
+            onPressed: () {
+              widget.onReset();
+              Navigator.pop(c);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Toutes les données ont été effacées")),
+              );
+            },
+            child: const Text(
+              "TOUT SUPPRIMER",
+              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3261,7 +4072,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (c) => _SobrietyTestSheet(
+      builder: (c) => SobrietyTestSheet(
         isDarkMode: widget.isDarkMode,
         accentColor: widget.accentColor,
       ),
@@ -3289,7 +4100,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: widget.accentColor.withOpacity(0.3),
+                  color: widget.accentColor.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -3318,16 +4129,6 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       "Ajouter du contexte",
                       "Appuyez sur le champ 'Ajouter un contexte...' sous une tranche horaire pour noter l'événement.",
                     ),
-                    _guideStep(
-                      Icons.touch_app,
-                      "Glisser-Déposer",
-                      "Maintenez une bulle de boisson pour la déplacer vers une autre tranche horaire.",
-                    ),
-                    _guideStep(
-                      Icons.notifications_active,
-                      "Alertes automatiques",
-                      "Si votre taux dépasse 0.5g/L, une notification est programmée pour vous prévenir du retour sous le seuil légal.",
-                    ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context); // Close guide
@@ -3340,9 +4141,34 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       ),
                     ),
                     _guideStep(
+                      Icons.people_alt_outlined,
+                      "Multi-profils & Exports",
+                      "Chaque utilisateur dispose de ses propres réglages. Vous pouvez EXPORTER un profil seul (JSON) pour le sauvegarder ou l'envoyer par message.",
+                    ),
+                    _guideStep(
+                      Icons.sync_alt,
+                      "Import de profil",
+                      "Dans les réglages d'un profil, utilisez 'Import' pour restaurer des données existantes. Attention : cela remplace les données actuelles de ce profil.",
+                    ),
+                    _guideStep(
+                      Icons.backup_outlined,
+                      "Sauvegarde Totale",
+                      "Pour changer de téléphone, utilisez 'SAUVEGARDER TOUT LE PROJET'. Cela génère un fichier contenant tous les profils et tout l'historique.",
+                    ),
+                    _guideStep(
                       Icons.insights,
                       "Comprendre le graphique",
-                      "La courbe affiche votre taux d'alcoolémie estimé. Rappel : Ce n'est qu'une estimation théorique.",
+                      "La courbe illustre la fréquence et le volume total de vos consommations sur la période.",
+                    ),
+                    _guideStep(
+                      Icons.brightness_6,
+                      "Mode Clair / Sombre",
+                      "Basculez entre l'ambiance claire ou sombre à l'aide de l'icône Soleil/Lune en haut de l'écran principal.",
+                    ),
+                    _guideStep(
+                      Icons.picture_as_pdf, // or print
+                      "Impression des données",
+                      "Imprimez ou générez un rapport PDF de votre activité directement depuis votre volet de Profil ou des statistiques mensuelles.",
                     ),
                     const SizedBox(height: 30),
                   ],
@@ -3356,65 +4182,46 @@ class _OptionsScreenState extends State<OptionsScreen> {
   }
 
   Widget _guideStep(IconData icon, String title, String desc) => Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: widget.accentColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: widget.accentColor, size: 20),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: widget.isDarkMode ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    desc,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: widget.isDarkMode ? Colors.white60 : Colors.black54,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.only(bottom: 24),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: widget.accentColor.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: widget.accentColor, size: 20),
         ),
-      );
-
-  Future<void> _testNotification() async {
-    const androidDetails = AndroidNotificationDetails(
-      'test_channel',
-      'Test Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    await flutterLocalNotificationsPlugin.show(
-      123,
-      'Test de Notification',
-      'Si vous voyez ce message, les notifications fonctionnent correctement !',
-      const NotificationDetails(android: androidDetails),
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Test envoyé ! Vérifiez vos notifications.')),
-    );
-  }
+        const SizedBox(width: 15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: widget.isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                desc,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _miniAction(
     IconData icon,
@@ -3491,6 +4298,7 @@ class _SaisieSheet extends StatefulWidget {
   final Function(Consumption) onSave;
   final bool isDarkMode;
   final Color accentColor;
+  final bool unitMl;
   const _SaisieSheet({
     required this.moment,
     required this.date,
@@ -3499,6 +4307,7 @@ class _SaisieSheet extends StatefulWidget {
     required this.onSave,
     required this.isDarkMode,
     required this.accentColor,
+    required this.unitMl,
   });
 
   static TimeOfDay getDefaultTimeForMoment(String moment) {
@@ -3538,782 +4347,364 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     if (widget.existingConso != null) {
       _time = TimeOfDay.fromDateTime(widget.existingConso!.date);
     } else {
-      final now = TimeOfDay.now();
-      if (_isTimeValid(now, widget.moment)) {
-        _time = now;
-      } else {
-        _time = _SaisieSheet.getDefaultTimeForMoment(widget.moment);
-      }
+      _time = TimeOfDay.now();
     }
   }
 
-  bool _isTimeValid(TimeOfDay time, String moment) {
+  String _getMomentFromTime(TimeOfDay time) {
     int h = time.hour;
-    switch (moment) {
-      case 'Matin':
-        return h >= 6 && h < 11;
-      case 'Midi':
-        return h >= 11 && h < 15;
-      case 'Après-midi':
-        return h >= 15 && h < 18;
-      case 'Soir':
-        return h >= 18 && h < 21;
-      case 'Soirée':
-        return h >= 21 || h < 6;
-      default:
-        return true;
-    }
-  }
-
-  String _getRangeText(String moment) {
-    switch (moment) {
-      case 'Matin':
-        return "6h - 11h";
-      case 'Midi':
-        return "11h - 15h";
-      case 'Après-midi':
-        return "15h - 18h";
-      case 'Soir':
-        return "18h - 21h";
-      case 'Soirée':
-        return "21h - 6h";
-      default:
-        return "";
-    }
+    if (h >= 6 && h < 11) return 'Matin';
+    if (h >= 11 && h < 15) return 'Midi';
+    if (h >= 15 && h < 18) return 'Après-midi';
+    if (h >= 18 && h < 21) return 'Soir';
+    return 'Soirée';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        24,
-        12,
-        24,
-        MediaQuery.of(context).viewInsets.bottom + 40,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: widget.isDarkMode ? Colors.white10 : Colors.black12,
-              borderRadius: BorderRadius.circular(2),
-            ),
-            margin: const EdgeInsets.only(bottom: 20),
-          ),
-          Text(
-            "AJOUTER UN VERRE (${widget.moment})",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: widget.accentColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ['Bière', 'Vin', 'Spiritueux', 'Sans alcool']
-                .map(
-                  (type) => GestureDetector(
-                    onTap: () => setState(() {
-                      _t = type;
-                      if (type == 'Bière') {
-                        _d = 6.0;
-                      } else if (type == 'Vin') {
-                        _d = 13.0;
-                      } else if (type == 'Spiritueux') {
-                        _d = 40.0;
-                      } else {
-                        _d = 0.0;
-                      }
-                    }),
-                    child: Container(
-                      width: 75,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: _t == type
-                            ? widget.accentColor.withOpacity(0.15)
-                            : (widget.isDarkMode
-                                  ? Colors.black26
-                                  : Colors.black.withOpacity(0.05)),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: _t == type
-                              ? widget.accentColor
-                              : (widget.isDarkMode
-                                    ? Colors.white10
-                                    : Colors.black12),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            type == 'Bière'
-                                ? Icons.sports_bar
-                                : type == 'Vin'
-                                ? Icons.wine_bar
-                                : type == 'Sans alcool'
-                                ? Icons.local_cafe
-                                : Icons.local_drink,
-                            color: _t == type
-                                ? widget.accentColor
-                                : Colors.blueGrey,
-                            size: 20,
-                          ),
-                          Text(
-                            type == 'Sans alcool' ? 'Soft' : type,
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: widget.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children:
-                  [
-                        '4cl',
-                        '8cl',
-                        '12.5cl',
-                        '15cl',
-                        '25cl',
-                        '33cl',
-                        '50cl',
-                        '75cl',
-                      ]
-                      .map(
-                        (vol) => Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: ChoiceChip(
-                            label: Text(vol),
-                            selected: _v == vol,
-                            onSelected: (s) => setState(() => _v = vol),
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
-          ),
-          const SizedBox(height: 25),
-          Text(
-            "DEGRÉ : ${_d.toInt()} %",
-            style: TextStyle(
-              color: widget.accentColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 10),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: Colors.transparent,
-              inactiveTrackColor: widget.isDarkMode
-                  ? Colors.white10
-                  : Colors.black12,
-              thumbColor: Colors.white,
-              overlayColor: widget.accentColor.withOpacity(0.2),
-              valueIndicatorColor: widget.accentColor,
-              valueIndicatorTextStyle: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              showValueIndicator: ShowValueIndicator.onDrag,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ShaderMask(
-                    shaderCallback: (Rect bounds) {
-                      return const LinearGradient(
-                        colors: [
-                          Colors.lightBlueAccent,
-                          Colors.orange,
-                          Colors.redAccent,
-                          Color(0xFF8B0000),
-                        ],
-                      ).createShader(bounds);
-                    },
-                    child: Container(
-                      height: 4,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                ),
-                Slider(
-                  value: _d,
-                  min: 0,
-                  max: 50,
-                  divisions: 50,
-                  label: "${_d.toInt()}%",
-                  onChanged: (v) => setState(() => _d = v),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          ListTile(
-            leading: Icon(Icons.access_time, color: widget.accentColor),
-            title: Text("Heure (${_getRangeText(widget.moment)})"),
-            trailing: TextButton(
-              onPressed: () async {
-                final p = await showTimePicker(
-                  context: context,
-                  initialTime: _time,
-                );
-                if (p != null) {
-                  if (_isTimeValid(p, widget.moment)) {
-                    setState(() => _time = p);
-                  } else {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "L'heure doit être comprise entre ${_getRangeText(widget.moment)}",
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                }
-              },
-              child: Text(
-                _time.format(context),
-                style: TextStyle(
-                  color: widget.accentColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              DateTime finalDate = widget.date;
-              if (widget.moment == 'Soirée' && _time.hour < 6) {
-                finalDate = widget.date.add(const Duration(days: 1));
-              }
-              final fDate = DateTime(
-                finalDate.year,
-                finalDate.month,
-                finalDate.day,
-                _time.hour,
-                _time.minute,
-              );
-              widget.onSave(
-                Consumption(
-                  id:
-                      widget.existingConso?.id ??
-                      DateTime.now().millisecondsSinceEpoch.toString(),
-                  date: fDate,
-                  moment: widget.moment,
-                  type: _t,
-                  volume: _v,
-                  degree: _d,
-                  userId: widget.activeUserId,
-                ),
-              );
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: widget.accentColor,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            child: const Text("ENREGISTRER"),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-Widget _glassModule({
-  required Widget child,
-  Color? borderColor,
-  required bool isDarkMode,
-  EdgeInsets? padding,
-  bool showHalo = true,
-}) {
-  return Container(
-    margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(28), // Softer corners for Neumann style
-      boxShadow: [
-        if (isDarkMode)
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.6),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          )
-        else
-          BoxShadow(
-            color: const Color(0xFFB0BBD5).withValues(alpha: 0.35), // Beautiful deep soft shadow
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-            spreadRadius: -5,
-          ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       child: BackdropFilter(
-        filter: isDarkMode ? ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18) : ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: isDarkMode ? null : Colors.white, // Pure white cards
-            gradient: isDarkMode
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF1E272E).withValues(alpha: 0.3),
-                      const Color(0xFF000000).withValues(alpha: 0.15),
-                    ],
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(28),
+            color: widget.isDarkMode 
+                ? const Color(0xFF1A1F26).withValues(alpha: 0.6) 
+                : Colors.white.withValues(alpha: 0.6),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            gradient: widget.isDarkMode
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1E272E),
+                    Color(0xFF000000),
+                  ],
+                )
+              : null,
             border: Border.all(
-              color: borderColor ??
-                  (isDarkMode
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.white), // Keep it pure white for subtle embossed feel
-              width: isDarkMode ? 0.8 : 2.0, // Thicker white border edge for soft UI
+              color: widget.isDarkMode ? Colors.white10 : Colors.black12,
+              width: 0.5,
             ),
           ),
-          child: Stack(
-            children: [
-              // INTERNAL ORANGE HALO (Hugging the bottom border to the edge)
-              if (showHalo)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: isDarkMode
-                            ? [
-                                Colors.transparent,
-                                Colors.transparent,
-                                const Color(0xFFFF9800).withValues(alpha: 0.02),
-                                const Color(0xFFFF9800).withValues(alpha: 0.25),
-                              ]
-                            : [
-                                Colors.transparent,
-                                Colors.transparent,
-                                const Color(0xFFFF9800).withValues(alpha: 0.01),
-                                const Color(0xFFFF9800).withValues(alpha: 0.08), // Extreme softness in light mode
-                              ],
-                        stops: const [0.0, 0.6, 0.85, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-              // Liquid sheen highlight (top-left)
-              // Liquid sheen highlight (top-left)
-              if (isDarkMode)
-                Positioned(
-                  top: -50,
-                  left: -50,
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: 0.05),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              // Content With Padding
-              Padding(
-                padding: padding ?? const EdgeInsets.all(12),
-                child: child,
-              ),
-            ],
+          padding: EdgeInsets.fromLTRB(
+            24,
+            12,
+            24,
+            MediaQuery.of(context).viewInsets.bottom + 40,
           ),
-        ),
-      ),
-    ),
-  );
-}
-
-
-
-class _SobrietyTestSheet extends StatefulWidget {
-  final bool isDarkMode;
-  final Color accentColor;
-  const _SobrietyTestSheet({required this.isDarkMode, required this.accentColor});
-  @override
-  State<_SobrietyTestSheet> createState() => _SobrietyTestSheetState();
-}
-
-class _SobrietyTestSheetState extends State<_SobrietyTestSheet> with SingleTickerProviderStateMixin {
-  bool _isPlaying = false;
-  bool _isReady = false;
-  int? _reactionTime;
-  DateTime? _startTime;
-  Timer? _timer;
-  late AnimationController _pulseController;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat(reverse: true);
-  }
-
-  void _start() {
-    setState(() {
-      _isPlaying = true;
-      _isReady = false;
-      _reactionTime = null;
-    });
-    int delay = 2000 + (Random().nextInt(3000));
-    _timer = Timer(Duration(milliseconds: delay), () {
-      if (mounted) {
-        setState(() {
-          _isReady = true;
-          _startTime = DateTime.now();
-        });
-      }
-    });
-  }
-
-  void _tap() {
-    if (!_isReady) {
-      _timer?.cancel();
-      setState(() {
-        _isPlaying = false;
-        _reactionTime = -1; // Trop tôt
-      });
-      return;
-    }
-    final diff = DateTime.now().difference(_startTime!).inMilliseconds;
-    setState(() {
-      _isPlaying = false;
-      _isReady = false;
-      _reactionTime = diff;
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Color targetColor = _isReady 
-        ? Colors.greenAccent 
-        : (_isPlaying ? Colors.redAccent.withOpacity(0.3) : widget.accentColor.withOpacity(0.2));
-    
-    String statusText = !_isPlaying 
-        ? (_reactionTime == null ? "PRÊT ?" : (_reactionTime == -1 ? "TROP TÔT !" : "$_reactionTime ms"))
-        : (_isReady ? "APPUYEZ !" : "ATTENDEZ...");
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF0D1117) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(35)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 30),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("LABORATOIRE", style: TextStyle(color: widget.accentColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                    const Text("RÉFLEXOMÈTRE", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-          ),
-          if (!_isPlaying && _reactionTime == null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(30, 20, 30, 0),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: widget.accentColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: widget.accentColor.withOpacity(0.2)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: widget.accentColor, size: 20),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        "Appuyez sur le cercle pour démarrer, puis restez concentré. Appuyez dès qu'il passe au VERT !",
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          const Spacer(),
-          Center(
-            child: GestureDetector(
-              onTap: _isPlaying ? _tap : _start,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Anneaux pulsants
-                  if (_isPlaying && !_isReady)
-                    ...List.generate(3, (i) => AnimatedBuilder(
-                      animation: _pulseController,
-                      builder: (context, child) {
-                        return Container(
-                          width: 150 + (i * 40) + (_pulseController.value * 30),
-                          height: 150 + (i * 40) + (_pulseController.value * 30),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: widget.accentColor.withOpacity(0.1 * (1 - _pulseController.value))),
-                          ),
-                        );
-                      },
-                    )),
-                  // Cœur du test
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: _isReady ? 220 : 180,
-                    height: _isReady ? 220 : 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: targetColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: targetColor.withOpacity(0.6),
-                          blurRadius: _isReady ? 40 : 20,
-                          spreadRadius: _isReady ? 10 : 0,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        statusText,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: _isReady ? Colors.black : Colors.white,
-                          fontSize: _isReady ? 32 : 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(30),
+          child: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (_reactionTime != null && _reactionTime! > 0)
-                  _buildResultsCard(),
-                const SizedBox(height: 20),
-                Text(
-                  _isPlaying ? "Ne quittez pas l'écran des yeux !" : "Appuyez sur le cercle pour démarrer",
-                  style: const TextStyle(color: Colors.blueGrey, fontSize: 13, fontStyle: FontStyle.italic),
+                // Handle de fermeture
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: widget.isDarkMode ? Colors.white24 : Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 25),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultsCard() {
-    String rank = "PILOTE";
-    Color rankColor = Colors.greenAccent;
-    if (_reactionTime! > 300) { rank = "MOYEN"; rankColor = Colors.orangeAccent; }
-    if (_reactionTime! > 500) { rank = "RALENTI"; rankColor = Colors.redAccent; }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _resultStat("TEMPS", "$_reactionTime", "ms"),
-          Container(width: 1, height: 40, color: Colors.white10),
-          _resultStat("RANG", rank, "", color: rankColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _resultStat(String label, String value, String unit, {Color? color}) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(value, style: TextStyle(color: color ?? Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-            if (unit.isNotEmpty) Text(" $unit", style: const TextStyle(color: Colors.white54, fontSize: 10)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _LiquidGlassFAB extends StatefulWidget {
-  final Color accentColor;
-  final VoidCallback onPressed;
-  const _LiquidGlassFAB({required this.accentColor, required this.onPressed});
-  @override
-  State<_LiquidGlassFAB> createState() => _LiquidGlassFABState();
-}
-
-class _LiquidGlassFABState extends State<_LiquidGlassFAB> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat();
-  }
-  @override
-  void dispose() { _controller.dispose(); super.dispose(); }
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onPressed,
-      child: Container(
-        width: 65,
-        height: 65,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.4),
-              blurRadius: 20,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: ClipOval(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Liquid Background
-              Container(color: widget.accentColor.withValues(alpha: 0.2)),
-              // Animated Liquid Waves
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return CustomPaint(
-                    size: const Size(65, 65),
-                    painter: _WavePainter(
-                      color: widget.accentColor,
-                      progress: _controller.value,
+                
+                Text(
+                  "NOUVELLE CONSOMMATION",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                    fontSize: 12,
+                    color: widget.accentColor,
+                  ),
+                ),
+                Text(
+                  widget.moment.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white38 : Colors.black38,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Sélecteur de type premium
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: ['Bière', 'Vin', 'Spiritueux', 'Soft']
+                      .map((type) => _buildTypeCard(type))
+                      .toList(),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Sélecteur de volume moderne
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "VOLUME",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                      letterSpacing: 1.2,
                     ),
-                  );
-                },
-              ),
-              // Glass Sheen
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.4),
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.1),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: ['4cl','8cl','12.5cl','15cl','25cl','33cl','50cl','75cl']
+                        .map((vol) => _buildVolumeChip(vol))
+                        .toList(),
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Section Degré
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "ALCOOL",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: widget.accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        "${_d.toStringAsFixed(1)} %",
+                        style: TextStyle(
+                          color: widget.accentColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 6,
+                    activeTrackColor: widget.accentColor,
+                    inactiveTrackColor: widget.isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                    thumbColor: Colors.white,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 5),
+                    overlayColor: widget.accentColor.withValues(alpha: 0.2),
+                    showValueIndicator: ShowValueIndicator.onDrag,
+                    valueIndicatorColor: widget.accentColor,
+                    valueIndicatorTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  child: Slider(
+                    value: _d,
+                    min: 0,
+                    max: 50,
+                    divisions: 100,
+                    label: "${_d.toStringAsFixed(1)}%",
+                    onChanged: (v) => setState(() => _d = v),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Heure avec style épuré
+                Container(
+                  decoration: BoxDecoration(
+                    color: widget.isDarkMode ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    leading: Icon(Icons.access_time_filled, color: widget.accentColor, size: 20),
+                    title: const Text("Heure de consommation", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _time.format(context),
+                        style: TextStyle(color: widget.accentColor, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                    onTap: () async {
+                      final p = await showTimePicker(
+                        context: context,
+                        initialTime: _time,
+                        initialEntryMode: TimePickerEntryMode.input,
+                      );
+                      if (p != null) setState(() => _time = p);
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 35),
+                
+                // Bouton Enregistrer Premium
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.accentColor.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
                     ],
                   ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.accentColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      final String calculatedMoment = _getMomentFromTime(_time);
+                      DateTime finalDate = widget.date;
+                      if (calculatedMoment == 'Soirée' && _time.hour < 6) {
+                        finalDate = widget.date.add(const Duration(days: 1));
+                      }
+                      final fDate = DateTime(
+                        finalDate.year,
+                        finalDate.month,
+                        finalDate.day,
+                        _time.hour,
+                        _time.minute,
+                      );
+                      widget.onSave(Consumption(
+                        id: widget.existingConso?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                        date: fDate,
+                        moment: calculatedMoment,
+                        type: _t == 'Soft' ? 'Sans alcool' : _t,
+                        volume: _v,
+                        degree: _d,
+                        userId: widget.activeUserId,
+                      ));
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "ENREGISTRER",
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
+                    ),
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeCard(String type) {
+    bool isSel = _t == type || (_t == 'Sans alcool' && type == 'Soft');
+    IconData icon;
+    switch(type) {
+      case 'Bière': icon = Icons.sports_bar; break;
+      case 'Vin': icon = Icons.wine_bar; break;
+      case 'Soft': icon = Icons.local_cafe; break;
+      default: icon = Icons.local_drink;
+    }
+
+    return GestureDetector(
+      onTap: () => setState(() {
+        _t = type;
+        if (type == 'Bière') {
+          _d = 6.0;
+        } else if (type == 'Vin') {
+          _d = 13.0;
+        } else if (type == 'Spiritueux') {
+          _d = 40.0;
+        } else {
+          _d = 0.0;
+        }
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 75,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSel 
+              ? widget.accentColor.withValues(alpha: 0.25) 
+              : (widget.isDarkMode ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSel ? widget.accentColor : Colors.white10,
+            width: isSel ? 2 : 1,
+          ),
+          boxShadow: isSel ? [
+            BoxShadow(
+              color: widget.accentColor.withValues(alpha: 0.3),
+              blurRadius: 10,
+              spreadRadius: 1,
+            )
+          ] : [],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isSel ? widget.accentColor : Colors.blueGrey, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              type,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
+                color: isSel 
+                    ? (widget.isDarkMode ? Colors.white : Colors.black) 
+                    : Colors.blueGrey,
               ),
-              // Sharp Icon
-              const Icon(Icons.add, color: Colors.white, size: 35),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVolumeChip(String vol) {
+    bool isSel = _v == vol;
+    String displayLabel = vol;
+    if (widget.unitMl && vol.contains('cl')) {
+      double val = double.tryParse(vol.replaceAll('cl', '')) ?? 0;
+      displayLabel = "${(val * 10).toInt()}ml";
+    }
+    return GestureDetector(
+      onTap: () => setState(() => _v = vol),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSel ? widget.accentColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSel ? widget.accentColor : (widget.isDarkMode ? Colors.white24 : Colors.black12),
+          ),
+        ),
+        child: Text(
+          displayLabel,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
+            color: isSel ? Colors.white : (widget.isDarkMode ? Colors.white70 : Colors.black87),
           ),
         ),
       ),
     );
   }
 }
-
-class _WavePainter extends CustomPainter {
-  final Color color;
-  final double progress;
-  _WavePainter({required this.color, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final path = Path();
-    double y = size.height * (0.6 + sin(progress * 2 * pi) * 0.05); // Level
-    path.moveTo(0, y);
-    for (double x = 0; x <= size.width; x++) {
-      double sine = sin((progress * 2 * pi) + (x * 0.15));
-      path.lineTo(x, y + (sine * 3));
-    }
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_WavePainter oldDelegate) => true;
-}
-
 
