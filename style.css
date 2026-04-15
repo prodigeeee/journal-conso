@@ -762,11 +762,11 @@ h1 {
 }
 
 .list-icon {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     color: var(--accent);
     flex-shrink: 0;
-    margin-top: 2px; /* Micro-ajustement pour l'alignement optique */
+    margin-top: 7px; /* Alignement chirurgical */
 }
 
 @media (max-width: 950px) {
@@ -923,7 +923,8 @@ h1 {
         /* Annule la rotation 3D sur mobile */
     }
 
-    .section-header h2 {
+    .section-header h2,
+    .analysis-title {
         font-size: 2.2rem;
     }
 }
