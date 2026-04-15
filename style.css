@@ -1318,12 +1318,12 @@ h1 {
 .burger-menu {
     display: none;
     cursor: pointer;
-    z-index: 1001;
+    z-index: 1100; /* Plus haut que l'overlay */
     padding: 10px;
 }
 
 .burger-menu div {
-    height: 2px;
+    height: 1.5px; /* Plus fin */
     background: var(--accent);
     margin: 6px 0;
     transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
@@ -1331,26 +1331,26 @@ h1 {
 }
 
 .line1 { width: 28px; }
-.line2 { width: 20px; margin-left: auto !important; } /* Décalage élégant */
+.line2 { width: 18px; margin-left: auto !important; }
 .line3 { width: 28px; }
 
-/* Menu Superposé Premium */
+/* Menu Superposé - Correction Opacité et Flou */
 .mobile-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100vh;
-    background: radial-gradient(circle at center, rgba(255, 152, 0, 0.05) 0%, rgba(10, 11, 14, 0.98) 100%);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: #0a0b0e; /* Opaque pour éviter la pollution visuelle */
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.5s ease;
-    z-index: 1000;
+    transition: all 0.4s ease;
+    z-index: 1050;
 }
 
 .mobile-overlay.active {
@@ -1362,46 +1362,62 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 40px;
-    perspective: 1000px;
+    gap: 35px;
+    width: 100%;
 }
 
 .mobile-links a {
-    font-size: 28px;
+    font-size: 24px; /* Un peu plus petit pour l'élégance */
     font-weight: 800;
     color: white;
     text-decoration: none;
     text-transform: uppercase;
-    letter-spacing: 4px;
+    letter-spacing: 5px; /* Plus d'espace */
     opacity: 0;
-    transform: translateY(30px) rotateX(-20deg);
-    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    transform: translateY(20px);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Raffinement du bouton "Lancer l'App" */
+.mobile-links .nav-login-btn {
+    margin-top: 20px;
+    padding: 15px 40px;
+    border: 1px solid rgba(255, 152, 0, 0.3); /* Bordure très fine */
+    border-radius: 50px;
+    font-size: 14px;
+    letter-spacing: 3px;
+    background: rgba(255, 152, 0, 0.05);
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transform: translateY(20px);
 }
 
 .mobile-overlay.active .mobile-links a {
     opacity: 1;
-    transform: translateY(0) rotateX(0);
+    transform: translateY(0);
 }
 
-/* Délai d'apparition en cascade (Staggered) */
 .mobile-overlay.active .mobile-links a:nth-child(1) { transition-delay: 0.1s; }
-.mobile-overlay.active .mobile-links a:nth-child(2) { transition-delay: 0.2s; }
-.mobile-overlay.active .mobile-links a:nth-child(3) { transition-delay: 0.3s; }
-.mobile-overlay.active .mobile-links a:nth-child(4) { transition-delay: 0.4s; }
+.mobile-overlay.active .mobile-links a:nth-child(2) { transition-delay: 0.15s; }
+.mobile-overlay.active .mobile-links a:nth-child(3) { transition-delay: 0.2s; }
+.mobile-overlay.active .mobile-links a:nth-child(4) { transition-delay: 0.25s; }
 
-.mobile-links a::after {
-    content: '';
-    display: block;
-    width: 0;
-    height: 2px;
-    background: var(--accent);
-    margin: 8px auto;
-    transition: width 0.3s ease;
-    box-shadow: 0 0 10px var(--accent);
+/* Correction Alignement Liste Features */
+.analysis-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-main);
 }
 
-.mobile-links a:hover::after {
-    width: 100%;
+.list-icon {
+    width: 18px; /* Plus petit pour être discret */
+    height: 18px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px; /* Augmentation du décalage pour s'aligner sur le milieu de la 1ère ligne */
 }
 
 /* Animation Burger -> X */
@@ -1427,12 +1443,10 @@ h1 {
     .desktop-menu {
         display: none;
     }
-
     .burger-menu {
         display: block;
     }
-
     .nav-links {
-        display: none; /* Cache les liens classiques */
+        display: none;
     }
 }
