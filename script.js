@@ -259,5 +259,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = "Envoyer le message";
             }
         });
+
+        // Burger Menu Logic
+        const burger = document.querySelector('#burger-toggle');
+        const menu = document.querySelector('#mobile-menu');
+        const menuLinks = document.querySelectorAll('.mobile-links a');
+
+        if (burger) {
+            burger.addEventListener('click', () => {
+                menu.classList.toggle('active');
+                burger.classList.toggle('toggle');
+            });
+        }
+
+        // Fermer le menu au clic sur un lien
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.remove('active');
+                burger.classList.remove('toggle');
+            });
+        });
     }
 });
