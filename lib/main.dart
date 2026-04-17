@@ -53,6 +53,14 @@ void main() async {
 // --- MODÈLES ET UTILITAIRES DÉPLACÉS ---
 
 
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
+}
+
 class AlcoholTrackerApp extends StatefulWidget {
   const AlcoholTrackerApp({super.key});
   @override
@@ -80,6 +88,7 @@ class _AlcoholTrackerAppState extends State<AlcoholTrackerApp> {
     return MaterialApp(
       title: L10n.s('app.title'),
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
