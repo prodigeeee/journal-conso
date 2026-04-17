@@ -28,6 +28,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart'; // Ajout de l'écran auth
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
 import 'utils/l10n_service.dart'; // Import L10n
+import 'utils/supabase_service.dart'; // Ajout import manquant
 
 typedef File = io.File;
 
@@ -115,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    final data = await StorageService.loadAppData();
+    await StorageService.loadAppData();
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
@@ -2447,10 +2448,10 @@ class _StatsScreenState extends State<StatsScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           L10n.s('stats.reflex_btn'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -2459,7 +2460,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                         Text(
                           L10n.s('stats.reflex_desc'),
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),
@@ -2528,9 +2529,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   children: [L10n.s('stats.periods.week'), L10n.s('stats.periods.month'), L10n.s('stats.periods.year')].map((localizedP) {
                     // Logic mapping back to original keys if necessary, or just use indices
                     String p;
-                    if (localizedP == L10n.s('stats.periods.week')) p = 'Semaine';
-                    else if (localizedP == L10n.s('stats.periods.month')) p = 'Mois';
-                    else p = 'Année';
+                    if (localizedP == L10n.s('stats.periods.week')) {
+                      p = 'Semaine';
+                    } else if (localizedP == L10n.s('stats.periods.month')) {
+                      p = 'Mois';
+                    } else {
+                      p = 'Année';
+                    }
                     
                     bool isSelected = _period == p;
                     return GestureDetector(
