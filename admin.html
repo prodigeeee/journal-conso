@@ -18,6 +18,7 @@
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.5);
+            --danger: #ff4757;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,7 +36,9 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at 80% 20%, #1a1510 0%, #050608 100%);
+            background: 
+                radial-gradient(circle at 80% 20%, #1a1510 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, #0d1117 0%, #050608 100%);
         }
 
         .container {
@@ -52,8 +55,8 @@
 
         .glass-panel {
             background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
         }
@@ -79,7 +82,9 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            transition: transform 0.3s ease;
         }
+        .stat-card:hover { transform: translateY(-5px); background: var(--glass-strong); }
 
         .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .stat-value { font-size: 1.8rem; font-weight: 950; color: var(--text-main); }
@@ -99,13 +104,7 @@
 
         .chart-panel { padding: 25px; min-height: 400px; }
 
-        .sidebar-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .card-inner {
+        .active-users-card {
             padding: 25px;
             text-align: center;
             display: flex;
@@ -132,13 +131,12 @@
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 10px 12px; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--glass-border); }
-        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); line-height: 1.4; }
         tr:hover td { background: rgba(255,255,255,0.03); }
 
-        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; }
+        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
         .text-small { font-size: 0.75rem; color: var(--text-muted); }
 
-        .activity-list { list-style: none; text-align: left; width: 100%; }
         .activity-item { padding: 10px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
         .activity-label { font-size: 0.8rem; font-weight: 600; }
         .activity-count { font-weight: 900; color: var(--accent); }
@@ -149,33 +147,33 @@
         .input-group label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
         .input-group input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; }
         .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        .error-msg { color: #E94E77; font-size: 0.8rem; margin-top: 15px; display: none; }
+        
+        #error-overlay { position: fixed; top: 20px; right: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
     </style>
 </head>
 <body>
     <div class="aura-bg"></div>
+    <div id="error-overlay">Une erreur est survenue lors de la récupération des données.</div>
 
     <div class="container">
         <!-- LOGIN SCREEN -->
         <div id="login-screen">
             <div class="glass-panel login-card">
                 <img src="assets/images/logo.png" style="width: 50px; margin-bottom: 20px;">
-                <h2 style="margin-bottom: 30px; font-weight:900">Back-Office V2</h2>
+                <h2 style="margin-bottom: 30px; font-weight:900; font-size: 1.8rem;">DASHBOARD V2</h2>
                 <div class="input-group">
-                    <label>E-mail personnel</label>
+                    <label>E-mail</label>
                     <input type="email" id="email" placeholder="votre@email.com">
                 </div>
                 <div class="input-group">
-                    <label>Mot de passe</label>
+                    <label>Clé d'accès</label>
                     <input type="password" id="password" placeholder="••••••••">
                 </div>
-                <button id="btn-login" class="btn-primary">ACCÉDER</button>
-                <div id="login-error" class="error-msg">Identifiants incorrects.</div>
+                <button id="btn-login" class="btn-primary">AUTHENTIFICATION</button>
+                <div id="login-error" class="error-msg" style="color:var(--danger); margin-top: 15px; display: none; font-weight:700;">Identifiants invalides.</div>
             </div>
         </div>
 
@@ -184,9 +182,9 @@
             <div class="header">
                 <div class="header-info">
                     <h1 id="welcome-msg">Dashboard • <span style="color:var(--accent)">Journal Conso</span></h1>
-                    <p>Activité et monitoring en temps réel.</p>
+                    <p>Monitoring et analytics des dernières données reçues.</p>
                 </div>
-                <a href="#" class="logout-btn" id="btn-logout">Déconnexion</a>
+                <a href="#" class="logout-btn" id="btn-logout">Quitter</a>
             </div>
 
             <div class="grid-stats">
@@ -195,7 +193,7 @@
                     <div class="stat-value" id="stat-total-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-label">Visiteurs Uniques</div>
+                    <div class="stat-label">Uniques (IP/UA)</div>
                     <div class="stat-value" id="stat-unique-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
@@ -215,7 +213,7 @@
             <div class="main-grid">
                 <div class="glass-panel chart-panel">
                     <div class="panel-header">
-                        <h3>Activité Hebdomadaire</h3>
+                        <h3>Volume de visites (7 jours)</h3>
                     </div>
                     <div style="height: 320px;">
                         <canvas id="visitsChart"></canvas>
@@ -223,7 +221,7 @@
                 </div>
                 
                 <div class="sidebar-panel">
-                    <div class="glass-panel card-inner">
+                    <div class="glass-panel active-users-card">
                         <div class="stat-label">Live Traffic</div>
                         <div class="gauge-container">
                             <svg class="gauge-svg" viewBox="0 0 140 140">
@@ -234,13 +232,13 @@
                                 <div class="gauge-number" id="stat-active-users">0</div>
                             </div>
                         </div>
-                        <div class="text-small">visiteurs actifs</div>
+                        <div class="text-small">utilisateurs en ligne</div>
                     </div>
                     
-                    <div class="glass-panel card-inner" style="flex: 1; padding: 20px;">
-                        <div class="stat-label" style="margin-bottom: 20px;">Top Sources</div>
-                        <ul class="activity-list" id="top-referrers">
-                            <li class="activity-item"><span class="activity-label">Direct</span><span class="activity-count">--</span></li>
+                    <div class="glass-panel active-users-card" style="flex: 1; padding: 20px;">
+                        <div class="stat-label" style="margin-bottom: 20px;">Provenance</div>
+                        <ul id="top-referrers" style="list-style: none; width: 100%; text-align: left;">
+                            <!-- Injected -->
                         </ul>
                     </div>
                 </div>
@@ -249,20 +247,20 @@
             <div class="main-grid">
                 <div class="glass-panel table-panel">
                     <div class="panel-header">
-                        <h3>Derniers Visiteurs (Live)</h3>
+                        <h3>Journal des Visites</h3>
                     </div>
                     <div class="table-wrapper">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Date & Heure</th>
-                                    <th>Page & Source</th>
-                                    <th>Appareil & OS</th>
-                                    <th>Adresse IP</th>
+                                    <th>Heure</th>
+                                    <th>Navigation</th>
+                                    <th>Système</th>
+                                    <th>Identification</th>
                                 </tr>
                             </thead>
                             <tbody id="visits-table-body">
-                                <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted)">Initialisation des données...</td></tr>
+                                <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted)">Synchronisation des données...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -271,12 +269,12 @@
                 <div class="sidebar-panel">
                     <div class="glass-panel table-panel" style="flex: 1;">
                         <div class="panel-header">
-                            <h3>Contact Messages</h3>
+                            <h3>Derniers Contacts</h3>
                         </div>
                         <div class="table-wrapper" style="max-height: 500px;">
                             <table style="border-spacing: 0;">
                                 <tbody id="messages-table-body">
-                                    <tr><td style="text-align:center; padding:20px; color:var(--text-muted)">Aucun message.</td></tr>
+                                    <!-- Injected -->
                                 </tbody>
                             </table>
                         </div>
@@ -289,14 +287,14 @@
     <script>
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
-        const supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         let vChart = null;
 
         btnLogin.onclick = async () => {
             btnLogin.disabled = true;
             try {
-                const { data, error } = await supabaseAdmin.auth.signInWithPassword({ 
+                const { data, error } = await supabase.auth.signInWithPassword({ 
                     email: document.getElementById('email').value, 
                     password: document.getElementById('password').value 
                 });
@@ -308,11 +306,11 @@
             }
         };
 
-        btnLogout.onclick = async (e) => { e.preventDefault(); await supabaseAdmin.auth.signOut(); window.location.reload(); };
+        btnLogout.onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.reload(); };
 
         async function checkSession() {
             try {
-                const { data: { session } } = await supabaseAdmin.auth.getSession();
+                const { data: { session } } = await supabase.auth.getSession();
                 if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
             } catch(e) {}
         }
@@ -324,64 +322,89 @@
             setInterval(loadData, 30000); 
         }
 
+        function showError(msg) {
+            const overlay = document.getElementById('error-overlay');
+            overlay.innerText = msg;
+            overlay.style.display = 'block';
+            setTimeout(() => { overlay.style.display = 'none'; }, 5000);
+        }
+
         async function loadData() {
-            console.log("Loading data...");
+            console.log("DASHBOARD: Starting data load...");
             try {
-                // Visits
-                const { data: visits, error: vError } = await supabaseAdmin.from('site_visits').select('*').order('created_at', { ascending: false });
+                // 1. Fetch Visits
+                const { data: visits, error: vError } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
                 if (vError) throw vError;
-
-                if (visits) {
-                    console.log(`Fetched ${visits.length} visits`);
-                    document.getElementById('stat-total-visits').innerText = visits.length;
-                    
-                    const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent)).size;
-                    document.getElementById('stat-unique-visits').innerText = uniqueIps;
-
-                    const refs = {};
-                    visits.forEach(v => {
-                        const r = v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2] || 'Inconnu';
-                        refs[r] = (refs[r] || 0) + 1;
-                    });
-                    document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
-                        <li class="activity-item">
-                            <span class="activity-label">${r}</span>
-                            <span class="activity-count">${c}</span>
-                        </li>
-                    `).join('');
-
-                    const visitBody = document.getElementById('visits-table-body');
-                    visitBody.innerHTML = visits.slice(0, 50).map(v => {
-                        const date = new Date(v.created_at);
-                        const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                        
-                        let system = v.device_type === 'mobile' ? '📱' : '💻';
-                        const ua = v.user_agent || "";
-                        if (ua.includes('Android')) system += ' Android';
-                        else if (ua.includes('iPhone')) system += ' iOS';
-                        else if (ua.includes('Windows')) system += ' Windows';
-                        
-                        return `
-                            <tr>
-                                <td><span style="font-weight:800">${timeStr}</span> <br><small class="text-small">${dateStr}</small></td>
-                                <td>${v.page_path} <br><small class="text-small">via ${v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2]}</small></td>
-                                <td>${system} <br><small class="text-small">${v.screen_resolution || "??x??"}</small></td>
-                                <td><span class="badge-ip">${v.ip_address || '---.---.---.---'}</span></td>
-                            </tr>
-                        `;
-                    }).join('');
-                    
-                    renderVisitsChart(visits);
+                
+                if (!visits || !Array.isArray(visits)) {
+                    console.warn("DASHBOARD: No visits data found or invalid format");
+                    return;
                 }
 
-                // Events
-                const { data: events } = await supabaseAdmin.from('site_events').select('*');
+                console.log(`DASHBOARD: Processing ${visits.length} visits`);
+                document.getElementById('stat-total-visits').innerText = visits.length;
+                
+                // Uniques calculation (SAFE)
+                const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent || "unknown")).size;
+                document.getElementById('stat-unique-visits').innerText = uniqueIps;
+
+                // Referrers calculation (SAFE)
+                const refs = {};
+                visits.forEach(v => {
+                    let r = 'Direct';
+                    try {
+                        if (v.referrer && v.referrer !== 'direct') {
+                            r = v.referrer.split('/')[2] || 'Inconnu';
+                        }
+                    } catch(e) { r = 'Erreur URL'; }
+                    refs[r] = (refs[r] || 0) + 1;
+                });
+                document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
+                    <li class="activity-item">
+                        <span class="activity-label">${r}</span>
+                        <span class="activity-count">${c}</span>
+                    </li>
+                `).join('');
+
+                // Table detail (SAFE)
+                const visitBody = document.getElementById('visits-table-body');
+                visitBody.innerHTML = visits.slice(0, 50).map(v => {
+                    let timeStr = "--:--", dateStr = "--/--";
+                    try {
+                        const date = new Date(v.created_at);
+                        timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                    } catch(e) {}
+                    
+                    let system = v.device_type === 'mobile' ? '📱' : '💻';
+                    const ua = v.user_agent || "";
+                    if (ua.includes('Android')) system += ' Android';
+                    else if (ua.includes('iPhone')) system += ' iOS';
+                    else if (ua.includes('Windows')) system += ' Windows';
+                    else if (ua.includes('Macintosh')) system += ' MacOS';
+                    
+                    const refShort = v.referrer === 'direct' ? 'Direct' : (v.referrer ? v.referrer.split('/')[2] : '---');
+                    
+                    return `
+                        <tr>
+                            <td><span style="font-weight:800">${timeStr}</span> <br><small class="text-small">${dateStr}</small></td>
+                            <td>${v.page_path || "/"} <br><small class="text-small">via ${refShort}</small></td>
+                            <td>${system} <br><small class="text-small">${v.screen_resolution || "---"}</small></td>
+                            <td><span class="badge-ip">${v.ip_address || '---'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                // Chart (SAFE)
+                try { renderVisitsChart(visits); } catch(ce) { console.error("Chart Error:", ce); }
+
+                // 2. Fetch Events
+                const { data: events, error: eError } = await supabase.from('site_events').select('*');
                 if (events) {
-                    const downloads = events.filter(e => e.event_name.includes('click_download')).length;
-                    const interactions = events.filter(e => e.event_name.includes('simulator_')).length;
+                    const downloads = events.filter(e => e.event_name && e.event_name.includes('click_download')).length;
+                    const interactions = events.filter(e => e.event_name && e.event_name.includes('simulator_')).length;
                     document.getElementById('stat-downloads').innerText = downloads;
-                    if (visits && visits.length > 0) {
+                    if (visits.length > 0) {
                         const rate = Math.round((interactions / visits.length) * 100);
                         document.getElementById('stat-interactions').innerText = `${rate}%`;
                     }
@@ -393,28 +416,36 @@
                     circle.style.strokeDashoffset = offset;
                 }
 
-                // Messages
-                const { data: messages } = await supabaseAdmin.from('contact_messages').select('*').order('created_at', { ascending: false });
+                // 3. Fetch Messages
+                const { data: messages, error: mError } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
                 if (messages) {
                     document.getElementById('stat-messages').innerText = messages.length;
-                    document.getElementById('messages-table-body').innerHTML = messages.length === 0 ? '<tr><td style="color:var(--text-muted); text-align:center">Aucun message.</td></tr>' : messages.slice(0, 15).map(m => `
-                        <tr>
-                            <td style="padding:18px">
-                                <div style="font-weight:900; color:var(--accent); font-size:0.9rem">${m.name}</div>
-                                <div class="text-small" style="margin-bottom:8px">${m.email}</div>
-                                <div style="font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.8)">${m.message}</div>
-                            </td>
-                        </tr>
-                    `).join('');
+                    const msgTable = document.getElementById('messages-table-body');
+                    if (messages.length === 0) {
+                        msgTable.innerHTML = '<tr><td style="color:var(--text-muted); text-align:center; padding:30px">Aucun message reçu.</td></tr>';
+                    } else {
+                        msgTable.innerHTML = messages.slice(0, 15).map(m => `
+                            <tr>
+                                <td style="padding:18px">
+                                    <div style="font-weight:900; color:var(--accent); font-size:0.9rem">${m.name || "Anonyme"}</div>
+                                    <div class="text-small" style="margin-bottom:8px">${m.email || "Pas d'email"}</div>
+                                    <div style="font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.8)">${m.message || ""}</div>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
                 }
+
+                console.log("DASHBOARD: Load complete.");
             } catch(err) {
-                console.error("Dashboard Load Error:", err);
+                console.error("DASHBOARD CRITICAL ERROR:", err);
+                showError("Erreur fatale: " + (err.message || "Problème de connexion Supabase"));
             }
         }
 
         function renderVisitsChart(visits) {
             const ctx = document.getElementById('visitsChart');
-            if (!ctx) return;
+            if (!ctx || !window.Chart) return;
             const days = {};
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(); d.setDate(d.getDate() - i);
