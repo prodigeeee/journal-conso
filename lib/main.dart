@@ -955,15 +955,31 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                                   letterSpacing: 0.5,
                                 ),
                               ),
-                              Text(
-                                activeUser.name,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: widget.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black87,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    activeUser.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "•  ${DateFormat('EEEE d MMMM', 'fr_FR').format(DateTime.now())}",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.isDarkMode
+                                          ? Colors.white54
+                                          : Colors.black45,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -3251,7 +3267,12 @@ class OptionsScreen extends StatefulWidget {
 class _OptionsScreenState extends State<OptionsScreen> {
   final ImagePicker _picker = ImagePicker();
   Future<void> _pickImage(UserProfile p) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 400,
+      maxHeight: 400,
+      imageQuality: 70,
+    );
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() => p.imagePath = base64Encode(bytes));
