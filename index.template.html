@@ -38,20 +38,18 @@
 
     <nav class="glass-navbar">
         <div class="nav-content">
-            <a href="#" class="logo" id="main-logo">
+            <div class="logo">
                 <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
-            </a>
-            
-            <!-- Menu Bureau -->
-            <div class="nav-links desktop-menu">
+            </div>
+            <div class="nav-links">
                 <a href="#screenshots">{{ nav.overview }}</a>
                 <a href="#multiplatform">{{ nav.webapp }}</a>
                 <a href="#contact">{{ nav.contact }}</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">{{ nav.login }}</a>
+                <a href="app/" class="nav-login-btn">{{ nav.login }}</a>
                 <a href="#download" class="nav-btn">{{ nav.download }}</a>
             </div>
-
-            <!-- Bouton Burger Mobile -->
+            
+            <!-- Mobile Menu Toggle -->
             <div class="burger-menu" id="burger-toggle">
                 <div class="line1"></div>
                 <div class="line2"></div>
@@ -59,13 +57,13 @@
             </div>
         </div>
 
-        <!-- Menu Mobile (Overlay) -->
+        <!-- Mobile Overlay -->
         <div class="mobile-overlay" id="mobile-menu">
             <div class="mobile-links">
                 <a href="#screenshots">{{ nav.overview }}</a>
                 <a href="#multiplatform">{{ nav.webapp }}</a>
                 <a href="#contact">{{ nav.contact }}</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">{{ nav.launch }}</a>
+                <a href="app/" class="nav-login-btn">{{ nav.launch }}</a>
             </div>
         </div>
     </nav>
@@ -73,7 +71,7 @@
     <header class="hero">
         <div class="hero-text">
             <div class="badge">{{ hero.badge }}</div>
-            <h1>{{ hero.title_start }} <span class="highlight">{{ hero.title_highlight }}</span></h1>
+            <h1>{{ hero.title_start }}<br>avec <span class="highlight">{{ hero.title_highlight }}</span></h1>
             <p>{{ hero.description }}</p>
             <div class="hero-actions">
                 <a href="#download" class="btn btn-primary">{{ hero.btn_apk }}</a>
@@ -83,7 +81,7 @@
 
         <div class="hero-visual">
             <!-- Composant Haut : Profil -->
-            <div class="glass-panel" style="z-index: 1; padding: 18px 24px;">
+            <div class="glass-panel" style="z-index: 1; padding: 18px 24px; animation: float 6s ease-in-out infinite;">
                 <div class="profile-row">
                     <div class="avatar">
                         <img src="assets/images/user.png" alt="User" class="avatar-img">
@@ -95,108 +93,152 @@
                 </div>
             </div>
 
-            <!-- Composant Global : Alcoolémie -->
-            <div class="glass-panel" style="z-index: 2; padding: 25px; text-align: center;">
-                <div class="panel-title">{{ mockup.bac_title }}</div>
-                <div class="circular-progress-mock">
+            <!-- Composant Central : Jauge d'Alcoolémie SIMULÉE -->
+            <div class="glass-panel interactive-jauge" style="z-index: 2;">
+                <div class="panel-title" style="text-align: center;">{{ mockup.bac_title }}</div>
+                <div class="circular-progress-mock" id="sim-circle">
                     <div class="circular-content">
-                        <div class="circular-val">0.42</div>
-                        <div style="font-size: 0.6rem; opacity: 0.6;">{{ mockup.units }}</div>
+                        <div class="circular-val"><span id="sim-val">0.00</span></div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.4); font-weight: 700;">{{ mockup.units }}</div>
                     </div>
                 </div>
-                <div class="status-pill">
-                    <span style="color: #4CAF50;">●</span> {{ mockup.safety_ok }}
+                
+                <div class="sim-controls">
+                    <button class="sim-btn" id="drink-minus">−</button>
+                    <div class="sim-units"><span id="sim-units-val">0</span> unités</div>
+                    <button class="sim-btn" id="drink-plus">+</button>
+                </div>
+
+                <div class="status-pill" id="sim-status-pill">
+                    <span id="sim-status-icon" style="color: #4CAF50; font-size: 1.1rem; font-weight: 800;">✓</span> 
+                    <span id="sim-status-text" style="color: #4CAF50; font-size: 0.95rem; font-weight: 700;">{{ mockup.safety_ok }}</span>
                 </div>
             </div>
 
             <!-- Composant Bas : Réflexes -->
-            <div class="glass-panel" style="z-index: 1;">
-                <div class="gradient-btn">
-                    <div style="font-size: 1.5rem;">🧠</div>
+            <div class="glass-panel" style="z-index: 1; padding: 18px 24px; animation: float 7s ease-in-out infinite;">
+                <div class="profile-row">
+                    <div class="reflex-icon">🧠</div>
                     <div>
-                        <div class="gradient-btn-title">{{ mockup.reflex_btn }}</div>
-                        <div class="gradient-btn-subtitle">{{ mockup.reflex_desc }}</div>
+                        <div class="reflex-title">{{ mockup.reflex_btn }}</div>
+                        <div class="reflex-desc">{{ mockup.reflex_desc }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="disclaimer-text">
+            <div class="mockup-disclaimer">
                 {{ mockup.disclaimer }}
             </div>
         </div>
     </header>
 
     <section id="features" class="features">
-        <div class="section-header">
+        <div class="features-header">
             <div class="badge">FEATURES</div>
-            <h2>{{ features.title }} <span class="highlight">{{ features.title_highlight }}</span></h2>
+            <h2>{{ features.title }} <br><span class="highlight">{{ features.title_highlight }}</span></h2>
             <p>{{ features.subtitle }}</p>
         </div>
 
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                </div>
                 <h3>{{ features.card1_title }}</h3>
                 <p>{{ features.card1_desc }}</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📈</div>
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                </div>
                 <h3>{{ features.card2_title }}</h3>
                 <p>{{ features.card2_desc }}</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </div>
                 <h3>{{ features.card3_title }}</h3>
                 <p>{{ features.card3_desc }}</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+            <div class="feature-card" data-tilt>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
                 <h3>{{ features.card4_title }}</h3>
                 <p>{{ features.card4_desc }}</p>
             </div>
         </div>
     </section>
 
+    <!-- SECTION ANALYSE & GRAPHIQUE -->
     <section class="analysis">
         <div class="analysis-container">
             <div class="analysis-visual">
-                <div class="glass-panel stats-card">
+                <div class="stats-card glass-panel" data-tilt>
                     <div class="stats-header">
-                        <div>
+                        <div class="stats-title-group">
                             <div class="stats-title">{{ analysis.trend_title }}</div>
                             <div class="stats-subtitle">{{ analysis.trend_date }}</div>
                         </div>
-                        <div class="stats-icon-wrapper">📈</div>
+                        <div class="stats-icon-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        </div>
                     </div>
                     
                     <div class="graph-container">
-                        <svg viewBox="0 0 400 150" class="graph-svg">
-                            <path d="M0,120 Q50,110 80,130 T160,80 T240,110 T320,40 T400,60" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" class="graph-path"/>
+                        <svg class="graph-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                            <path class="graph-path-glow" d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150" fill="none" stroke="var(--accent)" stroke-width="8" opacity="0.4" />
+                            <path class="graph-path" d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" />
                         </svg>
+                        <div class="graph-labels">
+                            <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                        </div>
                     </div>
 
                     <div class="stats-footer">
-                        <div>
+                        <div class="footer-main">
                             <div class="footer-label">{{ analysis.bac_label }}</div>
                             <div class="footer-val-row">
-                                <div class="footer-value">0.24</div>
-                                <div class="footer-status">g/L</div>
+                                <span class="footer-value">0.46</span>
+                                <span class="footer-status">{{ analysis.safety_label }}</span>
                             </div>
                         </div>
-                        <div class="footer-badge">{{ analysis.safety_label }}</div>
+                        <div class="footer-badge">{{ analysis.ready_label }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="analysis-text">
-                <div class="badge">{{ analysis.badge }}</div>
+                <div class="badge analysis-badge">{{ analysis.badge }}</div>
                 <h2 class="analysis-title">{{ analysis.title_start }} <br><span class="highlight">{{ analysis.title_highlight }}</span></h2>
                 <p>{{ analysis.description }}</p>
+                
                 <ul class="analysis-list">
-                    <li><span class="list-icon">✓</span> {{ analysis.item1 }}</li>
-                    <li><span class="list-icon">✓</span> {{ analysis.item2 }}</li>
-                    <li><span class="list-icon">✓</span> {{ analysis.item3 }}</li>
-                    <li><span class="list-icon">✓</span> {{ analysis.item4 }}</li>
+                    <li>
+                        <span class="list-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {{ analysis.item1 }}
+                    </li>
+                    <li>
+                        <span class="list-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {{ analysis.item2 }}
+                    </li>
+                    <li>
+                        <span class="list-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {{ analysis.item3 }}
+                    </li>
+                    <li>
+                        <span class="list-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                        </span>
+                        {{ analysis.item4 }}
+                    </li>
                 </ul>
             </div>
         </div>
@@ -207,206 +249,213 @@
             <h2>{{ gallery.title }} <span class="highlight">{{ gallery.title_highlight }}</span></h2>
             <p>{{ gallery.subtitle }}</p>
         </div>
-        <!-- Ici on pourrait remettre le carrousel si besoin, mais gardons la structure propre -->
-        <div class="features-grid">
-            <img src="assets/images/screen1.png" alt="{{ gallery.alt1 }}" style="width:100%; border-radius: 20px; border: 1px solid var(--glass-border);">
-            <img src="assets/images/screen2.png" alt="{{ gallery.alt2 }}" style="width:100%; border-radius: 20px; border: 1px solid var(--glass-border);">
-            <img src="assets/images/screen5.png" alt="{{ gallery.alt5 }}" style="width:100%; border-radius: 20px; border: 1px solid var(--glass-border);">
+        
+        <div class="carousel-wrapper">
+            <button class="carousel-btn prev-btn">❮</button>
+            <div class="carousel-track">
+                <div class="carousel-slide">
+                    <img src="assets/screenshots/1.jpg" alt="{{ gallery.alt1 }}" class="screenshot-img">
+                </div>
+                <div class="carousel-slide">
+                    <img src="assets/screenshots/2.jpg" alt="{{ gallery.alt2 }}" class="screenshot-img">
+                </div>
+                <div class="carousel-slide">
+                    <img src="assets/screenshots/3.jpg" alt="{{ gallery.alt3 }}" class="screenshot-img">
+                </div>
+                <div class="carousel-slide">
+                    <img src="assets/screenshots/4.jpg" alt="{{ gallery.alt4 }}" class="screenshot-img">
+                </div>
+                <div class="carousel-slide">
+                    <img src="assets/screenshots/5.jpg" alt="{{ gallery.alt5 }}" class="screenshot-img">
+                </div>
+            </div>
+            <button class="carousel-btn next-btn">❯</button>
         </div>
     </section>
 
     <section id="multiplatform" class="multiplatform">
-        <div class="analysis-container">
-            <div class="analysis-visual">
-                <img src="assets/images/devices.png" alt="Multiplatform" style="width: 100%; filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));">
-            </div>
-            <div class="analysis-text">
-                <div class="badge">{{ multi.badge }}</div>
-                <h2 class="analysis-title">{{ multi.title_start }} <br><span class="highlight">{{ multi.title_highlight }}</span></h2>
+        <div class="multi-container glass-panel">
+            <div class="multi-content">
+                <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                    <div class="badge">{{ multi.badge }}</div>
+                    <h2>{{ multi.title_start }}<br><span class="highlight">{{ multi.title_highlight }}</span></h2>
+                </div>
                 <p>{{ multi.description }}</p>
-                <ul class="analysis-list">
-                    <li><span class="list-icon">🤖</span> {{ multi.android }}</li>
-                    <li><span class="list-icon">🍎</span> {{ multi.ios }}</li>
-                    <li><span class="list-icon">💻</span> {{ multi.desktop }}</li>
-                </ul>
-                <a href="app/" class="btn btn-primary" target="_blank" rel="noopener" style="margin-top: 30px;">{{ multi.btn_launch }}</a>
+                
+                <div class="platforms">
+                    <div class="platform-item">
+                        <span class="p-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/></svg>
+                        </span>
+                        <div class="p-text">{{ multi.android }}</div>
+                    </div>
+                    <div class="platform-item">
+                        <span class="p-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        </span>
+                        <div class="p-text">{{ multi.ios }}</div>
+                    </div>
+                    <div class="platform-item">
+                        <span class="p-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </span>
+                        <div class="p-text">{{ multi.desktop }}</div>
+                    </div>
+                </div>
+                
+                <div class="multi-actions">
+                    <a href="app/" class="btn btn-primary-outline" target="_blank" rel="noopener">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        {{ multi.btn_launch }}
+                    </a>
+                </div>
+            </div>
+            <div class="multi-visual">
+                <div class="device-mockup">
+                    <div class="sync-animation">
+                        <div class="sync-circle"></div>
+                        <div class="sync-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="contact" class="features">
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="contact">
         <div class="section-header">
             <h2>{{ contact.title }}</h2>
             <p>{{ contact.subtitle }}</p>
         </div>
-        <div class="glass-panel" style="max-width: 600px; margin: 0 auto; padding: 40px;">
+        
+        <div class="contact-container glass-panel">
             <form id="contact-form" class="contact-form">
-                <div class="input-box">
-                    <label>{{ contact.label_name }}</label>
-                    <input type="text" placeholder="{{ contact.placeholder_name }}" required>
+                <div class="form-group grid-2">
+                    <div class="input-box">
+                        <label>{{ contact.label_name }}</label>
+                        <input type="text" name="name" id="contact-name" placeholder="{{ contact.placeholder_name }}" required>
+                    </div>
+                    <div class="input-box">
+                        <label>{{ contact.label_email }}</label>
+                        <input type="email" name="email" id="contact-email" placeholder="{{ contact.placeholder_email }}" required>
+                    </div>
                 </div>
-                <div class="input-box">
-                    <label>{{ contact.label_email }}</label>
-                    <input type="email" placeholder="{{ contact.placeholder_email }}" required>
-                </div>
+                
                 <div class="input-box">
                     <label>{{ contact.label_subject }}</label>
-                    <input type="text" placeholder="{{ contact.placeholder_subject }}">
+                    <input type="text" name="subject" id="contact-subject" placeholder="{{ contact.placeholder_subject }}" required>
                 </div>
+                
                 <div class="input-box">
                     <label>{{ contact.label_message }}</label>
-                    <textarea placeholder="{{ contact.placeholder_message }}" rows="5" required></textarea>
+                    <textarea name="message" id="contact-message" rows="5" placeholder="{{ contact.placeholder_message }}" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">{{ contact.btn_send }}</button>
+                
+                <button type="submit" class="btn-submit" id="btn-submit-contact">{{ contact.btn_send }}</button>
             </form>
-            <div id="form-success" style="display: none; text-align: center; padding: 40px 0;">
-                <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
+
+            <!-- Message de succès caché -->
+            <div id="contact-success" class="success-message" style="display: none; text-align: center; padding: 40px 20px;">
+                <div class="success-icon" style="font-size: 3rem; color: #4CAF50; margin-bottom: 20px;">✓</div>
                 <h3 style="color: white; margin-bottom: 10px;">{{ contact.success_title }}</h3>
-                <p style="color: rgba(255,255,255,0.7); margin-bottom:30px;">{{ contact.success_desc }}</p>
-                <button onclick="location.reload()" class="btn btn-secondary">{{ contact.btn_reload }}</button>
+                <p style="color: rgba(255,255,255,0.7);">{{ contact.success_desc }}</p>
+                <button onclick="location.reload()" class="btn btn-secondary" style="margin-top: 30px; font-size: 0.8rem;">{{ contact.btn_reload }}</button>
             </div>
         </div>
     </section>
 
     <footer class="glass-footer">
         <div class="footer-content">
-            <div class="footer-column">
+            <div class="footer-column brand">
                 <div class="logo">
-                     <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
+                    <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
                 </div>
                 <p>{{ footer.description }}</p>
-                <div class="trust-badge" style="margin-top: 20px;">
-                    <span>🛡️</span> {{ footer.trust_badge }}
+                <div class="trust-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> {{ footer.trust_badge }}
                 </div>
             </div>
-            <div class="footer-column">
+            
+            <div class="footer-column links">
                 <h4>{{ footer.nav_title }}</h4>
                 <a href="#">{{ footer.home }}</a>
                 <a href="#features">Features</a>
                 <a href="#screenshots">{{ nav.overview }}</a>
                 <a href="#download">{{ footer.apk }}</a>
             </div>
-            <div class="footer-column">
+            
+            <div class="footer-column legal">
                 <h4>{{ footer.legal_title }}</h4>
-                <a href="javascript:void(0)" onclick="openModal('modal-privacy')">{{ footer.privacy }}</a>
-                <a href="javascript:void(0)" onclick="openModal('modal-legal')">{{ footer.mentions }}</a>
+                <a href="#" id="open-privacy">{{ footer.privacy }}</a>
+                <a href="#" id="open-legal">{{ footer.mentions }}</a>
                 <a href="#contact">{{ footer.contact }}</a>
             </div>
-            <div class="footer-column">
+            
+            <div class="footer-column disclaimer">
                 <h4>{{ footer.warning_title }}</h4>
-                <p style="font-size: 11px; opacity: 0.7; line-height: 1.6;">
-                    {{ footer.warning_text }}
-                </p>
+                <p>{{ footer.warning_text }}</p>
             </div>
         </div>
-        
         <div class="footer-bottom">
             <p>{{ footer.copy }}</p>
         </div>
     </footer>
 
-    <!-- MODALS -->
-    <div id="modal-privacy" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close-btn" onclick="closeModal('modal-privacy')">&times;</button>
-            <h2>{{ privacy_policy.title }}</h2>
-            <div class="modal-section">
-                <h4>{{ privacy_policy.commitment_title }}</h4>
-                <p>{{ privacy_policy.commitment_text }}</p>
+    <!-- MODALES LÉGALES -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card glass-panel">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            <div id="modal-content" class="modal-text">
+                <!-- Le contenu sera injecté dynamiquement par JS (script.js) -->
             </div>
-            <div class="modal-section">
-                <h4>{{ privacy_policy.usage_title }}</h4>
-                <p>{{ privacy_policy.usage_text }}</p>
-            </div>
-            <div class="modal-section">
-                <h4>{{ privacy_policy.confidentiality_title }}</h4>
-                <p>{{ privacy_policy.confidentiality_text }}</p>
-            </div>
-            <button class="btn btn-secondary" onclick="closeModal('modal-privacy')" style="width: 100%;">{{ privacy_policy.btn_close }}</button>
         </div>
     </div>
 
-    <div id="modal-legal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close-btn" onclick="closeModal('modal-legal')">&times;</button>
-            <h2>{{ legal_policy.title }}</h2>
-            <div class="modal-section">
-                <h4>{{ legal_policy.editor_title }}</h4>
-                <p>{{ legal_policy.editor_text }}</p>
-            </div>
-            <div class="modal-section">
-                <h4>{{ legal_policy.hosting_title }}</h4>
-                <p>{{ legal_policy.hosting_text }}</p>
-            </div>
-            <div class="modal-section">
-                <h4>{{ legal_policy.rights_title }}</h4>
-                <p>{{ legal_policy.rights_text }}</p>
-            </div>
-            <button class="btn btn-secondary" onclick="closeModal('modal-legal')" style="width: 100%;">{{ privacy_policy.btn_close }}</button>
+    <style>
+        /* Animation subtile pour les panneaux de la hero visual */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0.5deg); }
+            50% { transform: translateY(-8px) rotate(-0.5deg); }
+            100% { transform: translateY(0px) rotate(0.5deg); }
+        }
+    </style>
+    
+    <!-- HIDDEN LEGAL CONTENT FOR MODALS -->
+    <div id="content-privacy" style="display: none;">
+        <h2>{{ privacy_policy.title }}</h2>
+        <div class="modal-section">
+            <h4>{{ privacy_policy.commitment_title }}</h4>
+            <p>{{ privacy_policy.commitment_text }}</p>
+        </div>
+        <div class="modal-section">
+            <h4>{{ privacy_policy.usage_title }}</h4>
+            <p>{{ privacy_policy.usage_text }}</p>
+        </div>
+        <div class="modal-section">
+            <h4>{{ privacy_policy.confidentiality_title }}</h4>
+            <p>{{ privacy_policy.confidentiality_text }}</p>
+        </div>
+    </div>
+
+    <div id="content-legal" style="display: none;">
+        <h2>{{ legal_policy.title }}</h2>
+        <div class="modal-section">
+            <h4>{{ legal_policy.editor_title }}</h4>
+            <p>{{ legal_policy.editor_text }}</p>
+        </div>
+        <div class="modal-section">
+            <h4>{{ legal_policy.hosting_title }}</h4>
+            <p>{{ legal_policy.hosting_text }}</p>
+        </div>
+        <div class="modal-section">
+            <h4>{{ legal_policy.rights_title }}</h4>
+            <p>{{ legal_policy.rights_text }}</p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script>
-        // Modal Logic
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Close on overlay click
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                event.target.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        // Menu Burger
-        const burger = document.getElementById('burger-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        burger.addEventListener('click', () => {
-            burger.classList.toggle('active');
-            mobileMenu.classList.toggle('active');
-        });
-
-        // Logo Click -> Retour en haut
-        const logo = document.getElementById('main-logo');
-        logo.addEventListener('click', (e) => {
-            if(window.location.hash === '' || window.location.hash === '#') {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-
-        // Animation Formulaire Contact
-        const contactForm = document.getElementById('contact-form');
-        const formSuccess = document.getElementById('form-success');
-
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = contactForm.querySelector('button');
-            const oldText = btn.innerHTML;
-            btn.innerHTML = 'Envoi en cours...';
-            btn.style.opacity = '0.7';
-            btn.disabled = true;
-
-            setTimeout(() => {
-                contactForm.style.display = 'none';
-                formSuccess.style.display = 'block';
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#EA9216', '#FFFFFF', '#1A3A5F']
-                });
-            }, 1000);
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

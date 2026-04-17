@@ -65,38 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const openLegal = document.getElementById('open-legal');
 
     if (modalOverlay && modalContent) {
-        const legalData = {
-            privacy: `
-                <h2>Politique de confidentialité</h2>
-                <p><i>Dernière mise à jour : 15 Avril 2026</i></p>
-                <h3>1. Présentation</h3>
-                <p>Journal Conso est une application mobile permettant à l’utilisateur de tenir un journal personnel de consommation d’alcool, de consulter des statistiques indicatives et de gérer ses données localement sur son appareil.</p>
-                <h3>2. Données enregistrées</h3>
-                <p>L’application enregistre localement vos consommations, vos profils, vos préférences et vos statistiques.</p>
-                <h3>3. Stockage local uniquement</h3>
-                <p><strong>Toutes les données de Journal Conso sont stockées uniquement sur votre appareil.</strong> L’application n’envoie aucune donnée à son auteur, à un serveur distant ou à des tiers.</p>
-                <h3>4. Absence de compte et de suivi</h3>
-                <p>L’application fonctionne sans compte utilisateur, sans publicité et sans aucun traqueur externe.</p>
-                <h3>5. Limites</h3>
-                <p>Journal Conso n'est pas un dispositif médical. Les estimations d'alcoolémie sont indicatives. L'application ne doit jamais déterminer une aptitude à conduire.</p>
-                <h3>6. Contact</h3>
-                <p>Auteur : ChrisK<br>Contact : journalconso@gmail.com</p>
-            `,
-            legal: `
-                <h2>Mentions légales</h2>
-                <p>Journal Conso est une application de suivi personnel permettant d’enregistrer localement sa consommation d’alcool et d’afficher des statistiques indicatives.</p>
-                <h3>Confidentialité</h3>
-                <p>Vos données sont stockées uniquement sur votre appareil (Stockage local / Shared Preferences). L’application ne transmet aucune donnée à des tiers.</p>
-                <h3>Avertissement important</h3>
-                <p>Journal Conso n’est pas un dispositif médical. Les estimations affichées sont indicatives et ne remplacent ni un éthylotest, ni un avis médical, ni les règles légales applicables (Code de la route).</p>
-                <p>L'utilisation de cette application se fait sous la seule responsabilité de l'utilisateur.</p>
-                <h3>Auteur & Contact</h3>
-                <p>ChrisK<br>journalconso@gmail.com</p>
-            `
-        };
 
         function openModal(type) {
-            modalContent.innerHTML = legalData[type];
+            const sourceId = type === 'privacy' ? 'content-privacy' : 'content-legal';
+            const source = document.getElementById(sourceId);
+            if (source) {
+                modalContent.innerHTML = source.innerHTML;
+            }
             modalOverlay.style.display = 'flex';
             document.body.style.overflow = 'hidden'; 
         }
