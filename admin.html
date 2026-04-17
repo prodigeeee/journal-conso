@@ -284,7 +284,19 @@
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
         
-        const supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabaseAdmin;
+        
+        try {
+            if (typeof supabase === 'undefined') {
+                console.error("Supabase library not loaded!");
+                alert("Erreur : La bibliothèque Supabase n'a pas pu être chargée. Vérifiez votre connexion internet.");
+            } else {
+                supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log("Supabase initialized successfully");
+            }
+        } catch (e) {
+            console.error("Init error:", e);
+        }
 
         // Elements
         const loginScreen = document.getElementById('login-screen');
@@ -295,16 +307,25 @@
 
         // Check Session
         async function checkSession() {
-            const { data: { session } } = await supabaseAdmin.auth.getSession();
-            if (session && session.user.email === 'christophek@hotmail.com') {
-                showDashboard();
-            } else if (session) {
-                await supabaseAdmin.auth.signOut();
+            if (!supabaseAdmin) return;
+            try {
+                const { data: { session } } = await supabaseAdmin.auth.getSession();
+                if (session && session.user.email === 'christophek@hotmail.com') {
+                    showDashboard();
+                } else if (session) {
+                    await supabaseAdmin.auth.signOut();
+                }
+            } catch (e) {
+                console.error("Session check error:", e);
             }
         }
 
         // Login Logic
         btnLogin.onclick = async () => {
+            if (!supabaseAdmin) {
+                alert("Erreur : La base de données n'est pas initialisée.");
+                return;
+            }
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
