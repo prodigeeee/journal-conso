@@ -74,53 +74,55 @@
         .panel-header h3 { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; }
 
         /* EDITOR UI */
-        .editor-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .editor-card { padding: 25px; position: relative; transition: 0.3s; border: 1px solid var(--glass-border); }
+        .editor-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; background: rgba(234, 146, 22, 0.2); padding: 10px 20px; border-radius: 10px; margin: 30px 0 15px 0; border-left: 4px solid var(--accent); text-transform: uppercase; }
+        .editor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 15px; }
+        @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
+        
+        .editor-card { padding: 20px; position: relative; transition: 0.3s; border: 1px solid var(--glass-border); display: flex; flex-direction: column; }
         .editor-card:hover { border-color: rgba(234, 146, 22, 0.3); background: rgba(255,255,255,0.02); }
 
-        .editor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .editor-tag { font-size: 0.6rem; font-weight: 900; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; color: var(--text-muted); letter-spacing: 1px; }
-        .editor-title { font-size: 0.9rem; font-weight: 800; color: #fff; }
+        .editor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .editor-tag { font-size: 0.55rem; font-weight: 900; background: rgba(255,255,255,0.05); padding: 3px 6px; border-radius: 5px; color: var(--text-muted); letter-spacing: 0.5px; }
+        .editor-title { font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.8); }
 
-        .textarea-wrapper { position: relative; width: 100%; }
+        .textarea-wrapper { position: relative; width: 100%; flex: 1; }
         .editor-textarea {
             width: 100%;
             background: rgba(0,0,0,0.2);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px 50px 15px 15px;
+            border-radius: 10px;
+            padding: 12px 45px 12px 12px;
             color: #fff;
             font-family: inherit;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            min-height: 80px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            min-height: 60px;
             resize: vertical;
             outline: none;
             transition: 0.3s;
         }
-        .editor-textarea:focus { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); background: rgba(0,0,0,0.3); }
+        .editor-textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); background: rgba(0,0,0,0.3); }
 
         .save-unit-btn {
             position: absolute;
-            right: 12px;
-            bottom: 12px;
+            right: 10px;
+            bottom: 10px;
             background: var(--accent);
             color: #000;
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: 0.3s;
-            opacity: 0.6;
+            opacity: 0.5;
         }
         .save-unit-btn:hover { opacity: 1; transform: scale(1.1); }
-        .save-unit-btn svg { width: 18px; height: 18px; }
+        .save-unit-btn svg { width: 16px; height: 16px; }
 
-        /* NOTIFICATIONS */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -133,7 +135,6 @@
             transform: translateY(100px);
             transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 10000;
-            box-shadow: 0 10px 30px rgba(46, 213, 115, 0.3);
         }
         #toast.active { transform: translateY(0); }
 
@@ -143,13 +144,13 @@
         .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .badge-ip { font-family: monospace; color: var(--accent); background: rgba(234, 146, 22, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .badge-ip { font-family: monospace; color: var(--accent); background: rgba(234, 146, 22, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
     </style>
 </head>
 <body>
     <div class="aura-bg"></div>
-    <div id="toast">C'est en ligne ! ✨</div>
+    <div id="toast">Mise à jour effectuée ! 🚀</div>
 
     <div class="container">
         <!-- LOGIN SCREEN -->
@@ -178,7 +179,7 @@
 
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="analytics">Analytics</button>
-                <button class="tab-btn" data-tab="editor">Édition du site</button>
+                <button class="tab-btn" data-tab="editor">Édition intégrale du site</button>
             </div>
 
             <!-- ANALYTICS TAB -->
@@ -213,13 +214,13 @@
             <div id="tab-editor" style="display: none;">
                 <div class="panel-header" style="margin-bottom: 10px;">
                     <div>
-                        <h3>Gestion du contenu</h3>
-                        <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Modifiez les textes directement sans passer par le code.</p>
+                        <h3>Éditeur de Site Intégral</h3>
+                        <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Personnalisez chaque texte de la landing page. Cliquez sur ✓ pour valider chaque modification.</p>
                     </div>
                 </div>
 
-                <div class="editor-grid" id="cms-fields">
-                    <!-- Cards will be injected by JS -->
+                <div id="cms-container">
+                    <!-- Sections will be injected by JS -->
                 </div>
             </div>
         </div>
@@ -232,25 +233,89 @@
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             let vChart = null;
 
-            const CMS_DEFAULTS = {
-                hero_title: "Prenez le contrôle<br>avec <span class=\"highlight\">élégance.</span>",
-                hero_desc: "Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité.",
-                feature_title: "L'intelligence <br><span class=\"highlight\">discrète.</span>",
-                feature_desc: "Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.",
-                spirit_title: "Une application faite avec <span class=\"highlight\">passion.</span>",
-                spirit_desc1: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design.",
-                spirit_desc2: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>."
-            };
-
-            const CMS_LABELS = {
-                hero_title: "TITRE PRINCIPAL (ACCUEIL)",
-                hero_desc: "TEXTE DE PRÉSENTATION HERO",
-                feature_title: "TITRE SECTION FEATURES",
-                feature_desc: "INTRODUCTION FEATURES",
-                spirit_title: "TITRE 'L'ESPRIT DU PROJET'",
-                spirit_desc1: "HISTOIRE DU PROJET (PARA 1)",
-                spirit_desc2: "DÉTAILS GRATUITÉ (PARA 2)"
-            };
+            const CMS_CONFIG = [
+                {
+                    section: "Navigation & Header",
+                    items: [
+                        { key: "nav_link_overview", label: "Menu: Aperçu", default: "Aperçu" },
+                        { key: "nav_link_webapp", label: "Menu: Web App", default: "Web App" },
+                        { key: "nav_link_contact", label: "Menu: Contact", default: "Contact" },
+                        { key: "nav_link_login", label: "Bouton: Se connecter", default: "Se connecter" },
+                        { key: "nav_link_download", label: "Bouton: Télécharger", default: "Télécharger" }
+                    ]
+                },
+                {
+                    section: "Section Hero (Accueil)",
+                    items: [
+                        { key: "hero_badge", label: "Badge Hero", default: "V2 • Refonte Totale" },
+                        { key: "hero_title", label: "Titre Hero", default: "Prenez le contrôle<br>avec <span class=\"highlight\">élégance.</span>" },
+                        { key: "hero_desc", label: "Description Hero", default: "Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité." },
+                        { key: "hero_btn_app", label: "Bouton: Installer APK", default: "Installer l'APK" },
+                        { key: "hero_btn_features", label: "Bouton: Fonctionnalités", default: "Fonctionnalités" }
+                    ]
+                },
+                {
+                    section: "Section Fonctionnalités",
+                    items: [
+                        { key: "feature_badge", label: "Badge Features", default: "FEATURES" },
+                        { key: "feature_title", label: "Titre Features", default: "L'intelligence <br><span class=\"highlight\">discrète.</span>" },
+                        { key: "feature_desc", label: "Description Features", default: "Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel." },
+                        { key: "feature1_title", label: "Feature 1: Titre", default: "SUIVI COMPLET" },
+                        { key: "feature1_desc", label: "Feature 1: Texte", default: "Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume." },
+                        { key: "feature2_title", label: "Feature 2: Titre", default: "STATS AVANCÉES" },
+                        { key: "feature2_desc", label: "Feature 2: Texte", default: "Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil." },
+                        { key: "feature3_title", label: "Feature 3: Titre", default: "OBJECTIFS SANTÉ" },
+                        { key: "feature3_desc", label: "Feature 3: Texte", default: "Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès." },
+                        { key: "feature4_title", label: "Feature 4: Titre", default: "SÉCURITÉ CLOUD" },
+                        { key: "feature4_desc", label: "Feature 4: Texte", default: "Vos sauvegardes sont synchronisées en toute sécurité grâce à notre infrastructure Cloud privée." }
+                    ]
+                },
+                {
+                    section: "L'Esprit du Projet",
+                    items: [
+                        { key: "spirit_badge", label: "Badge Esprit", default: "L'ESPRIT DU PROJET" },
+                        { key: "spirit_title", label: "Titre Esprit", default: "Une application faite avec <span class=\"highlight\">passion.</span>" },
+                        { key: "spirit_desc1", label: "Esprit: Para 1", default: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design." },
+                        { key: "spirit_desc2", label: "Esprit: Para 2", default: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>." },
+                        { key: "spirit_disclaimer", label: "Lien: Soutien Texte", default: "Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée." },
+                        { key: "spirit_btn", label: "Bouton: PayPal", default: "Soutenir le projet via PayPal" }
+                    ]
+                },
+                {
+                    section: "Analyse & Screenshots",
+                    items: [
+                        { key: "analysis_badge", label: "Badge Analyse", default: "ANALYSE & DONNÉES" },
+                        { key: "analysis_title", label: "Titre Analyse", default: "Comprenez votre <br><span class=\"highlight\">consommation.</span>" },
+                        { key: "analysis_desc", label: "Description Analyse", default: "Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies." },
+                        { key: "analysis_list1", label: "Point 1: Widmark", default: "Estimation de l'alcoolémie (Widmark + Pic)" },
+                        { key: "analysis_list2", label: "Point 2: Temps", default: "Calcul du temps de retour au seuil légal" },
+                        { key: "analysis_list3", label: "Point 3: Types", default: "Répartition globale par type de boisson" },
+                        { key: "analysis_list4", label: "Point 4: Historique", default: "Historique complet des consommations" },
+                        { key: "screens_title", label: "Titre Screenshots", default: "L'application en images" },
+                        { key: "screens_desc", label: "Description Screenshots", default: "Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal." }
+                    ]
+                },
+                {
+                    section: "Multiplateforme & Contact",
+                    items: [
+                        { key: "multi_badge", label: "Badge Platforms", default: "DISPONIBLE PARTOUT" },
+                        { key: "multi_title", label: "Titre Platforms", default: "Un seul compte.<br><span class=\"highlight\">Tous vos appareils.</span>" },
+                        { key: "multi_desc", label: "Description Platforms", default: "Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil." },
+                        { key: "multi_btn", label: "Bouton: Web App", default: "Lancer la Web App" },
+                        { key: "contact_title", label: "Titre Contact", default: "Un souci, une idée ?" },
+                        { key: "contact_desc", label: "Description Contact", default: "On discute ? Envoyez-nous un message, nous répondons en moins de 24h." },
+                        { key: "contact_btn", label: "Bouton: Envoyer", default: "Envoyer le message" }
+                    ]
+                },
+                {
+                    section: "Pied de page (Footer)",
+                    items: [
+                        { key: "footer_desc", label: "Footer: Description", default: "Votre compagnon de route pour une consommation responsable. Gratuite, sans pub et synchronisée sur tous vos appareils." },
+                        { key: "footer_disclaimer_title", label: "Footer: Titre Alerte", default: "Avertissement" },
+                        { key: "footer_disclaimer_desc", label: "Footer: Texte Alerte", default: "Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire." }
+                    ]
+                }
+            ];
 
             // TABS
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -310,7 +375,7 @@
             }
 
             async function loadCMS() {
-                const container = document.getElementById('cms-fields');
+                const container = document.getElementById('cms-container');
                 container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Synchronisation avec Supabase...</div>';
                 
                 try {
@@ -318,20 +383,29 @@
                     const values = {};
                     if (data) data.forEach(item => values[item.key] = item.value);
 
-                    container.innerHTML = Object.keys(CMS_DEFAULTS).map(key => `
-                        <div class="glass-panel editor-card">
-                            <div class="editor-header">
-                                <div class="editor-title">${CMS_LABELS[key]}</div>
-                                <div class="editor-tag">${key.toUpperCase()}</div>
-                            </div>
-                            <div class="textarea-wrapper">
-                                <textarea class="editor-textarea" data-key="${key}">${values[key] || CMS_DEFAULTS[key]}</textarea>
-                                <button class="save-unit-btn" onclick="saveKey('${key}')" title="Enregistrer ce champ">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
+                    let html = '';
+                    CMS_CONFIG.forEach(sec => {
+                        html += `<div class="editor-section-title">${sec.section}</div>`;
+                        html += `<div class="editor-grid">`;
+                        sec.items.forEach(item => {
+                            html += `
+                                <div class="glass-panel editor-card">
+                                    <div class="editor-header">
+                                        <div class="editor-title">${item.label}</div>
+                                        <div class="editor-tag">${item.key}</div>
+                                    </div>
+                                    <div class="textarea-wrapper">
+                                        <textarea class="editor-textarea" data-key="${item.key}">${values[item.key] || item.default}</textarea>
+                                        <button class="save-unit-btn" onclick="saveKey('${item.key}')" title="Sauvegarder">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    });
+                    container.innerHTML = html;
                 } catch(e) { console.error(e); }
             }
 
@@ -345,7 +419,7 @@
                     if (error) throw error;
                     showToast();
                 } catch(e) { alert("Erreur: " + e.message); }
-                finally { btn.style.opacity = "0.6"; btn.disabled = false; }
+                finally { btn.style.opacity = "0.5"; btn.disabled = false; }
             };
 
             function renderChart(visits) {
@@ -357,7 +431,7 @@
                     type: 'line',
                     data: {
                         labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                        datasets: [{ data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', pointRadius: 4 }]
+                        datasets: [{ data: Object.values(days), borderColor: '#EA9216', borderWidth: 2.5, tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.04)', pointRadius: 3 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
                 });

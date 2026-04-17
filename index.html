@@ -42,11 +42,11 @@
                 <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
             </a>
             <div class="nav-links">
-                <a href="#screenshots">Aperçu</a>
-                <a href="#multiplatform">Web App</a>
-                <a href="#contact">Contact</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">Se connecter</a>
-                <a href="#download" class="nav-btn">Télécharger</a>
+                <a href="#screenshots" data-content-key="nav_link_overview">Aperçu</a>
+                <a href="#multiplatform" data-content-key="nav_link_webapp">Web App</a>
+                <a href="#contact" data-content-key="nav_link_contact">Contact</a>
+                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener" data-content-key="nav_link_login">Se connecter</a>
+                <a href="#download" class="nav-btn" data-content-key="nav_link_download">Télécharger</a>
             </div>
             
             <!-- Mobile Menu Toggle -->
@@ -70,12 +70,12 @@
 
     <header class="hero">
         <div class="hero-text">
-            <div class="badge">V2 • Refonte Totale</div>
+            <div class="badge" data-content-key="hero_badge">V2 • Refonte Totale</div>
             <h1 data-content-key="hero_title">Prenez le contrôle<br>avec <span class="highlight">élégance.</span></h1>
             <p data-content-key="hero_desc">Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité.</p>
             <div class="hero-actions">
-                <a href="#download" class="btn btn-primary">Installer l'APK</a>
-                <a href="#features" class="btn btn-secondary">Fonctionnalités</a>
+                <a href="#download" class="btn btn-primary" data-content-key="hero_btn_app">Installer l'APK</a>
+                <a href="#features" class="btn btn-secondary" data-content-key="hero_btn_features">Fonctionnalités</a>
             </div>
         </div>
 
@@ -134,7 +134,7 @@
 
     <section id="features" class="features">
         <div class="section-header">
-            <div class="badge">FEATURES</div>
+            <div class="badge" data-content-key="feature_badge">FEATURES</div>
             <h2 data-content-key="feature_title">L'intelligence <br><span class="highlight">discrète.</span></h2>
             <p data-content-key="feature_desc" style="margin-bottom: 50px;">Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.</p>
         </div>
@@ -144,29 +144,29 @@
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 </div>
-                <h3>SUIVI COMPLET</h3>
-                <p>Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume.</p>
+                <h3 data-content-key="feature1_title">SUIVI COMPLET</h3>
+                <p data-content-key="feature1_desc">Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                 </div>
-                <h3>STATS AVANCÉES</h3>
-                <p>Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil.</p>
+                <h3 data-content-key="feature2_title">STATS AVANCÉES</h3>
+                <p data-content-key="feature2_desc">Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </div>
-                <h3>OBJECTIFS SANTÉ</h3>
-                <p>Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès.</p>
+                <h3 data-content-key="feature3_title">OBJECTIFS SANTÉ</h3>
+                <p data-content-key="feature3_desc">Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
-                <h3>SÉCURITÉ CLOUD</h3>
-                <p>Vos sauvegardes sont synchronisées en toute sécurité grâce à notre infrastructure Cloud privée.</p>
+                <h3 data-content-key="feature4_title">SÉCURITÉ CLOUD</h3>
+                <p data-content-key="feature4_desc">Vos sauvegardes sont synchronisées en toute sécurité grâce à notre infrastructure Cloud privée.</p>
             </div>
         </div>
     </section>
@@ -175,14 +175,14 @@
     <section class="spirit">
         <div class="spirit-container glass-panel">
             <div class="spirit-text">
-                <div class="badge">L'ESPRIT DU PROJET</div>
+                <div class="badge" data-content-key="spirit_badge">L'ESPRIT DU PROJET</div>
                 <h2 data-content-key="spirit_title">Une application faite avec <span class="highlight">passion.</span></h2>
                 <p data-content-key="spirit_desc1">Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design.</p>
                 <p data-content-key="spirit_desc2">Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>.</p>
                 
                 <div class="spirit-actions">
-                    <p class="spirit-disclaimer">Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée.</p>
-                    <a href="https://www.paypal.com/paypalme/chriskprodigeee" target="_blank" class="btn-paypal">
+                    <p class="spirit-disclaimer" data-content-key="spirit_disclaimer">Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée.</p>
+                    <a href="https://www.paypal.com/paypalme/chriskprodigeee" target="_blank" class="btn-paypal" data-content-key="spirit_btn">
                          Soutenir le projet via PayPal
                     </a>
                 </div>
@@ -232,30 +232,30 @@
             </div>
 
             <div class="analysis-text">
-                <div class="badge analysis-badge">ANALYSE & DONNÉES</div>
-                <h2 class="analysis-title">Comprenez votre <br><span class="highlight">consommation.</span></h2>
-                <p>Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies.</p>
+                <div class="badge analysis-badge" data-content-key="analysis_badge">ANALYSE & DONNÉES</div>
+                <h2 class="analysis-title" data-content-key="analysis_title">Comprenez votre <br><span class="highlight">consommation.</span></h2>
+                <p data-content-key="analysis_desc">Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies.</p>
                 
                 <ul class="analysis-list">
-                    <li>
+                    <li data-content-key="analysis_list1">
                         <span class="list-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
                         </span>
                         Estimation de l'alcoolémie (Widmark + Pic)
                     </li>
-                    <li>
+                    <li data-content-key="analysis_list2">
                         <span class="list-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
                         </span>
                         Calcul du temps de retour au seuil légal
                     </li>
-                    <li>
+                    <li data-content-key="analysis_list3">
                         <span class="list-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
                         </span>
                         Répartition globale par type de boisson
                     </li>
-                    <li>
+                    <li data-content-key="analysis_list4">
                         <span class="list-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
                         </span>
@@ -268,8 +268,8 @@
 
     <section id="screenshots" class="screenshots">
         <div class="section-header">
-            <h2>L'application en <span class="highlight">images</span></h2>
-            <p>Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal.</p>
+            <h2 data-content-key="screens_title">L'application en <span class="highlight">images</span></h2>
+            <p data-content-key="screens_desc">Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal.</p>
         </div>
         
         <div class="carousel-wrapper">
@@ -299,10 +299,10 @@
         <div class="multi-container glass-panel">
             <div class="multi-content">
                 <div class="section-header" style="text-align: left; margin-bottom: 25px;">
-                    <div class="badge">DISPONIBLE PARTOUT</div>
-                    <h2>Un seul compte.<br><span class="highlight">Tous vos appareils.</span></h2>
+                    <div class="badge" data-content-key="multi_badge">DISPONIBLE PARTOUT</div>
+                    <h2 data-content-key="multi_title">Un seul compte.<br><span class="highlight">Tous vos appareils.</span></h2>
                 </div>
-                <p>Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil.</p>
+                <p data-content-key="multi_desc">Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil.</p>
                 
                 <div class="platforms">
                     <div class="platform-item">
@@ -326,7 +326,7 @@
                 </div>
                 
                 <div class="multi-actions">
-                    <a href="app/" class="btn btn-primary-outline" target="_blank" rel="noopener">
+                    <a href="app/" class="btn btn-primary-outline" target="_blank" rel="noopener" data-content-key="multi_btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
                         Lancer la Web App
                     </a>
@@ -348,8 +348,8 @@
     <!-- CONTACT SECTION -->
     <section id="contact" class="contact">
         <div class="section-header">
-            <h2>Un souci, une idée ?</h2>
-            <p>On discute ? Envoyez-nous un message, nous répondons en moins de 24h.</p>
+            <h2 data-content-key="contact_title">Un souci, une idée ?</h2>
+            <p data-content-key="contact_desc">On discute ? Envoyez-nous un message, nous répondons en moins de 24h.</p>
         </div>
         
         <div class="contact-container glass-panel">
@@ -375,7 +375,7 @@
                     <textarea name="message" id="contact-message" rows="5" placeholder="Dites-nous tout..." required></textarea>
                 </div>
                 
-                <button type="submit" class="btn-submit" id="btn-submit-contact">Envoyer le message</button>
+                <button type="submit" class="btn-submit" id="btn-submit-contact" data-content-key="contact_btn">Envoyer le message</button>
             </form>
 
             <!-- Message de succès caché -->
@@ -394,7 +394,7 @@
                 <div class="logo">
                     <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
                 </div>
-                <p>Votre compagnon de route pour une consommation responsable. Gratuite, sans pub et synchronisée sur tous vos appareils.</p>
+                <p data-content-key="footer_desc">Votre compagnon de route pour une consommation responsable. Gratuite, sans pub et synchronisée sur tous vos appareils.</p>
                 <div class="trust-badge">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Synchronisation Cloud Sécurisée
                 </div>
@@ -416,8 +416,8 @@
             </div>
             
             <div class="footer-column disclaimer">
-                <h4>Avertissement</h4>
-                <p>Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire.</p>
+                <h4 data-content-key="footer_disclaimer_title">Avertissement</h4>
+                <p data-content-key="footer_disclaimer_desc">Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire.</p>
             </div>
         </div>
         <div class="footer-bottom">
