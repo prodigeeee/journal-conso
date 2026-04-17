@@ -280,6 +280,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     behavior: 'smooth'
                 });
             });
-        }
+        // 7. Tracking des visites
+        logVisit();
     }
 });
+
+// Fonction de tracking anonyme
+async function logVisit() {
+    const supabaseUrl = 'https://aswxkjibvcadnwujzwcm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+    
+    try {
+        const visitData = {
+            page_path: window.location.pathname,
+            referrer: document.referrer || 'direct',
+            screen_resolution: `${window.screen.width}x${window.screen.height}`,
+            user_agent: navigator.userAgent,
+            device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            created_at: new Date().toISOString()
+        };
+
+        await fetch(`${supabaseUrl}/rest/v1/site_visits`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify(visitData)
+        });
+    } catch (err) {
+        // Silencieux pour ne pas perturber l'utilisateur
+    }
+}
