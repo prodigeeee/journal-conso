@@ -1538,3 +1538,89 @@ h1 {
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.8);
 }
+
+/* SPIRIT SECTION */
+.spirit {
+    max-width: 1200px;
+    margin: 0 auto 150px;
+    padding: 0 40px;
+}
+
+.spirit-container {
+    display: flex;
+    align-items: center;
+    gap: 80px;
+    padding: 60px !important;
+}
+
+.spirit-text {
+    flex: 1.5;
+}
+
+.spirit-text h2 {
+    font-size: 2.8rem;
+    line-height: 1.1;
+    font-weight: 900;
+    margin: 25px 0;
+    letter-spacing: -1px;
+}
+
+.spirit-text p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.spirit-actions {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.spirit-disclaimer {
+    font-size: 0.9rem !important;
+    font-style: italic;
+    margin-bottom: 25px !important;
+}
+
+.btn-paypal {
+    display: inline-flex;
+    align-items: center;
+    background: #0070ba; /* PayPal Blue */
+    color: #fff;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 15px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 112, 186, 0.2);
+}
+
+.btn-paypal:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 112, 186, 0.4);
+    background: #005ea6;
+}
+
+.spirit-visual {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.spirit-img {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+}
+
+@media (max-width: 950px) {
+    .spirit-container {
+        flex-direction: column;
+        gap: 50px;
+        padding: 40px !important;
+        text-align: center;
+    }
+}
