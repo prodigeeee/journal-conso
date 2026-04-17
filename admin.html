@@ -367,63 +367,73 @@
             loadData();
         }
 
+        let visitsChartInstance = null;
+        let deviceChartInstance = null;
+
         async function loadData() {
-            // 1. Charger les Visites
-            const { data: visits, error: vError } = await supabaseAdmin
-                .from('site_visits')
-                .select('*')
-                .order('created_at', { ascending: false });
+            try {
+                // 1. Charger les Visites
+                const { data: visits, error: vError } = await supabaseAdmin
+                    .from('site_visits')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-            if (!vError) {
-                processStats(visits);
-            }
+                if (!vError) {
+                    processStats(visits);
+                }
 
-            // 2. Charger les Messages
-            const { data: messages, error: mError } = await supabaseAdmin
-                .from('contact_messages')
-                .select('*')
-                .order('created_at', { ascending: false });
+                // 2. Charger les Messages
+                const { data: messages, error: mError } = await supabaseAdmin
+                    .from('contact_messages')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-            if (!mError) {
-                renderMessages(messages);
-                document.getElementById('stat-messages').innerText = messages.length;
+                if (!mError) {
+                    renderMessages(messages);
+                    document.getElementById('stat-messages').innerText = messages.length;
+                }
+            } catch (err) {
+                console.error("Global load error:", err);
             }
         }
 
         function processStats(visits) {
             document.getElementById('stat-total-visits').innerText = visits.length;
             
-            // Calcul Mobile vs Desktop
             const mobileCount = visits.filter(v => v.device_type === 'mobile').length;
             const mobilePerc = visits.length > 0 ? Math.round((mobileCount / visits.length) * 100) : 0;
             document.getElementById('stat-mobile-perc').innerText = `${mobilePerc}%`;
 
-            // Chart Visites (Last 7 Days)
             renderVisitsChart(visits);
             renderDeviceChart(mobileCount, visits.length - mobileCount);
         }
 
         function renderMessages(messages) {
             const tbody = document.getElementById('messages-table-body');
-            tbody.innerHTML = '';
-            messages.slice(0, 5).forEach(m => {
-                const date = new Date(m.created_at).toLocaleDateString();
-                tbody.innerHTML += `
+            if (!tbody) return;
+            
+            let rows = '';
+            messages.slice(0, 10).forEach(m => {
+                const date = m.created_at ? new Date(m.created_at).toLocaleDateString() : 'N/A';
+                rows += `
                     <tr>
                         <td>${date}</td>
-                        <td>${m.name}</td>
-                        <td>${m.email}</td>
-                        <td>${m.subject}</td>
-                        <td style="opacity: 0.7; font-style: italic;">${m.message.substring(0, 50)}...</td>
+                        <td>${m.name || 'Anonyme'}</td>
+                        <td>${m.email || '-'}</td>
+                        <td>${m.subject || '-'}</td>
+                        <td style="opacity: 0.7; font-style: italic;">${(m.message || '').substring(0, 60)}...</td>
                     </tr>
                 `;
             });
+            tbody.innerHTML = rows;
         }
 
         function renderVisitsChart(visits) {
-            const ctx = document.getElementById('visitsChart').getContext('2d');
+            const ctx = document.getElementById('visitsChart');
+            if (!ctx) return;
             
-            // On aggrège par jour pour les 7 derniers jours
+            if (visitsChartInstance) visitsChartInstance.destroy();
+
             const days = {};
             for (let i = 6; i >= 0; i--) {
                 const d = new Date();
@@ -436,7 +446,7 @@
                 if (days[date] !== undefined) days[date]++;
             });
 
-            new Chart(ctx, {
+            visitsChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
@@ -464,8 +474,12 @@
         }
 
         function renderDeviceChart(mobile, desktop) {
-            const ctx = document.getElementById('deviceChart').getContext('2d');
-            new Chart(ctx, {
+            const ctx = document.getElementById('deviceChart');
+            if (!ctx) return;
+
+            if (deviceChartInstance) deviceChartInstance.destroy();
+
+            deviceChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Mobile', 'Desktop'],
