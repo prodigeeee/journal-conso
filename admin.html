@@ -14,7 +14,7 @@
             --accent-glow: rgba(234, 146, 22, 0.4);
             --bg-dark: #050608;
             --glass: rgba(255, 255, 255, 0.03);
-            --glass-strong: rgba(255, 255, 255, 0.05);
+            --glass-strong: rgba(255, 255, 255, 0.06);
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.5);
@@ -28,326 +28,264 @@
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
+            font-size: 14px;
         }
 
         /* AURA BACKGROUND */
         .aura-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            overflow: hidden;
-        }
-
-        .blob {
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            filter: blur(80px);
-            opacity: 0.4;
-            border-radius: 50%;
-        }
-
-        .blob-1 { top: -200px; right: -100px; }
-        .blob-2 { bottom: -200px; left: -100px; animation: float 15s infinite alternate; }
-
-        @keyframes float {
-            from { transform: translate(0, 0); }
-            to { transform: translate(100px, 50px); }
+            background: radial-gradient(circle at 80% 20%, #1a1510 0%, #050608 100%);
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 40px;
+            padding: 20px 30px;
             animation: fadeIn 0.8s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* GLASS COMPONENTS */
         .glass-panel {
             background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border-radius: 20px;
         }
-
-        /* LOGIN SCREEN */
-        #login-screen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .login-card {
-            padding: 50px;
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-        }
-
-        .login-card img { width: 70px; margin-bottom: 25px; filter: drop-shadow(0 0 15px var(--accent-glow)); }
-
-        .input-group { text-align: left; margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; font-size: 1rem; transition: 0.3s; }
-        .input-group input:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); box-shadow: 0 0 20px rgba(234, 146, 22, 0.2); }
-
-        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 16px; padding: 18px; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--accent-glow); filter: brightness(1.1); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* DASHBOARD LAYOUT */
         #dashboard { display: none; }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; }
-        .header h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; }
-        .header p { color: var(--text-muted); font-size: 1.1rem; margin-top: 5px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 0; }
+        .header-info h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; }
+        .header-info p { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
 
-        .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 10px 20px; border-radius: 12px; transition: 0.3s; }
-        .logout-btn:hover { color: #E94E77; background: rgba(233, 78, 119, 0.1); }
+        .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.8rem; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--glass-border); transition: 0.3s; }
+        .logout-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
 
-        /* TOP STATS */
+        /* KEY VALUES GRID */
         .grid-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
-            padding: 30px;
-            position: relative;
-            overflow: hidden;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            right: -50px;
-            width: 150px;
-            height: 150px;
-            background: var(--accent-glow);
-            filter: blur(60px);
-            border-radius: 50%;
-            z-index: 0;
-            pointer-events: none;
-        }
+        .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .stat-value { font-size: 1.8rem; font-weight: 950; color: var(--text-main); }
+        .stat-value span { font-size: 0.9rem; color: var(--accent); opacity: 0.8; margin-left: 4px; }
 
-        .stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; position: relative; z-index: 1; }
-        .stat-value { font-size: 2.8rem; font-weight: 950; color: var(--text-main); position: relative; z-index: 1; display: flex; align-items: baseline; gap: 5px; }
-        .stat-value span { font-size: 1.2rem; color: var(--accent); opacity: 0.8; }
-
-        /* MAIN CONTENT AREA */
+        /* MAIN DENSE GRID */
         .main-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 25px;
-            margin-bottom: 40px;
+            grid-template-columns: 2.5fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
-        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
 
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .panel-header h3 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; color: var(--accent); text-transform: uppercase; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .panel-header h3 { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 
-        .chart-panel { padding: 40px; min-height: 450px; }
+        .chart-panel { padding: 25px; min-height: 400px; }
 
-        /* CIRCULAR GAUGE FOR ACTIVE USERS */
-        .active-users-panel {
-            padding: 40px;
+        /* ACTIVE GAUGE SIDEBAR */
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .active-users-card {
+            padding: 25px;
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            text-align: center;
         }
 
         .gauge-container {
-            width: 200px;
-            height: 200px;
+            width: 120px;
+            height: 120px;
             position: relative;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .gauge-circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 12; }
-        .gauge-circle-val { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 2s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 10px var(--accent)); }
+        .gauge-circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
+        .gauge-circle-val { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 1.5s ease-out; filter: drop-shadow(0 0 5px var(--accent)); }
 
         .gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .gauge-number { font-size: 3.5rem; font-weight: 900; line-height: 1; }
-        .gauge-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
+        .gauge-number { font-size: 2.5rem; font-weight: 900; line-height: 1; }
 
         /* TABLES */
-        .table-panel { padding: 35px; overflow: hidden; }
-        .table-wrapper { overflow-x: auto; width: 100%; }
+        .table-panel { padding: 20px; }
+        .table-wrapper { overflow-x: auto; width: 100%; max-height: 500px; overflow-y: auto; }
 
-        table { width: 100%; border-collapse: separate; border-spacing: 0 12px; margin-top: 10px; }
-        th { text-align: left; padding: 0 15px; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 20px 15px; background: rgba(255,255,255,0.02); color: var(--text-main); font-size: 0.95rem; font-weight: 500; }
-        td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid var(--glass-border); }
-        td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid var(--glass-border); }
-        tr:hover td { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px 12px; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--glass-border); }
+        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        tr:hover td { background: rgba(255,255,255,0.03); }
 
-        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 4px 10px; border-radius: 8px; color: var(--accent); font-family: monospace; font-size: 0.8rem; font-weight: 700; }
+        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; }
+        .text-small { font-size: 0.75rem; color: var(--text-muted); }
 
-        .error-msg { color: #E94E77; font-size: 0.85rem; font-weight: 600; margin-top: 20px; display: none; }
+        /* RECENT ACTIVITY LIST */
+        .activity-list { list-style: none; text-align: left; width: 100%; }
+        .activity-item { padding: 10px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+        .activity-item:last-child { border: none; }
+        .activity-label { font-size: 0.8rem; font-weight: 600; }
+        .activity-count { font-weight: 900; color: var(--accent); }
 
-        /* LOADING SHIMMER */
-        .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        /* LOGIN */
+        #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-card { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; }
+        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .error-msg { color: #E94E77; font-size: 0.8rem; margin-top: 15px; display: none; }
 
     </style>
 </head>
 <body>
-    <div class="aura-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
+    <div class="aura-bg"></div>
 
     <div class="container">
         <!-- LOGIN SCREEN -->
         <div id="login-screen">
             <div class="glass-panel login-card">
-                <img src="assets/images/logo.png" alt="Logo">
-                <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 10px;">Back-Office</h2>
-                <p style="color: var(--text-muted); margin-bottom: 40px; font-weight: 500;">Accès restreint au développeur</p>
-                
+                <img src="assets/images/logo.png" style="width: 50px; margin-bottom: 20px;">
+                <h2 style="margin-bottom: 30px;">Back-Office</h2>
                 <div class="input-group">
-                    <label>E-mail personnel</label>
+                    <label>E-mail</label>
                     <input type="email" id="email" placeholder="votre@email.com">
                 </div>
                 <div class="input-group">
-                    <label>Clé de sécurité</label>
+                    <label>Mot de passe</label>
                     <input type="password" id="password" placeholder="••••••••">
                 </div>
-                
-                <button id="btn-login" class="btn-primary">AUTHENTIFICATION</button>
-                <div id="login-error" class="error-msg">Identifiants non autorisés.</div>
+                <button id="btn-login" class="btn-primary">ACCÉDER AU DASHBOARD</button>
+                <div id="login-error" class="error-msg">Accès refusé.</div>
             </div>
         </div>
 
-        <!-- DASHBOARD CONTAINER -->
+        <!-- DASHBOARD -->
         <div id="dashboard">
             <div class="header">
-                <div>
-                    <h1 id="welcome-msg">Bonjour, Chris</h1>
-                    <p>Voici l'activité de Journal Conso en temps réel.</p>
+                <div class="header-info">
+                    <h1 id="welcome-msg">Dashboard • <span style="color:var(--accent)">Journal Conso</span></h1>
+                    <p>Synthèse de l'activité globale et temps réel.</p>
                 </div>
-                <a href="#" class="logout-btn" id="btn-logout">Quitter le Deck</a>
+                <a href="#" class="logout-btn" id="btn-logout">Quitter</a>
             </div>
 
-            <!-- KEY VALUES GRID -->
             <div class="grid-stats">
                 <div class="glass-panel stat-card">
                     <div class="stat-label">Total Visites</div>
                     <div class="stat-value" id="stat-total-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-label">Visiteurs Uniques</div>
+                    <div class="stat-label">Uniques (IP)</div>
                     <div class="stat-value" id="stat-unique-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-label">Moyenne Session</div>
-                    <div class="stat-value" id="stat-avg-time">0<span>min</span></div>
+                    <div class="stat-label">Engagement</div>
+                    <div class="stat-value" id="stat-interactions">0%</div>
                 </div>
                 <div class="glass-panel stat-card">
                     <div class="stat-label">Messages</div>
                     <div class="stat-value" id="stat-messages">0</div>
                 </div>
+                <div class="glass-panel stat-card">
+                    <div class="stat-label">DL App</div>
+                    <div class="stat-value" id="stat-downloads">0</div>
+                </div>
             </div>
 
-            <!-- MAIN ANALYTICS -->
             <div class="main-grid">
                 <div class="glass-panel chart-panel">
                     <div class="panel-header">
-                        <h3>Volumes de Saisies (7j)</h3>
+                        <h3>Activité sur 7 jours</h3>
                     </div>
-                    <div style="height: 350px;">
+                    <div style="height: 320px;">
                         <canvas id="visitsChart"></canvas>
                     </div>
                 </div>
                 
-                <div class="glass-panel active-users-panel">
-                    <div class="panel-header" style="width: 100%;">
-                        <h3>Live Traffic</h3>
-                    </div>
-                    <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 200 200">
-                            <circle class="gauge-circle-bg" cx="100" cy="100" r="90" />
-                            <circle class="gauge-circle-val" id="gauge-val" cx="100" cy="100" r="90" />
-                        </svg>
-                        <div class="gauge-text">
-                            <div class="gauge-number" id="stat-active-users">0</div>
-                            <div class="gauge-label">En ligne</div>
+                <div class="sidebar-panel">
+                    <div class="glass-panel active-users-card">
+                        <div class="stat-label">Live Traffic</div>
+                        <div class="gauge-container">
+                            <svg class="gauge-svg" viewBox="0 0 140 140">
+                                <circle class="gauge-circle-bg" cx="70" cy="70" r="65" />
+                                <circle class="gauge-circle-val" id="gauge-val" cx="70" cy="70" r="65" />
+                            </svg>
+                            <div class="gauge-text">
+                                <div class="gauge-number" id="stat-active-users">0</div>
+                            </div>
                         </div>
+                        <div class="text-small">visiteurs actifs</div>
                     </div>
-                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 15px;">Utilisateurs actifs lors des <br>dernières 2 minutes.</p>
+                    
+                    <div class="glass-panel active-users-card" style="flex: 1; padding: 20px;">
+                        <div class="stat-label" style="margin-bottom: 20px;">Top Sources</div>
+                        <ul class="activity-list" id="top-referrers">
+                            <!-- Injected -->
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            <!-- DATA TABLES -->
             <div class="main-grid">
                 <div class="glass-panel table-panel">
                     <div class="panel-header">
-                        <h3>Derniers visiteurs</h3>
+                        <h3>Historique des Visites</h3>
                     </div>
                     <div class="table-wrapper">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Heure</th>
-                                    <th>Trajet / Source</th>
-                                    <th>Appareil</th>
+                                    <th>Page / Source</th>
+                                    <th>Système / Résolution</th>
                                     <th>Adresse IP</th>
                                 </tr>
                             </thead>
                             <tbody id="visits-table-body">
-                                <!-- Data injected here -->
+                                <tr><td colspan="4" style="text-align:center">Chargement des données...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
                 
-                <div class="glass-panel table-panel">
-                    <div class="panel-header">
-                        <h3>Derniers Messages</h3>
+                <div class="sidebar-panel">
+                    <div class="glass-panel table-panel" style="flex: 1;">
+                        <div class="panel-header">
+                            <h3>Messages</h3>
+                        </div>
+                        <div class="table-wrapper" style="max-height: 450px;">
+                            <table style="border-spacing: 0;">
+                                <tbody id="messages-table-body">
+                                    <!-- Injected -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Expéditeur</th>
-                                    <th>Message</th>
-                                </tr>
-                            </thead>
-                            <tbody id="messages-table-body">
-                                <!-- Data injected here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid-stats" style="grid-template-columns: repeat(2, 1fr);">
-                <div class="glass-panel stat-card" style="padding: 20px 30px;">
-                    <div class="stat-label">Taux d'Interaction</div>
-                    <div class="stat-value" id="stat-interactions" style="font-size: 1.8rem;">0%</div>
-                </div>
-                <div class="glass-panel stat-card" style="padding: 20px 30px;">
-                    <div class="stat-label">Appels à l'action (APK)</div>
-                    <div class="stat-value" id="stat-downloads" style="font-size: 1.8rem;">0</div>
                 </div>
             </div>
         </div>
@@ -356,58 +294,32 @@
     <script>
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+        const supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        let supabaseAdmin;
         let vChart = null;
-
-        try {
-            if (typeof supabase !== 'undefined') {
-                supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-        } catch (e) { console.error(e); }
-
-        const loginScreen = document.getElementById('login-screen');
-        const dashboard = document.getElementById('dashboard');
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-
-        async function checkSession() {
-            if (!supabaseAdmin) return;
-            const { data: { session } } = await supabaseAdmin.auth.getSession();
-            if (session && session.user.email === 'christophek@hotmail.com') {
-                showDashboard();
-            }
-        }
+        let lastVisitCount = -1;
 
         btnLogin.onclick = async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             btnLogin.disabled = true;
-            btnLogin.innerText = "AUTHENTIFICATION...";
-
             const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
-
-            if (!error && data.user.email === 'christophek@hotmail.com') {
-                showDashboard();
-            } else {
-                document.getElementById('login-error').style.display = 'block';
-                btnLogin.disabled = false;
-                btnLogin.innerText = "AUTHENTIFICATION";
-            }
+            if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
+            else { document.getElementById('login-error').style.display = 'block'; btnLogin.disabled = false; }
         };
 
-        btnLogout.onclick = async (e) => {
-            e.preventDefault();
-            await supabaseAdmin.auth.signOut();
-            window.location.reload();
-        };
+        btnLogout.onclick = async (e) => { e.preventDefault(); await supabaseAdmin.auth.signOut(); window.location.reload(); };
+
+        async function checkSession() {
+            const { data: { session } } = await supabaseAdmin.auth.getSession();
+            if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
+        }
 
         function showDashboard() {
-            loginScreen.style.display = 'none';
-            dashboard.style.display = 'block';
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
             loadData();
-            // Refresh auto toutes les 60s
-            setInterval(loadData, 60000);
+            setInterval(loadData, 30000); 
         }
 
         async function loadData() {
@@ -415,73 +327,84 @@
             const { data: visits } = await supabaseAdmin.from('site_visits').select('*').order('created_at', { ascending: false });
             
             if (visits) {
-                // Total et Uniques
                 document.getElementById('stat-total-visits').innerText = visits.length;
+                
+                // Uniques logic
                 const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent)).size;
                 document.getElementById('stat-unique-visits').innerText = uniqueIps;
 
-                // Table des visiteurs
+                // Referrers logic
+                const refs = {};
+                visits.forEach(v => {
+                    const r = v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2] || 'Inconnu';
+                    refs[r] = (refs[r] || 0) + 1;
+                });
+                document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 4).map(([r, c]) => `
+                    <li class="activity-item">
+                        <span class="activity-label">${r}</span>
+                        <span class="activity-count">${c}</span>
+                    </li>
+                `).join('');
+
+                // Table detail
                 const visitBody = document.getElementById('visits-table-body');
-                visitBody.innerHTML = visits.slice(0, 8).map(v => {
-                    const time = new Date(v.created_at).toLocaleTimeString([], {hour: '2k', minute:'2k'});
-                    const ref = v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2];
+                visitBody.innerHTML = visits.slice(0, 50).map(v => {
+                    const date = new Date(v.created_at);
+                    const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                    
+                    let system = v.device_type === 'mobile' ? '📱' : '💻';
+                    if (v.user_agent.includes('Android')) system += ' Android';
+                    else if (v.user_agent.includes('iPhone')) system += ' iOS';
+                    else if (v.user_agent.includes('Windows')) system += ' Win';
+                    
                     return `
                         <tr>
-                            <td>${time}</td>
-                            <td>${v.page_path} <br><small style="color:var(--text-muted)">via ${ref}</small></td>
-                            <td>${v.device_type}</td>
+                            <td><span style="font-weight:700">${timeStr}</span> <br><small class="text-small">${dateStr}</small></td>
+                            <td>${v.page_path} <br><small class="text-small">via ${v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2]}</small></td>
+                            <td>${system} <br><small class="text-small">${v.screen_resolution}</small></td>
                             <td><span class="badge-ip">${v.ip_address || '?.?.?.?'}</span></td>
                         </tr>
                     `;
                 }).join('');
 
-                renderVisitsChart(visits);
+                if (visits.length !== lastVisitCount) {
+                    renderVisitsChart(visits);
+                    lastVisitCount = visits.length;
+                }
             }
 
-            // Events
+            // Events & Stats
             const { data: events } = await supabaseAdmin.from('site_events').select('*');
-            if (events) {
+            if (events && visits) {
                 const downloads = events.filter(e => e.event_name.includes('click_download')).length;
                 const interactions = events.filter(e => e.event_name.includes('simulator_')).length;
                 document.getElementById('stat-downloads').innerText = downloads;
-                
-                // Interaction rate
-                const rate = visits ? Math.round((interactions / visits.length) * 100) : 0;
+                const rate = Math.round((interactions / visits.length) * 100);
                 document.getElementById('stat-interactions').innerText = `${rate}%`;
 
                 // Live Gauge
-                const twoMinsAgo = new Date(Date.now() - 120000).toISOString();
-                const activeCount = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= twoMinsAgo).length;
-                updateActiveGauge(activeCount);
-                
-                // Session Time
-                const heartbeats = events.filter(e => e.event_name === 'heartbeat');
-                const avgTime = heartbeats.length > 0 ? Math.round((heartbeats.length * 30) / 60 / (uniqueIps || 1)) : 0; 
-                document.getElementById('stat-avg-time').innerHTML = `${avgTime}<span>min</span>`;
+                const activeCount = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
+                document.getElementById('stat-active-users').innerText = activeCount;
+                const circle = document.getElementById('gauge-val');
+                const offset = 440 - (Math.min(activeCount / 10, 1) * 440);
+                circle.style.strokeDashoffset = offset;
             }
 
             // Messages
             const { data: messages } = await supabaseAdmin.from('contact_messages').select('*').order('created_at', { ascending: false });
             if (messages) {
                 document.getElementById('stat-messages').innerText = messages.length;
-                const tbody = document.getElementById('messages-table-body');
-                tbody.innerHTML = messages.slice(0, 5).map(m => `
+                document.getElementById('messages-table-body').innerHTML = messages.slice(0, 10).map(m => `
                     <tr>
-                        <td style="font-weight:700">${m.name}<br><small style="color:var(--text-muted)">${m.email}</small></td>
-                        <td style="color:rgba(255,255,255,0.7); font-size:0.85rem">${m.message.substring(0, 70)}...</td>
+                        <td style="padding:15px">
+                            <div style="font-weight:800; color:var(--accent)">${m.name}</div>
+                            <div class="text-small" style="margin-bottom:5px">${m.email}</div>
+                            <div style="font-size:0.8rem; line-height:1.4">${m.message}</div>
+                        </td>
                     </tr>
                 `).join('');
             }
-        }
-
-        function updateActiveGauge(count) {
-            document.getElementById('stat-active-users').innerText = count;
-            const circle = document.getElementById('gauge-val');
-            // 565 is the length for radius 90 (2 * pi * 90)
-            const max = 20; // On considère 20 simultanés comme "plein"
-            const percentage = Math.min(count / max, 1);
-            const offset = 565 - (percentage * 565);
-            circle.style.strokeDashoffset = offset;
         }
 
         function renderVisitsChart(visits) {
@@ -502,31 +425,17 @@
                 data: {
                     labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
                     datasets: [{ 
-                        label: 'Visites', 
-                        data: Object.values(days), 
-                        borderColor: '#EA9216', 
-                        borderWidth: 4,
-                        tension: 0.4, 
-                        fill: true, 
-                        backgroundColor: 'rgba(234, 146, 22, 0.1)',
-                        pointBackgroundColor: '#EA9216',
-                        pointRadius: 6
+                        label: 'Visites', data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, 
+                        tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', 
+                        pointRadius: 4, pointBackgroundColor: '#EA9216'
                     }]
                 },
                 options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                    responsive: true, maintainAspectRatio: false, 
                     plugins: { legend: { display: false } }, 
                     scales: { 
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.4)', font: { weight: 'bold' } }
-                        }, 
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: 'rgba(255,255,255,0.4)', font: { weight: 'bold' } }
-                        } 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.3)' } }, 
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.3)' } } 
                     } 
                 }
             });
