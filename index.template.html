@@ -291,8 +291,8 @@
             <div class="footer-section">
                 <h4>{{ footer.legal_title }}</h4>
                 <ul>
-                    <li><a href="#">{{ footer.privacy }}</a></li>
-                    <li><a href="#">{{ footer.mentions }}</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('modal-privacy')">{{ footer.privacy }}</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('modal-legal')">{{ footer.mentions }}</a></li>
                     <li><a href="#contact">{{ footer.contact }}</a></li>
                 </ul>
             </div>
@@ -314,8 +314,67 @@
         </div>
     </footer>
 
+    <!-- MODALS -->
+    <div id="modal-privacy" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal('modal-privacy')">&times;</button>
+            <h2>{{ privacy_policy.title }}</h2>
+            <div class="modal-section">
+                <h4>{{ privacy_policy.commitment_title }}</h4>
+                <p>{{ privacy_policy.commitment_text }}</p>
+            </div>
+            <div class="modal-section">
+                <h4>{{ privacy_policy.usage_title }}</h4>
+                <p>{{ privacy_policy.usage_text }}</p>
+            </div>
+            <div class="modal-section">
+                <h4>{{ privacy_policy.confidentiality_title }}</h4>
+                <p>{{ privacy_policy.confidentiality_text }}</p>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('modal-privacy')" style="width: 100%;">{{ privacy_policy.btn_close }}</button>
+        </div>
+    </div>
+
+    <div id="modal-legal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal('modal-legal')">&times;</button>
+            <h2>{{ legal_policy.title }}</h2>
+            <div class="modal-section">
+                <h4>{{ legal_policy.editor_title }}</h4>
+                <p>{{ legal_policy.editor_text }}</p>
+            </div>
+            <div class="modal-section">
+                <h4>{{ legal_policy.hosting_title }}</h4>
+                <p>{{ legal_policy.hosting_text }}</p>
+            </div>
+            <div class="modal-section">
+                <h4>{{ legal_policy.rights_title }}</h4>
+                <p>{{ legal_policy.rights_text }}</p>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('modal-legal')" style="width: 100%;">{{ privacy_policy.btn_close }}</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
+        // Modal Logic
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close on overlay click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
         // Menu Burger
         const burger = document.getElementById('burger-toggle');
         const mobileMenu = document.getElementById('mobile-menu');

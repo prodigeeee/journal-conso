@@ -98,5 +98,24 @@ footer:
   warning_title: "Avertissement"
   warning_text: "Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire."
   description: "Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone."
-  trust_badge: "Données 100% locales"
+  trust_badge: "Données 100% sécurisées"
   copy: "© 2026 ChrisK • Journal Conso. Tous droits réservés."
+
+legal_policy:
+  title: "Mentions Légales"
+  editor_title: "ÉDITEUR"
+  editor_text: "Journal Conso est un projet indépendant créé par ChrisK."
+  hosting_title: "HÉBERGEMENT DES DONNÉES"
+  hosting_text: "Les données sont hébergées par Supabase Inc. sur des serveurs sécurisés situés au sein de l'Union Européenne (AWS Frankfurt), garantissant une conformité totale avec le RGPD."
+  rights_title: "VOS DROITS"
+  rights_text: "Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données. Cette suppression est effectuée instantanément sur simple demande via les réglages de l'application."
+
+privacy_policy:
+  title: "Politique de Confidentialité"
+  commitment_title: "NOTRE ENGAGEMENT"
+  commitment_text: "Votre vie privée est notre priorité absolue. Contrairement à de nombreuses applications, Journal Conso ne vend, ne loue et ne partage aucune de vos données personnelles."
+  usage_title: "UTILISATION DES DONNÉES"
+  usage_text: "Vos données (profil, âge, poids, consommations) sont synchronisées uniquement pour vous permettre de retrouver votre journal sur tous vos appareils. Elles ne sont jamais utilisées pour du ciblage publicitaire ou d'autres fins commerciales."
+  confidentiality_title: "CONFIDENTIALITÉ"
+  confidentiality_text: "Vos informations de santé restent strictement personnelles. Nous n'utilisons aucun traceur tiers et n'exploitons pas vos habitudes de consommation."
+  btn_close: "Fermer"

@@ -291,8 +291,8 @@
             <div class="footer-section">
                 <h4>Légal</h4>
                 <ul>
-                    <li><a href="#">Confidentialité</a></li>
-                    <li><a href="#">Mentions légales</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('modal-privacy')">Confidentialité</a></li>
+                    <li><a href="javascript:void(0)" onclick="openModal('modal-legal')">Mentions légales</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
@@ -308,14 +308,73 @@
             <p>Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone.</p>
             <div class="footer-badges">
                 <span class="f-badge">100% Mobile</span>
-                <span class="f-badge">Données 100% locales</span>
+                <span class="f-badge">Données 100% sécurisées</span>
             </div>
             <p style="margin-top: 30px; opacity: 0.5; font-size: 11px;">© 2026 ChrisK • Journal Conso. Tous droits réservés.</p>
         </div>
     </footer>
 
+    <!-- MODALS -->
+    <div id="modal-privacy" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal('modal-privacy')">&times;</button>
+            <h2>Politique de Confidentialité</h2>
+            <div class="modal-section">
+                <h4>NOTRE ENGAGEMENT</h4>
+                <p>Votre vie privée est notre priorité absolue. Contrairement à de nombreuses applications, Journal Conso ne vend, ne loue et ne partage aucune de vos données personnelles.</p>
+            </div>
+            <div class="modal-section">
+                <h4>UTILISATION DES DONNÉES</h4>
+                <p>Vos données (profil, âge, poids, consommations) sont synchronisées uniquement pour vous permettre de retrouver votre journal sur tous vos appareils. Elles ne sont jamais utilisées pour du ciblage publicitaire ou d'autres fins commerciales.</p>
+            </div>
+            <div class="modal-section">
+                <h4>CONFIDENTIALITÉ</h4>
+                <p>Vos informations de santé restent strictement personnelles. Nous n'utilisons aucun traceur tiers et n'exploitons pas vos habitudes de consommation.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('modal-privacy')" style="width: 100%;">Fermer</button>
+        </div>
+    </div>
+
+    <div id="modal-legal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeModal('modal-legal')">&times;</button>
+            <h2>Mentions Légales</h2>
+            <div class="modal-section">
+                <h4>ÉDITEUR</h4>
+                <p>Journal Conso est un projet indépendant créé par ChrisK.</p>
+            </div>
+            <div class="modal-section">
+                <h4>HÉBERGEMENT DES DONNÉES</h4>
+                <p>Les données sont hébergées par Supabase Inc. sur des serveurs sécurisés situés au sein de l'Union Européenne (AWS Frankfurt), garantissant une conformité totale avec le RGPD.</p>
+            </div>
+            <div class="modal-section">
+                <h4>VOS DROITS</h4>
+                <p>Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données. Cette suppression est effectuée instantanément sur simple demande via les réglages de l'application.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('modal-legal')" style="width: 100%;">Fermer</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
+        // Modal Logic
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close on overlay click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
         // Menu Burger
         const burger = document.getElementById('burger-toggle');
         const mobileMenu = document.getElementById('mobile-menu');
