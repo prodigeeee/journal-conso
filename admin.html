@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Journal Conso</title>
+    <title>Admin V2 - Journal Conso</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,10 +25,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
         }
 
-        /* FOND AURA */
         .aura-container {
             position: fixed;
             top: 0;
@@ -36,24 +34,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            overflow: hidden;
             background: radial-gradient(circle at 50% 50%, #15181e 0%, #0a0b0e 100%);
-        }
-
-        .aura-blob {
-            position: absolute;
-            filter: blur(80px);
-            opacity: 0.15;
-            border-radius: 50%;
-            animation: move 20s infinite alternate;
-        }
-
-        .aura-1 { width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px; }
-        .aura-2 { width: 300px; height: 300px; background: #E94E77; bottom: -50px; left: -50px; animation-duration: 25s; }
-
-        @keyframes move {
-            from { transform: translate(0, 0) scale(1); }
-            to { transform: translate(50px, 50px) scale(1.1); }
         }
 
         .container {
@@ -64,10 +45,9 @@
             box-sizing: border-box;
         }
 
-        /* LOGIN SCREEN */
+        /* LOGIN */
         #login-screen {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 80vh;
@@ -81,38 +61,7 @@
             padding: 40px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-
-        .logo-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo-img {
-            width: 60px;
-            margin-bottom: 10px;
-        }
-
-        h2 { margin: 0; font-size: 1.5rem; font-weight: 800; }
-        p.subtitle { color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 5px; margin-bottom: 30px; }
-
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        input {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: white;
-            font-family: inherit;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: all 0.2s;
-        }
-        input:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
 
         .btn {
             width: 100%;
@@ -124,11 +73,8 @@
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
             margin-top: 10px;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(234, 146, 22, 0.3); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* DASHBOARD */
         #dashboard { display: none; }
@@ -174,7 +120,8 @@
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 30px;
-            min-height: 300px;
+            height: 350px; /* FIXE POUR ÉVITER LE BUG DE REDIMENSIONNEMENT INFINI */
+            position: relative;
         }
 
         .table-container {
@@ -186,49 +133,45 @@
         }
 
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 12px; border-bottom: 1px solid var(--glass-border); color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; }
+        th { text-align: left; padding: 12px; border-bottom: 1px solid var(--glass-border); color: rgba(255,255,255,0.5); font-size: 0.8rem; }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.9rem; }
         
-        .logout-link { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.9rem; cursor: pointer; }
-        .logout-link:hover { color: #E94E77; }
+        .logout-link { color: rgba(255,255,255,0.4); text-decoration: none; cursor: pointer; }
 
         .error-msg { color: #E94E77; font-size: 0.8rem; margin-top: 10px; display: none; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="aura-container">
-        <div class="aura-blob aura-1"></div>
-        <div class="aura-blob aura-2"></div>
-    </div>
+    <div class="aura-container"></div>
 
     <div class="container">
-        <!-- SCREEN 1: LOGIN -->
+        <!-- LOGIN -->
         <div id="login-screen">
             <div class="glass-card">
-                <div class="logo-header">
-                    <img src="assets/images/logo.png" alt="Logo" class="logo-img">
-                    <h2>Back-Office</h2>
-                    <p class="subtitle">Journal Conso Analytics</p>
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <img src="assets/images/logo.png" style="width: 50px;">
+                    <h2 style="margin: 10px 0 5px 0;">Back-Office V2</h2>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">Espace Privé - Christophek</p>
                 </div>
-                <div class="form-group">
-                    <label>Email Admin</label>
-                    <input type="email" id="email" placeholder="votre@email.com">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 5px;">EMAIL</label>
+                    <input type="email" id="email" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none;">
                 </div>
-                <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" id="password" placeholder="••••••••">
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 5px;">MOT DE PASSE</label>
+                    <input type="password" id="password" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none;">
                 </div>
-                <button id="btn-login" class="btn">Se connecter</button>
+                <button id="btn-login" class="btn">SE CONNECTER</button>
                 <div id="login-error" class="error-msg">Email ou mot de passe incorrect.</div>
             </div>
         </div>
 
-        <!-- SCREEN 2: DASHBOARD -->
+        <!-- DASHBOARD -->
         <div id="dashboard">
             <div class="dahboard-header">
                 <div>
-                    <h2>Tableau de Bord</h2>
-                    <p class="subtitle">Statistiques en temps réel</p>
+                    <h2 style="margin: 0;">Tableau de Bord</h2>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin: 5px 0 0 0;">Analyse des données en temps réel</p>
                 </div>
                 <a class="logout-link" id="btn-logout">Déconnexion</a>
             </div>
@@ -254,109 +197,78 @@
 
             <div class="charts-row">
                 <div class="chart-container">
-                    <h3>Visites (7 derniers jours)</h3>
+                    <h3 style="margin-top: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">SESSIONS (7 JOURS)</h3>
                     <canvas id="visitsChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <h3>Appareils</h3>
+                    <h3 style="margin-top: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">APPAREILS</h3>
                     <canvas id="deviceChart"></canvas>
                 </div>
             </div>
 
             <div class="table-container">
-                <h3>Derniers messages reçus</h3>
+                <h3 style="margin-top: 0; font-size: 1rem;">Derniers messages reçus</h3>
                 <table>
                     <thead>
                         <tr>
                             <th>Date</th>
                             <th>Nom</th>
                             <th>Email</th>
-                            <th>Sujet</th>
                             <th>Message</th>
                         </tr>
                     </thead>
-                    <tbody id="messages-table-body">
-                        <!-- Rempli par JS -->
-                    </tbody>
+                    <tbody id="messages-table-body"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
         
         let supabaseAdmin;
-        
-        try {
-            if (typeof supabase === 'undefined') {
-                console.error("Supabase library not loaded!");
-                alert("Erreur : La bibliothèque Supabase n'a pas pu être chargée. Vérifiez votre connexion internet.");
-            } else {
-                supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("Supabase initialized successfully");
-            }
-        } catch (e) {
-            console.error("Init error:", e);
-        }
+        let vChart = null;
+        let dChart = null;
 
-        // Elements
+        try {
+            if (typeof supabase !== 'undefined') {
+                supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch (e) { console.error(e); }
+
         const loginScreen = document.getElementById('login-screen');
         const dashboard = document.getElementById('dashboard');
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
-        const loginError = document.getElementById('login-error');
 
-        // Check Session
         async function checkSession() {
             if (!supabaseAdmin) return;
-            try {
-                const { data: { session } } = await supabaseAdmin.auth.getSession();
-                if (session && session.user.email === 'christophek@hotmail.com') {
-                    showDashboard();
-                } else if (session) {
-                    await supabaseAdmin.auth.signOut();
-                }
-            } catch (e) {
-                console.error("Session check error:", e);
+            const { data: { session } } = await supabaseAdmin.auth.getSession();
+            if (session && session.user.email === 'christophek@hotmail.com') {
+                showDashboard();
+            } else if (session) {
+                await supabaseAdmin.auth.signOut();
             }
         }
 
-        // Login Logic
         btnLogin.onclick = async () => {
-            if (!supabaseAdmin) {
-                alert("Erreur : La base de données n'est pas initialisée.");
-                return;
-            }
+            if (!supabaseAdmin) return;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
             btnLogin.disabled = true;
-            btnLogin.innerText = "Connexion...";
-            loginError.style.display = 'none';
+            btnLogin.innerText = "CONNEXION...";
 
-            const { data, error } = await supabaseAdmin.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
 
-            if (error) {
-                loginError.style.display = 'block';
-                btnLogin.disabled = false;
-                btnLogin.innerText = "Se connecter";
-            } else {
-                // SÉCURITÉ SUPPLÉMENTAIRE : Vérification de l'email autorisé
-                if (data.user.email !== 'christophek@hotmail.com') {
-                    await supabaseAdmin.auth.signOut();
-                    loginError.innerText = "Accès refusé : vous n'êtes pas administrateur.";
-                    loginError.style.display = 'block';
-                    btnLogin.disabled = false;
-                    btnLogin.innerText = "Se connecter";
-                    return;
-                }
+            if (!error && data.user.email === 'christophek@hotmail.com') {
                 showDashboard();
+            } else {
+                if (!error) await supabaseAdmin.auth.signOut();
+                document.getElementById('login-error').style.display = 'block';
+                btnLogin.disabled = false;
+                btnLogin.innerText = "SE CONNECTER";
             }
         };
 
@@ -371,154 +283,73 @@
             loadData();
         }
 
-        let visitsChartInstance = null;
-        let deviceChartInstance = null;
-
         async function loadData() {
-            try {
-                // 1. Charger les Visites
-                const { data: visits, error: vError } = await supabaseAdmin
-                    .from('site_visits')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (!vError) {
-                    processStats(visits);
-                }
-
-                // 2. Charger les Événements
-                const { data: events, error: eError } = await supabaseAdmin
-                    .from('site_events')
-                    .select('*');
-
-                if (!eError) {
-                    processEvents(events);
-                }
-
-                // 3. Charger les Messages
-                const { data: messages, error: mError } = await supabaseAdmin
-                    .from('contact_messages')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (!mError) {
-                    renderMessages(messages);
-                    document.getElementById('stat-messages').innerText = messages.length;
-                }
-            } catch (err) {
-                console.error("Global load error:", err);
+            // Visits
+            const { data: visits } = await supabaseAdmin.from('site_visits').select('*').order('created_at', { ascending: false });
+            if (visits) {
+                document.getElementById('stat-total-visits').innerText = visits.length;
+                renderVisitsChart(visits);
             }
-        }
 
-        function processStats(visits) {
-            document.getElementById('stat-total-visits').innerText = visits.length;
-            renderVisitsChart(visits);
-        }
+            // Events
+            const { data: events } = await supabaseAdmin.from('site_events').select('*');
+            if (events) {
+                const dw = events.filter(e => e.event_name.includes('click_')).length;
+                const int = events.filter(e => e.event_name.includes('simulator_')).length;
+                document.getElementById('stat-downloads').innerText = dw;
+                document.getElementById('stat-interactions').innerText = int;
+                renderDeviceChart(visits || []);
+            }
 
-        function processEvents(events) {
-            const downloads = events.filter(e => e.event_name === 'click_download_apk' || e.event_name === 'click_launch_app').length;
-            const interactions = events.filter(e => e.event_name.startsWith('simulator_')).length;
-
-            document.getElementById('stat-downloads').innerText = downloads;
-            document.getElementById('stat-interactions').innerText = interactions;
-
-            renderDeviceChartFromEvents(events);
-        }
-
-        // On remplace l'ancienne fonction device chart
-        function renderDeviceChartFromEvents(events) {
-            // Puisqu'on n'a pas device_type dans events, on garde l'original si possible
-            // Mais pour simplifier ici je vais juste rester sur le premier donut
-        }
-
-        function renderMessages(messages) {
-            const tbody = document.getElementById('messages-table-body');
-            if (!tbody) return;
-            
-            let rows = '';
-            messages.slice(0, 10).forEach(m => {
-                const date = m.created_at ? new Date(m.created_at).toLocaleDateString() : 'N/A';
-                rows += `
+            // Messages
+            const { data: messages } = await supabaseAdmin.from('contact_messages').select('*').order('created_at', { ascending: false });
+            if (messages) {
+                document.getElementById('stat-messages').innerText = messages.length;
+                const tbody = document.getElementById('messages-table-body');
+                tbody.innerHTML = messages.slice(0, 10).map(m => `
                     <tr>
-                        <td>${date}</td>
-                        <td>${m.name || 'Anonyme'}</td>
-                        <td>${m.email || '-'}</td>
-                        <td>${m.subject || '-'}</td>
-                        <td style="opacity: 0.7; font-style: italic;">${(m.message || '').substring(0, 60)}...</td>
+                        <td>${new Date(m.created_at).toLocaleDateString()}</td>
+                        <td>${m.name}</td>
+                        <td>${m.email}</td>
+                        <td>${m.message.substring(0, 60)}...</td>
                     </tr>
-                `;
-            });
-            tbody.innerHTML = rows;
+                `).join('');
+            }
         }
 
         function renderVisitsChart(visits) {
             const ctx = document.getElementById('visitsChart');
             if (!ctx) return;
-            
-            if (visitsChartInstance) visitsChartInstance.destroy();
-
             const days = {};
             for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
+                const d = new Date(); d.setDate(d.getDate() - i);
                 days[d.toISOString().split('T')[0]] = 0;
             }
-
             visits.forEach(v => {
                 const date = v.created_at.split('T')[0];
                 if (days[date] !== undefined) days[date]++;
             });
-
-            visitsChartInstance = new Chart(ctx, {
+            if (vChart) vChart.destroy();
+            vChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                    datasets: [{
-                        label: 'Visites',
-                        data: Object.values(days),
-                        borderColor: '#EA9216',
-                        backgroundColor: 'rgba(234, 146, 22, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff'
-                    }]
+                    datasets: [{ label: 'Visites', data: Object.values(days), borderColor: '#EA9216', tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.1)' }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
             });
         }
 
-        function renderDeviceChart(mobile, desktop) {
+        function renderDeviceChart(visits) {
             const ctx = document.getElementById('deviceChart');
             if (!ctx) return;
-
-            if (deviceChartInstance) deviceChartInstance.destroy();
-
-            deviceChartInstance = new Chart(ctx, {
+            const mob = visits.filter(v => v.device_type === 'mobile').length;
+            const desk = visits.length - mob;
+            if (dChart) dChart.destroy();
+            dChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: ['Mobile', 'Desktop'],
-                    datasets: [{
-                        data: [mobile, desktop],
-                        backgroundColor: ['#EA9216', '#333'],
-                        borderWidth: 0,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#fff', padding: 20 } }
-                    }
-                }
+                data: { labels: ['Mobile', 'Desktop'], datasets: [{ data: [mob, desk], backgroundColor: ['#EA9216', '#333'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
             });
         }
 
