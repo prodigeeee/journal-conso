@@ -353,14 +353,23 @@ function setupEventListeners() {
         }
     });
 
-    // Interaction Simulateur
+    // Interaction Simulateur - Plus de détails
     const addDrinkBtn = document.querySelector('.add-drink-btn');
     if (addDrinkBtn) {
-        addDrinkBtn.addEventListener('click', () => logEvent('simulator_add_drink'));
+        addDrinkBtn.addEventListener('click', () => {
+            const drinkType = document.querySelector('.drink-type-select')?.textContent || 'vague';
+            logEvent('simulator_add_drink', { type: drinkType });
+        });
     }
 
     const ageInput = document.getElementById('age-input');
-    if (ageInput) {
-        ageInput.addEventListener('change', () => logEvent('simulator_change_param', { param: 'age' }));
-    }
+    if (ageInput) { ageInput.addEventListener('change', () => logEvent('simulator_param', { p: 'age' })); }
+
+    const weightInput = document.getElementById('weight-input');
+    if (weightInput) { weightInput.addEventListener('change', () => logEvent('simulator_param', { p: 'weight' })); }
+
+    // HEARTBEAT : Détection de présence toutes les 30 secondes
+    setInterval(() => {
+        logEvent('heartbeat', { url: window.location.pathname });
+    }, 30000);
 }
