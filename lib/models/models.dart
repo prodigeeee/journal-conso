@@ -62,12 +62,12 @@ class Consumption {
     'userId': userId,
   };
   factory Consumption.fromJson(Map<String, dynamic> json) => Consumption(
-    id: json['id'],
-    date: DateTime.parse(json['date']),
-    moment: json['moment'] ?? 'Soir',
-    type: json['type'],
-    volume: json['volume'],
-    degree: (json['degree'] as num).toDouble(),
-    userId: json['userId'] ?? '1',
+    id: json['id'] ?? (DateTime.now().millisecondsSinceEpoch + (json.hashCode % 1000)).toString(),
+    date: DateTime.parse(json['date'] ?? json['Date'] ?? DateTime.now().toIso8601String()),
+    moment: json['moment'] ?? json['Moment'] ?? 'Soir',
+    type: json['type'] ?? json['Type'] ?? 'Bière',
+    volume: json['volume'] ?? json['Volume'] ?? '25cl',
+    degree: (json['degree'] ?? json['Degree'] ?? json['degré'] ?? 5.0) as double,
+    userId: json['userId'] ?? json['userId'] ?? json['profileId'] ?? json['user_id'] ?? '1',
   );
 }

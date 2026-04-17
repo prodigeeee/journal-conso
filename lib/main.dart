@@ -434,7 +434,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
-      _showAuraSnackBar("✅ Données sauvegardées dans le Cloud !");
+      _showAuraSnackBar("✅ Données sauvegardées dans le Cloud (${_profiles.length} profils, ${_allConsumptions.length} consos) !");
     } catch (e) {
       _showAuraSnackBar("❌ Erreur de sauvegarde : $e", isError: true);
     }
@@ -466,9 +466,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
-        _showAuraSnackBar("✅ Synchronisation réussie !");
+        _showAuraSnackBar("✅ Synchronisation réussie (${cloudProfiles.length} profils, ${cloudConsos.length} consos) !");
       } else {
-        _showAuraSnackBar("ℹ️ Aucune donnée trouvée dans le Cloud");
+        _showAuraSnackBar("ℹ️ Aucune donnée trouvée (${cloudProfiles.length} profils, ${cloudConsos.length} consos)");
       }
     } catch (e) {
       _showAuraSnackBar("❌ Erreur de synchronisation : $e", isError: true);
@@ -546,25 +546,40 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         content = await file.readAsString();
       }
       final data = jsonDecode(content);
+      
       setState(() {
-        final profilesData = data['profiles'] ?? data['Profiles'];
+        // Recherche souple des profils
+        final profilesData = data['profiles'] ?? data['Profiles'] ?? data['userProfiles'];
         if (profilesData != null) {
           _profiles = (profilesData as List)
               .map((i) => UserProfile.fromJson(i))
               .toList();
         }
-        _allConsumptions = (data['consumptions'] as List)
-            .map((i) => Consumption.fromJson(i))
-            .toList();
-        _contexts = Map<String, String>.from(data['momentsContexts'] ?? {});
+        
+        // Recherche souple des consommations
+        final consosData = data['consumptions'] ?? data['Consumptions'] ?? data['history'] ?? data['consumoires'];
+        if (consosData != null) {
+          _allConsumptions = (consosData as List)
+              .map((i) => Consumption.fromJson(i))
+              .toList();
+        } else {
+          _allConsumptions = [];
+        }
+        
+        _contexts = Map<String, String>.from(data['momentsContexts'] ?? data['contexts'] ?? {});
+        
         if (_profiles.isNotEmpty) {
           _activeUserId = _profiles.first.id;
         }
       });
+      
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Application entièrement restaurée")),
+          SnackBar(
+            content: Text("Restauration : ${_profiles.length} profils et ${_allConsumptions.length} consommations chargés !"),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     }
