@@ -3842,103 +3842,138 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        ...widget.profiles.map(
-          (p) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: glassModule(
-              isDarkMode: widget.isDarkMode,
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Stack(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Color(p.colorValue),
-                          radius: 24,
-                          backgroundImage: getProfileImage(p.imagePath),
-                          child: (p.imagePath == null || p.imagePath!.isEmpty)
-                              ? const Icon(Icons.person, color: Colors.white)
-                              : null,
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: () => _pickImage(p),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: widget.accentColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.add,
-                                size: 10,
-                                color: Colors.white,
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widget.profiles.length,
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex -= 1;
+              final p = widget.profiles.removeAt(oldIndex);
+              widget.profiles.insert(newIndex, p);
+            });
+            widget.onProfilesChanged();
+          },
+          proxyDecorator: (child, index, animation) => Material(
+            color: Colors.transparent,
+            child: child,
+          ),
+          itemBuilder: (context, index) {
+            final p = widget.profiles[index];
+            return Padding(
+              key: ValueKey(p.id),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: glassModule(
+                isDarkMode: widget.isDarkMode,
+                child: Column(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ReorderableDragStartListener(
+                            index: index,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Icon(
+                                Icons.drag_indicator,
+                                color: widget.isDarkMode ? Colors.white24 : Colors.black12,
+                                size: 20,
                               ),
                             ),
                           ),
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Color(p.colorValue),
+                                radius: 24,
+                                backgroundImage: getProfileImage(p.imagePath),
+                                child: (p.imagePath == null || p.imagePath!.isEmpty)
+                                    ? const Icon(Icons.person, color: Colors.white)
+                                    : null,
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: GestureDetector(
+                                  onTap: () => _pickImage(p),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: widget.accentColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 10,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      title: Text(
+                        p.name,
+                        style: TextStyle(
+                          color: itemTxt,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "${p.age} ans • ${p.weight}kg",
+                        style: TextStyle(
+                          color: widget.isDarkMode
+                              ? Colors.white38
+                              : Colors.black54,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          color: widget.accentColor,
+                          size: 20,
+                        ),
+                        onPressed: () => _editProfile(p),
+                      ),
+                    ),
+                    const Divider(height: 20, color: Colors.white10),
+                    Wrap(
+                      alignment: WrapAlignment.start,
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: [
+                        _miniAction(
+                          Icons.upload,
+                          L10n.s('common.export'),
+                          () => widget.onExportProfile(p),
+                        ),
+                        _miniAction(
+                          Icons.download,
+                          L10n.s('common.import'),
+                          () => widget.onImportProfile(p),
+                        ),
+                        _miniAction(
+                          Icons.print,
+                          L10n.s('common.print'),
+                          () => widget.onPrintProfile(p),
+                        ),
+                        _miniAction(
+                          Icons.delete_outline,
+                          L10n.s('common.delete'),
+                          () => _confirmDelete(p),
+                          color: Colors.redAccent,
                         ),
                       ],
                     ),
-                    title: Text(
-                      p.name,
-                      style: TextStyle(
-                        color: itemTxt,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "${p.age} ans • ${p.weight}kg",
-                      style: TextStyle(
-                        color: widget.isDarkMode
-                            ? Colors.white38
-                            : Colors.black54,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        color: widget.accentColor,
-                        size: 20,
-                      ),
-                      onPressed: () => _editProfile(p),
-                    ),
-                  ),
-                  const Divider(height: 20, color: Colors.white10),
-                  Wrap(
-                    alignment: WrapAlignment.start,
-                    spacing: 5,
-                    runSpacing: 5,
-                    children: [
-                      _miniAction(
-                        Icons.upload,
-                        L10n.s('common.export'),
-                        () => widget.onExportProfile(p),
-                      ),
-                      _miniAction(
-                        Icons.download,
-                        L10n.s('common.import'),
-                        () => widget.onImportProfile(p),
-                      ),
-                      _miniAction(
-                        Icons.print,
-                        L10n.s('common.print'),
-                        () => widget.onPrintProfile(p),
-                      ),
-                      _miniAction(
-                        Icons.delete_outline,
-                        L10n.s('common.delete'),
-                        () => _confirmDelete(p),
-                        color: Colors.redAccent,
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         Row(
           children: [

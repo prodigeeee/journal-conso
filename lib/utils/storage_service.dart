@@ -43,7 +43,8 @@ class StorageService {
       }
     } catch (_) {}
         
-    String activeUserId = prefs.getString(_keyActiveUserId) ?? (profiles.isNotEmpty ? profiles.first.id : '1');
+    // On charge le premier profil par défaut au démarrage (profil prioritaire)
+    String activeUserId = (profiles.isNotEmpty ? profiles.first.id : (prefs.getString(_keyActiveUserId) ?? '1'));
     String? syncId = prefs.getString(_keySyncId);
     
     Map<String, String> contexts = {};
