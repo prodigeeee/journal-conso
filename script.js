@@ -294,12 +294,21 @@ async function logVisit() {
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
     
     try {
+        // Fetch IP address (optional but requested)
+        let ip = 'anonyme';
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            ip = data.ip || 'anonyme';
+        } catch (e) { /* ignore */ }
+
         const visitData = {
             page_path: window.location.pathname,
             referrer: document.referrer || 'direct',
             screen_resolution: `${window.screen.width}x${window.screen.height}`,
             user_agent: navigator.userAgent,
             device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            ip_address: ip,
             created_at: new Date().toISOString()
         };
 

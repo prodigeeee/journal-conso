@@ -3,243 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin V2 - Journal Conso</title>
+    <title>Dashboard Premium - Journal Conso</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --accent: #EA9216;
-            --bg-dark: #0a0b0e;
+            --accent-glow: rgba(234, 146, 22, 0.4);
+            --bg-dark: #050608;
             --glass: rgba(255, 255, 255, 0.03);
+            --glass-strong: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.5);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            margin: 0;
-            padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            color: white;
+            color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow-x: hidden;
         }
 
-        .aura-container {
+        /* AURA BACKGROUND */
+        .aura-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #15181e 0%, #0a0b0e 100%);
+            overflow: hidden;
+        }
+
+        .blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(80px);
+            opacity: 0.4;
+            border-radius: 50%;
+        }
+
+        .blob-1 { top: -200px; right: -100px; }
+        .blob-2 { bottom: -200px; left: -100px; animation: float 15s infinite alternate; }
+
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(100px, 50px); }
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 20px;
-            width: 100%;
-            box-sizing: border-box;
+            padding: 40px;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        /* LOGIN */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* GLASS COMPONENTS */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        /* LOGIN SCREEN */
         #login-screen {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 80vh;
+            min-height: 100vh;
         }
 
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            padding: 40px;
+        .login-card {
+            padding: 50px;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
+            text-align: center;
         }
 
-        .btn {
-            width: 100%;
-            background: var(--accent);
-            color: black;
-            border: none;
-            border-radius: 12px;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+        .login-card img { width: 70px; margin-bottom: 25px; filter: drop-shadow(0 0 15px var(--accent-glow)); }
 
-        /* DASHBOARD */
+        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--accent); letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; font-size: 1rem; transition: 0.3s; }
+        .input-group input:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); box-shadow: 0 0 20px rgba(234, 146, 22, 0.2); }
+
+        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 16px; padding: 18px; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--accent-glow); filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* DASHBOARD LAYOUT */
         #dashboard { display: none; }
 
-        .dahboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; }
+        .header h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; }
+        .header p { color: var(--text-muted); font-size: 1.1rem; margin-top: 5px; }
 
-        .stats-grid {
+        .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 10px 20px; border-radius: 12px; transition: 0.3s; }
+        .logout-btn:hover { color: #E94E77; background: rgba(233, 78, 119, 0.1); }
+
+        /* TOP STATS */
+        .grid-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
             margin-bottom: 40px;
         }
 
         .stat-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-value { font-size: 2.2rem; font-weight: 900; color: var(--accent); }
-        .stat-label { font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-top: 5px; }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: var(--accent-glow);
+            filter: blur(60px);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-        .dashboard-layout {
+        .stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; position: relative; z-index: 1; }
+        .stat-value { font-size: 2.8rem; font-weight: 950; color: var(--text-main); position: relative; z-index: 1; display: flex; align-items: baseline; gap: 5px; }
+        .stat-value span { font-size: 1.2rem; color: var(--accent); opacity: 0.8; }
+
+        /* MAIN CONTENT AREA */
+        .main-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            gap: 25px;
             margin-bottom: 40px;
         }
 
-        @media (max-width: 900px) {
-            .dashboard-layout { grid-template-columns: 1fr; }
+        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .panel-header h3 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; color: var(--accent); text-transform: uppercase; }
+
+        .chart-panel { padding: 40px; min-height: 450px; }
+
+        /* CIRCULAR GAUGE FOR ACTIVE USERS */
+        .active-users-panel {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
-        .chart-container {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 30px;
-            height: 350px; /* FIXE POUR ÉVITER LE BUG DE REDIMENSIONNEMENT INFINI */
+        .gauge-container {
+            width: 200px;
+            height: 200px;
             position: relative;
+            margin: 20px 0;
         }
 
-        .table-container {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 30px;
-            overflow-x: auto;
-        }
+        .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .gauge-circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 12; }
+        .gauge-circle-val { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 2s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 10px var(--accent)); }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 12px; border-bottom: 1px solid var(--glass-border); color: rgba(255,255,255,0.5); font-size: 0.8rem; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.9rem; }
-        
-        .logout-link { color: rgba(255,255,255,0.4); text-decoration: none; cursor: pointer; }
+        .gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .gauge-number { font-size: 3.5rem; font-weight: 900; line-height: 1; }
+        .gauge-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; }
 
-        .error-msg { color: #E94E77; font-size: 0.8rem; margin-top: 10px; display: none; text-align: center; }
+        /* TABLES */
+        .table-panel { padding: 35px; overflow: hidden; }
+        .table-wrapper { overflow-x: auto; width: 100%; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 12px; margin-top: 10px; }
+        th { text-align: left; padding: 0 15px; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 20px 15px; background: rgba(255,255,255,0.02); color: var(--text-main); font-size: 0.95rem; font-weight: 500; }
+        td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid var(--glass-border); }
+        td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid var(--glass-border); }
+        tr:hover td { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+
+        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 4px 10px; border-radius: 8px; color: var(--accent); font-family: monospace; font-size: 0.8rem; font-weight: 700; }
+
+        .error-msg { color: #E94E77; font-size: 0.85rem; font-weight: 600; margin-top: 20px; display: none; }
+
+        /* LOADING SHIMMER */
+        .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
     </style>
 </head>
 <body>
-    <div class="aura-container"></div>
+    <div class="aura-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
 
     <div class="container">
-        <!-- LOGIN -->
+        <!-- LOGIN SCREEN -->
         <div id="login-screen">
-            <div class="glass-card">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <img src="assets/images/logo.png" style="width: 50px;">
-                    <h2 style="margin: 10px 0 5px 0;">Back-Office V2</h2>
-                    <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">Espace Privé - Christophek</p>
+            <div class="glass-panel login-card">
+                <img src="assets/images/logo.png" alt="Logo">
+                <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 10px;">Back-Office</h2>
+                <p style="color: var(--text-muted); margin-bottom: 40px; font-weight: 500;">Accès restreint au développeur</p>
+                
+                <div class="input-group">
+                    <label>E-mail personnel</label>
+                    <input type="email" id="email" placeholder="votre@email.com">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 5px;">EMAIL</label>
-                    <input type="email" id="email" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none;">
+                <div class="input-group">
+                    <label>Clé de sécurité</label>
+                    <input type="password" id="password" placeholder="••••••••">
                 </div>
-                <div style="margin-bottom: 25px;">
-                    <label style="display: block; font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-bottom: 5px;">MOT DE PASSE</label>
-                    <input type="password" id="password" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none;">
-                </div>
-                <button id="btn-login" class="btn">SE CONNECTER</button>
-                <div id="login-error" class="error-msg">Email ou mot de passe incorrect.</div>
+                
+                <button id="btn-login" class="btn-primary">AUTHENTIFICATION</button>
+                <div id="login-error" class="error-msg">Identifiants non autorisés.</div>
             </div>
         </div>
 
-        <!-- DASHBOARD -->
+        <!-- DASHBOARD CONTAINER -->
         <div id="dashboard">
-            <div class="dahboard-header">
+            <div class="header">
                 <div>
-                    <h2 style="margin: 0;">Tableau de Bord</h2>
-                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin: 5px 0 0 0;">Analyse des données en temps réel</p>
+                    <h1 id="welcome-msg">Bonjour, Chris</h1>
+                    <p>Voici l'activité de Journal Conso en temps réel.</p>
                 </div>
-                <a class="logout-link" id="btn-logout">Déconnexion</a>
+                <a href="#" class="logout-btn" id="btn-logout">Quitter le Deck</a>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-active-users">0</div>
-                    <div class="stat-label">En ce moment</div>
-                </div>
-                <div class="stat-card">
+            <!-- KEY VALUES GRID -->
+            <div class="grid-stats">
+                <div class="glass-panel stat-card">
+                    <div class="stat-label">Total Visites</div>
                     <div class="stat-value" id="stat-total-visits">0</div>
-                    <div class="stat-label">Visites</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-avg-time">0m</div>
-                    <div class="stat-label">Temps Moyen</div>
+                <div class="glass-panel stat-card">
+                    <div class="stat-label">Visiteurs Uniques</div>
+                    <div class="stat-value" id="stat-unique-visits">0</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-downloads">0</div>
-                    <div class="stat-label">Downloads</div>
+                <div class="glass-panel stat-card">
+                    <div class="stat-label">Moyenne Session</div>
+                    <div class="stat-value" id="stat-avg-time">0<span>min</span></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-interactions">0</div>
-                    <div class="stat-label">Interactions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-messages">0</div>
+                <div class="glass-panel stat-card">
                     <div class="stat-label">Messages</div>
+                    <div class="stat-value" id="stat-messages">0</div>
                 </div>
             </div>
 
-            <div class="dashboard-layout">
-                <div class="chart-container">
-                    <h3 style="margin-top: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">SESSIONS (7 JOURS)</h3>
-                    <canvas id="visitsChart"></canvas>
+            <!-- MAIN ANALYTICS -->
+            <div class="main-grid">
+                <div class="glass-panel chart-panel">
+                    <div class="panel-header">
+                        <h3>Volumes de Saisies (7j)</h3>
+                    </div>
+                    <div style="height: 350px;">
+                        <canvas id="visitsChart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <h3 style="margin-top: 0; font-size: 0.9rem; color: rgba(255,255,255,0.6);">APPAREILS</h3>
-                    <canvas id="deviceChart"></canvas>
+                
+                <div class="glass-panel active-users-panel">
+                    <div class="panel-header" style="width: 100%;">
+                        <h3>Live Traffic</h3>
+                    </div>
+                    <div class="gauge-container">
+                        <svg class="gauge-svg" viewBox="0 0 200 200">
+                            <circle class="gauge-circle-bg" cx="100" cy="100" r="90" />
+                            <circle class="gauge-circle-val" id="gauge-val" cx="100" cy="100" r="90" />
+                        </svg>
+                        <div class="gauge-text">
+                            <div class="gauge-number" id="stat-active-users">0</div>
+                            <div class="gauge-label">En ligne</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 15px;">Utilisateurs actifs lors des <br>dernières 2 minutes.</p>
                 </div>
             </div>
 
-            <div class="dashboard-layout">
-                <div class="table-container">
-                    <h3 style="margin-top: 0; font-size: 1rem;">Derniers messages reçus</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Nom</th>
-                                <th>Email</th>
-                                <th>Message</th>
-                            </tr>
-                        </thead>
-                        <tbody id="messages-table-body"></tbody>
-                    </table>
+            <!-- DATA TABLES -->
+            <div class="main-grid">
+                <div class="glass-panel table-panel">
+                    <div class="panel-header">
+                        <h3>Derniers visiteurs</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Heure</th>
+                                    <th>Trajet / Source</th>
+                                    <th>Appareil</th>
+                                    <th>Adresse IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visits-table-body">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <h3 style="margin-top: 0; font-size: 1rem;">Sources de trafic</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Origine</th>
-                                <th>Visites</th>
-                            </tr>
-                        </thead>
-                        <tbody id="referrers-table-body"></tbody>
-                    </table>
+                
+                <div class="glass-panel table-panel">
+                    <div class="panel-header">
+                        <h3>Derniers Messages</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Expéditeur</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody id="messages-table-body">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-stats" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="glass-panel stat-card" style="padding: 20px 30px;">
+                    <div class="stat-label">Taux d'Interaction</div>
+                    <div class="stat-value" id="stat-interactions" style="font-size: 1.8rem;">0%</div>
+                </div>
+                <div class="glass-panel stat-card" style="padding: 20px 30px;">
+                    <div class="stat-label">Appels à l'action (APK)</div>
+                    <div class="stat-value" id="stat-downloads" style="font-size: 1.8rem;">0</div>
                 </div>
             </div>
         </div>
@@ -251,7 +359,6 @@
         
         let supabaseAdmin;
         let vChart = null;
-        let dChart = null;
 
         try {
             if (typeof supabase !== 'undefined') {
@@ -269,32 +376,28 @@
             const { data: { session } } = await supabaseAdmin.auth.getSession();
             if (session && session.user.email === 'christophek@hotmail.com') {
                 showDashboard();
-            } else if (session) {
-                await supabaseAdmin.auth.signOut();
             }
         }
 
         btnLogin.onclick = async () => {
-            if (!supabaseAdmin) return;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
             btnLogin.disabled = true;
-            btnLogin.innerText = "CONNEXION...";
+            btnLogin.innerText = "AUTHENTIFICATION...";
 
             const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
 
             if (!error && data.user.email === 'christophek@hotmail.com') {
                 showDashboard();
             } else {
-                if (!error) await supabaseAdmin.auth.signOut();
                 document.getElementById('login-error').style.display = 'block';
                 btnLogin.disabled = false;
-                btnLogin.innerText = "SE CONNECTER";
+                btnLogin.innerText = "AUTHENTIFICATION";
             }
         };
 
-        btnLogout.onclick = async () => {
+        btnLogout.onclick = async (e) => {
+            e.preventDefault();
             await supabaseAdmin.auth.signOut();
             window.location.reload();
         };
@@ -303,56 +406,58 @@
             loginScreen.style.display = 'none';
             dashboard.style.display = 'block';
             loadData();
+            // Refresh auto toutes les 60s
+            setInterval(loadData, 60000);
         }
 
         async function loadData() {
             // Visits
             const { data: visits } = await supabaseAdmin.from('site_visits').select('*').order('created_at', { ascending: false });
             
-            function processStats(visits) {
+            if (visits) {
+                // Total et Uniques
                 document.getElementById('stat-total-visits').innerText = visits.length;
-                
-                // Referrers logic
-                const refs = {};
-                visits.forEach(v => {
-                    const domain = v.referrer === 'direct' ? 'Direct' : new URL(v.referrer).hostname;
-                    refs[domain] = (refs[domain] || 0) + 1;
-                });
-                const refBody = document.getElementById('referrers-table-body');
-                refBody.innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
-                    <tr><td>${r}</td><td>${c}</td></tr>
-                `).join('');
+                const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent)).size;
+                document.getElementById('stat-unique-visits').innerText = uniqueIps;
+
+                // Table des visiteurs
+                const visitBody = document.getElementById('visits-table-body');
+                visitBody.innerHTML = visits.slice(0, 8).map(v => {
+                    const time = new Date(v.created_at).toLocaleTimeString([], {hour: '2k', minute:'2k'});
+                    const ref = v.referrer === 'direct' ? 'Direct' : v.referrer.split('/')[2];
+                    return `
+                        <tr>
+                            <td>${time}</td>
+                            <td>${v.page_path} <br><small style="color:var(--text-muted)">via ${ref}</small></td>
+                            <td>${v.device_type}</td>
+                            <td><span class="badge-ip">${v.ip_address || '?.?.?.?'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
 
                 renderVisitsChart(visits);
-                renderDeviceChart(visits);
-            }
-
-            function processEvents(events) {
-                const downloads = events.filter(e => e.event_name.includes('click_')).length;
-                const interactions = events.filter(e => e.event_name.includes('simulator_')).length;
-                
-                // Active users (heartbeat in last 2 mins)
-                const twoMinsAgo = new Date(Date.now() - 120000).toISOString();
-                const activeCount = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= twoMinsAgo).length;
-                
-                // Session Time
-                const heartbeats = events.filter(e => e.event_name === 'heartbeat');
-                const avgTime = heartbeats.length > 0 ? Math.round((heartbeats.length * 30) / 60) : 0; // estimation simple
-
-                document.getElementById('stat-downloads').innerText = downloads;
-                document.getElementById('stat-interactions').innerText = interactions;
-                document.getElementById('stat-active-users').innerText = activeCount;
-                document.getElementById('stat-avg-time').innerText = `${avgTime}m`;
-            }
-
-            if (visits) {
-                processStats(visits);
             }
 
             // Events
             const { data: events } = await supabaseAdmin.from('site_events').select('*');
             if (events) {
-                processEvents(events);
+                const downloads = events.filter(e => e.event_name.includes('click_download')).length;
+                const interactions = events.filter(e => e.event_name.includes('simulator_')).length;
+                document.getElementById('stat-downloads').innerText = downloads;
+                
+                // Interaction rate
+                const rate = visits ? Math.round((interactions / visits.length) * 100) : 0;
+                document.getElementById('stat-interactions').innerText = `${rate}%`;
+
+                // Live Gauge
+                const twoMinsAgo = new Date(Date.now() - 120000).toISOString();
+                const activeCount = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= twoMinsAgo).length;
+                updateActiveGauge(activeCount);
+                
+                // Session Time
+                const heartbeats = events.filter(e => e.event_name === 'heartbeat');
+                const avgTime = heartbeats.length > 0 ? Math.round((heartbeats.length * 30) / 60 / (uniqueIps || 1)) : 0; 
+                document.getElementById('stat-avg-time').innerHTML = `${avgTime}<span>min</span>`;
             }
 
             // Messages
@@ -360,15 +465,23 @@
             if (messages) {
                 document.getElementById('stat-messages').innerText = messages.length;
                 const tbody = document.getElementById('messages-table-body');
-                tbody.innerHTML = messages.slice(0, 10).map(m => `
+                tbody.innerHTML = messages.slice(0, 5).map(m => `
                     <tr>
-                        <td>${new Date(m.created_at).toLocaleDateString()}</td>
-                        <td>${m.name}</td>
-                        <td>${m.email}</td>
-                        <td>${m.message.substring(0, 60)}...</td>
+                        <td style="font-weight:700">${m.name}<br><small style="color:var(--text-muted)">${m.email}</small></td>
+                        <td style="color:rgba(255,255,255,0.7); font-size:0.85rem">${m.message.substring(0, 70)}...</td>
                     </tr>
                 `).join('');
             }
+        }
+
+        function updateActiveGauge(count) {
+            document.getElementById('stat-active-users').innerText = count;
+            const circle = document.getElementById('gauge-val');
+            // 565 is the length for radius 90 (2 * pi * 90)
+            const max = 20; // On considère 20 simultanés comme "plein"
+            const percentage = Math.min(count / max, 1);
+            const offset = 565 - (percentage * 565);
+            circle.style.strokeDashoffset = offset;
         }
 
         function renderVisitsChart(visits) {
@@ -388,22 +501,34 @@
                 type: 'line',
                 data: {
                     labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                    datasets: [{ label: 'Visites', data: Object.values(days), borderColor: '#EA9216', tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.1)' }]
+                    datasets: [{ 
+                        label: 'Visites', 
+                        data: Object.values(days), 
+                        borderColor: '#EA9216', 
+                        borderWidth: 4,
+                        tension: 0.4, 
+                        fill: true, 
+                        backgroundColor: 'rgba(234, 146, 22, 0.1)',
+                        pointBackgroundColor: '#EA9216',
+                        pointRadius: 6
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function renderDeviceChart(visits) {
-            const ctx = document.getElementById('deviceChart');
-            if (!ctx) return;
-            const mob = visits.filter(v => v.device_type === 'mobile').length;
-            const desk = visits.length - mob;
-            if (dChart) dChart.destroy();
-            dChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: ['Mobile', 'Desktop'], datasets: [{ data: [mob, desk], backgroundColor: ['#EA9216', '#333'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { weight: 'bold' } }
+                        }, 
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { weight: 'bold' } }
+                        } 
+                    } 
+                }
             });
         }
 
