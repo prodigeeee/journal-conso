@@ -309,7 +309,58 @@ async function logVisit() {
             },
             body: JSON.stringify(visitData)
         });
+
+        // Setup Event Listeners after visit is logged
+        setupEventListeners();
     } catch (err) {
-        // Silencieux pour ne pas perturber l'utilisateur
+        // Silencieux
+    }
+}
+
+// Fonction de tracking d'événements (clics, etc.)
+async function logEvent(name, data = {}) {
+    const supabaseUrl = 'https://aswxkjibvcadnwujzwcm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+    
+    try {
+        await fetch(`${supabaseUrl}/rest/v1/site_events`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify({
+                event_name: name,
+                event_data: data,
+                created_at: new Date().toISOString()
+            })
+        });
+    } catch (err) { /* Silent */ }
+}
+
+function setupEventListeners() {
+    // Boutons APK / WebApp
+    document.querySelectorAll('a').forEach(link => {
+        const text = link.innerText.toLowerCase();
+        const href = link.getAttribute('href') || '';
+        
+        if (text.includes('apk') || href.includes('apk')) {
+            link.addEventListener('click', () => logEvent('click_download_apk'));
+        }
+        if (text.includes('webapp') || text.includes('lancer') || text.includes('connecter')) {
+            link.addEventListener('click', () => logEvent('click_launch_app'));
+        }
+    });
+
+    // Interaction Simulateur
+    const addDrinkBtn = document.querySelector('.add-drink-btn');
+    if (addDrinkBtn) {
+        addDrinkBtn.addEventListener('click', () => logEvent('simulator_add_drink'));
+    }
+
+    const ageInput = document.getElementById('age-input');
+    if (ageInput) {
+        ageInput.addEventListener('change', () => logEvent('simulator_change_param', { param: 'age' }));
     }
 }

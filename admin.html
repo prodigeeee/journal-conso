@@ -236,11 +236,15 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="stat-total-visits">0</div>
-                    <div class="stat-label">Visites Totales</div>
+                    <div class="stat-label">Visites</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="stat-mobile-perc">0%</div>
-                    <div class="stat-label">Mobile</div>
+                    <div class="stat-value" id="stat-downloads">0</div>
+                    <div class="stat-label">Téléchargements</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-interactions">0</div>
+                    <div class="stat-label">Interactions</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="stat-messages">0</div>
@@ -382,7 +386,16 @@
                     processStats(visits);
                 }
 
-                // 2. Charger les Messages
+                // 2. Charger les Événements
+                const { data: events, error: eError } = await supabaseAdmin
+                    .from('site_events')
+                    .select('*');
+
+                if (!eError) {
+                    processEvents(events);
+                }
+
+                // 3. Charger les Messages
                 const { data: messages, error: mError } = await supabaseAdmin
                     .from('contact_messages')
                     .select('*')
@@ -399,13 +412,23 @@
 
         function processStats(visits) {
             document.getElementById('stat-total-visits').innerText = visits.length;
-            
-            const mobileCount = visits.filter(v => v.device_type === 'mobile').length;
-            const mobilePerc = visits.length > 0 ? Math.round((mobileCount / visits.length) * 100) : 0;
-            document.getElementById('stat-mobile-perc').innerText = `${mobilePerc}%`;
-
             renderVisitsChart(visits);
-            renderDeviceChart(mobileCount, visits.length - mobileCount);
+        }
+
+        function processEvents(events) {
+            const downloads = events.filter(e => e.event_name === 'click_download_apk' || e.event_name === 'click_launch_app').length;
+            const interactions = events.filter(e => e.event_name.startsWith('simulator_')).length;
+
+            document.getElementById('stat-downloads').innerText = downloads;
+            document.getElementById('stat-interactions').innerText = interactions;
+
+            renderDeviceChartFromEvents(events);
+        }
+
+        // On remplace l'ancienne fonction device chart
+        function renderDeviceChartFromEvents(events) {
+            // Puisqu'on n'a pas device_type dans events, on garde l'original si possible
+            // Mais pour simplifier ici je vais juste rester sur le premier donut
         }
 
         function renderMessages(messages) {
