@@ -4,6 +4,7 @@ import 'dart:io' as io;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/glass_widgets.dart';
+import '../utils/l10n_service.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthSuccess;
@@ -27,7 +28,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _nameController = TextEditingController(text: "Moi");
   final _ageController = TextEditingController(text: "35");
   final _weightController = TextEditingController(text: "70");
-  String _gender = 'Homme';
+  String _gender = L10n.s('auth.man');
   String? _imagePath;
   
   bool _isSignUp = false;
@@ -67,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
         // Sinon on prévient qu'il faut vérifier ses mails
         if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Compte créé ! Veuillez vérifier vos e-mails pour valider votre inscription (ou connectez-vous si déjà validé).")),
+            SnackBar(content: Text(L10n.s('auth.check_email'))),
           );
         }
       } else {
@@ -87,7 +88,7 @@ class _AuthScreenState extends State<AuthScreen> {
       print("Erreur Auth: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Erreur de connexion au serveur"), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(L10n.s('auth.server_error')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -98,7 +99,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _resetPassword() async {
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez saisir votre e-mail pour réinitialiser le mot de passe.")),
+        SnackBar(content: Text(L10n.s('auth.reset_prompt'))),
       );
       return;
     }
@@ -107,13 +108,13 @@ class _AuthScreenState extends State<AuthScreen> {
       await Supabase.instance.client.auth.resetPasswordForEmail(_emailController.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lien de réinitialisation envoyé par e-mail !"), backgroundColor: Colors.green),
+          SnackBar(content: Text(L10n.s('auth.reset_sent')), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Erreur lors de l'envoi du lien."), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(L10n.s('auth.reset_error')), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
@@ -157,7 +158,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "SUIVEZ VOTRE CONSOMMATION.\nPRÉSERVEZ VOTRE ÉQUILIBRE.",
+                    L10n.s('auth.slogan'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: widget.accentColor.withValues(alpha: 0.8),
@@ -168,16 +169,16 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 40),
                   Text(
-                    _isSignUp ? "CRÉER UN COMPTE" : "CONNEXION",
+                    _isSignUp ? L10n.s('auth.signup_title').toUpperCase() : L10n.s('auth.login_title').toUpperCase(),
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: widget.isDarkMode ? Colors.white : Colors.black87),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField(_emailController, "E-mail", Icons.email_outlined, false),
+                  _buildTextField(_emailController, L10n.s('auth.email_label'), Icons.email_outlined, false),
                   const SizedBox(height: 15),
-                  _buildTextField(_passwordController, "Mot de passe", Icons.lock_outline, true),
+                  _buildTextField(_passwordController, L10n.s('auth.password_label'), Icons.lock_outline, true),
                   
                   if (_isSignUp) ...[
                     const SizedBox(height: 15),
@@ -216,19 +217,19 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 20),
                     
-                    _buildTextField(_nameController, "Prénom", Icons.person_outline, false),
+                    _buildTextField(_nameController, L10n.s('auth.name_label'), Icons.person_outline, false),
                     const SizedBox(height: 15),
                     Row(
                       children: [
-                        Expanded(child: _buildTextField(_ageController, "Âge", Icons.cake_outlined, false, isNumber: true)),
+                        Expanded(child: _buildTextField(_ageController, L10n.s('auth.age_label'), Icons.cake_outlined, false, isNumber: true)),
                         const SizedBox(width: 10),
-                        Expanded(child: _buildTextField(_weightController, "Poids (kg)", Icons.monitor_weight_outlined, false, isNumber: true)),
+                        Expanded(child: _buildTextField(_weightController, L10n.s('auth.weight_label'), Icons.monitor_weight_outlined, false, isNumber: true)),
                       ],
                     ),
                     const SizedBox(height: 15),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: ['Homme', 'Femme'].map((g) => GestureDetector(
+                      children: [L10n.s('auth.man'), L10n.s('auth.woman')].map((g) => GestureDetector(
                         onTap: () => setState(() => _gender = g),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -248,7 +249,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: TextButton(
                         onPressed: _resetPassword,
                         child: Text(
-                          "Mot de passe oublié ?",
+                          L10n.s('auth.forgot_password'),
                           style: TextStyle(fontSize: 11, color: widget.accentColor),
                         ),
                       ),
@@ -268,7 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              _isSignUp ? "C'EST PARTI !" : "SE CONNECTER",
+                              _isSignUp ? L10n.s('auth.lets_go') : L10n.s('auth.sign_in_btn'),
                               style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
                             ),
                     ),
@@ -277,13 +278,13 @@ class _AuthScreenState extends State<AuthScreen> {
                   TextButton(
                     onPressed: () => setState(() => _isSignUp = !_isSignUp),
                     child: Text(
-                      _isSignUp ? "Déjà un compte ? Connectez-vous" : "Pas de compte ? Inscrivez-vous",
+                      _isSignUp ? L10n.s('auth.already_account') : L10n.s('auth.no_account'),
                       style: TextStyle(color: widget.isDarkMode ? Colors.white70 : Colors.black54),
                     ),
                   ),
                   const Divider(height: 40, color: Colors.white10),
                   Text(
-                    "Vos données sont chiffrées et sécurisées par Supabase",
+                    L10n.s('auth.secure_notice'),
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white38 : Colors.black38),
                   ),

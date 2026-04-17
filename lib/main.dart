@@ -26,15 +26,17 @@ import 'widgets/glass_widgets.dart';
 import 'utils/storage_service.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart'; // Ajout de l'écran auth
-import 'utils/supabase_service.dart'; // Import du service de synchro
-
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
+import 'utils/l10n_service.dart'; // Import L10n
 
 typedef File = io.File;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Chargement des langues
+  await L10n.load();
+
   // On lance l'uninitialisation en arrière-plan
   Supabase.initialize(
     url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
@@ -75,7 +77,7 @@ class _AlcoholTrackerAppState extends State<AlcoholTrackerApp> {
         ? const Color(0xFFEA9216)
         : const Color(0xFF1A3A5F);
     return MaterialApp(
-      title: 'Journal Conso',
+      title: L10n.s('app.title'),
       debugShowCheckedModeBanner: false,
       themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
@@ -117,24 +119,10 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
-    if (data['isFirstLaunch'] == true) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OnboardingScreen(
-            onDone: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-            ),
-          ),
-        ),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+    );
   }
 
   @override
@@ -165,7 +153,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   bool _isDarkMode = true;
   bool _isYoungDriver = false;
   bool _unitMl = false;
-  bool _isFirstLaunch = false;
 
   @override
   void initState() {
@@ -179,7 +166,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       _isDarkMode = data['isDarkMode'] ?? true;
       _isYoungDriver = data['isYoungDriver'] ?? false;
       _unitMl = data['unitMl'] ?? false;
-      _isFirstLaunch = data['isFirstLaunch'] ?? true;
     });
   }
 
@@ -215,15 +201,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         }),
         accentColor: accentColor,
         isDarkMode: _isDarkMode,
-      );
-    }
-    // Si c'est la première fois, on montre l'Onboarding
-    if (_isFirstLaunch) {
-      return OnboardingScreen(
-        onDone: () {
-          setState(() => _isFirstLaunch = false);
-          StorageService.setFirstLaunchDone();
-        },
       );
     }
 
@@ -434,9 +411,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
-      _showAuraSnackBar("✅ Données sauvegardées dans le Cloud (${_profiles.length} profils, ${_allConsumptions.length} consos) !");
+      _showAuraSnackBar(L10n.s('sync.success', args: {
+        'profiles': _profiles.length.toString(),
+        'consos': _allConsumptions.length.toString(),
+      }));
     } catch (e) {
-      _showAuraSnackBar("❌ Erreur de sauvegarde : $e", isError: true);
+      _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
     }
   }
 
@@ -466,12 +446,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
-        _showAuraSnackBar("✅ Synchronisation réussie (${cloudProfiles.length} profils, ${cloudConsos.length} consos) !");
+        _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
+          'profiles': cloudProfiles.length.toString(),
+          'consos': cloudConsos.length.toString(),
+        }));
       } else {
-        _showAuraSnackBar("ℹ️ Aucune donnée trouvée (${cloudProfiles.length} profils, ${cloudConsos.length} consos)");
+        _showAuraSnackBar(L10n.s('sync.no_data', args: {
+          'profiles': cloudProfiles.length.toString(),
+          'consos': cloudConsos.length.toString(),
+        }));
       }
     } catch (e) {
-      _showAuraSnackBar("❌ Erreur de synchronisation : $e", isError: true);
+      _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
     }
   }
 
@@ -577,7 +563,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Restauration : ${_profiles.length} profils et ${_allConsumptions.length} consommations chargés !"),
+            content: Text(L10n.s('sync.restoration_success', args: {
+              'profiles': _profiles.length.toString(),
+              'consos': _allConsumptions.length.toString(),
+            })),
             backgroundColor: Colors.green,
           ),
         );
@@ -608,9 +597,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           } catch (_) { profilesData = null; }
         }
 
-        if (profilesData == null) throw "Format de fichier non reconnu";
+        if (profilesData == null) throw L10n.s('settings.unknown_format');
         if (profilesData is Map) profilesData = [profilesData];
-        if ((profilesData as List).isEmpty) throw "Aucun profil trouvé";
+        if ((profilesData as List).isEmpty) throw L10n.s('settings.no_profile_found');
 
         final newP = UserProfile.fromJson(profilesData[0]);
         newP.id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -628,13 +617,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profil importé avec succès !"), backgroundColor: Colors.green),
+          SnackBar(content: Text(L10n.s('settings.import_success')), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Échec de l'importation : $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text(L10n.s('settings.import_failed', args: {'error': e.toString()})), backgroundColor: Colors.red),
         );
       }
     }
@@ -688,7 +677,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          "Journal : ${p.name}",
+                          L10n.s('pdf.journal_title', args: {'name': p.name}),
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
@@ -708,7 +697,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       ],
                     ),
                     pw.Text(
-                      "Bière: $totalB | Vin: $totalV | Spiritueux: $totalS",
+                      L10n.s('pdf.summary', args: {'b': '$totalB', 'v': '$totalV', 's': '$totalS'}),
                       style: pw.TextStyle(
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
@@ -725,7 +714,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                   children: [
                     pw.TableRow(
                       children:
-                          ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+                          [
+                            L10n.s('pdf.days.mon'),
+                            L10n.s('pdf.days.tue'),
+                            L10n.s('pdf.days.wed'),
+                            L10n.s('pdf.days.thu'),
+                            L10n.s('pdf.days.fri'),
+                            L10n.s('pdf.days.sat'),
+                            L10n.s('pdf.days.sun'),
+                          ]
                               .map(
                                 (d) => pw.Container(
                                   alignment: pw.Alignment.center,
@@ -770,11 +767,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
                           List<String> contextsOfDay = [];
                           for (var m in [
-                            'Matin',
-                            'Midi',
-                            'Après-midi',
-                            'Soir',
-                            'Soirée',
+                            L10n.s('moments.morning'),
+                            L10n.s('moments.noon'),
+                            L10n.s('moments.afternoon'),
+                            L10n.s('moments.evening'),
+                            L10n.s('moments.night'),
                           ]) {
                             String cKey = "${p.id}_${dayKey}_$m";
                             if (_contexts.containsKey(cKey) &&
@@ -805,9 +802,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                                     "${c.type[0]} ${c.volume}",
                                     style: pw.TextStyle(
                                       fontSize: 6,
-                                      color: c.type == 'Bière'
+                                      color: c.type == L10n.s('common.beer')
                                           ? PdfColors.orange800
-                                          : c.type == 'Vin'
+                                          : c.type == L10n.s('common.wine')
                                           ? PdfColors.red800
                                           : PdfColors.blue800,
                                     ),
@@ -1160,15 +1157,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
                 // On garde l'heure actuelle mais sur la date sélectionnée
                 if (now.hour >= 6 && now.hour < 11) {
-                  moment = 'Matin';
+                  moment = L10n.s('moments.morning');
                 } else if (now.hour >= 11 && now.hour < 15) {
-                  moment = 'Midi';
+                  moment = L10n.s('moments.noon');
                 } else if (now.hour >= 15 && now.hour < 18) {
-                  moment = 'Après-midi';
+                  moment = L10n.s('moments.afternoon');
                 } else if (now.hour >= 18 && now.hour < 21) {
-                  moment = 'Soir';
+                  moment = L10n.s('moments.evening');
                 } else {
-                  moment = 'Soirée';
+                  moment = L10n.s('moments.night');
                 }
 
                 // Utiliser la date du journal, mais avec l'heure actuelle si c'est aujourd'hui
@@ -1219,15 +1216,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
             curve: Curves.easeInOut,
           );
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Journal',
+            icon: const Icon(Icons.calendar_today),
+            label: L10n.s('navigation.journal'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Stats'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Réglages',
+            icon: const Icon(Icons.analytics),
+            label: L10n.s('navigation.stats'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings),
+            label: L10n.s('navigation.settings'),
           ),
         ],
       ),
@@ -1326,7 +1326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    "Objectif du jour",
+                                    L10n.s('home.party_goal_title'),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -1338,7 +1338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 15), // Réduit
                             Text(
-                              "Combien de verres maximum prévoyez-vous aujourd'hui ?",
+                              L10n.s('home.party_goal_desc'),
                               style: TextStyle(
                                 color: widget.isDarkMode ? Colors.white70 : Colors.black54,
                                 fontSize: 13,
@@ -1377,7 +1377,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 TextButton(
                                   onPressed: () => Navigator.pop(c),
                                   child: Text(
-                                    "Annuler",
+                                    L10n.s('common.cancel'),
                                     style: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54),
                                   ),
                                 ),
@@ -1394,7 +1394,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     elevation: 0,
                                   ),
-                                  child: const Text("Activer la limite", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  child: Text(L10n.s('home.activate_limit'), style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -1445,7 +1445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Activer un objectif",
+                      L10n.s('home.activate_goal'),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -1453,7 +1453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      "Fixez-vous une limite pour cette journée",
+                      L10n.s('home.fix_limit'),
                       style: TextStyle(
                         fontSize: 10,
                         color: widget.isDarkMode ? Colors.white54 : Colors.black54,
@@ -1492,7 +1492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Objectif Journalier",
+                          L10n.s('home.party_goal_title'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -1500,7 +1500,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Text(
-                          "$currentDrinks / $currentGoal verres",
+                          L10n.s('home.drinks_count', args: {
+                            'current': currentDrinks.toString(),
+                            'goal': currentGoal.toString(),
+                          }),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -1520,11 +1523,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     if (progress >= 1.0)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 8.0),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          "Objectif atteint ou dépassé, restez prudent !",
-                          style: TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          L10n.s('home.objective_reached'),
+                          style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
                         ),
                       ),
                   ],
@@ -1535,7 +1538,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.close, size: 18),
                 color: widget.isDarkMode ? Colors.white54 : Colors.black54,
                 onPressed: () => widget.onUpdateContext(partyKey, ""),
-                tooltip: "Annuler l'objectif",
+                tooltip: L10n.s('home.cancel_objective'),
               ),
             ],
           ),
@@ -1552,7 +1555,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Bonjour ${widget.activeUser.name} 👋",
+            L10n.s('home.hello', args: {'name': widget.activeUser.name}),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
@@ -1820,9 +1823,9 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
     if (monthConsos.isEmpty) return const SizedBox.shrink();
 
-    int totalB = monthConsos.where((c) => c.type == 'Bière').length;
-    int totalV = monthConsos.where((c) => c.type == 'Vin').length;
-    int totalS = monthConsos.where((c) => c.type == 'Spiritueux').length;
+    int totalB = monthConsos.where((c) => c.type == L10n.s('common.beer')).length;
+    int totalV = monthConsos.where((c) => c.type == L10n.s('common.wine')).length;
+    int totalS = monthConsos.where((c) => c.type == L10n.s('common.spirits')).length;
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
@@ -1831,11 +1834,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _summaryBadge('Bière', totalB, Colors.orange),
+              _summaryBadge(L10n.s('common.beer'), totalB, Colors.orange),
               _verticalDivider(),
-              _summaryBadge('Vin', totalV, Colors.redAccent),
+              _summaryBadge(L10n.s('common.wine'), totalV, Colors.redAccent),
               _verticalDivider(),
-              _summaryBadge('Spiritueux', totalS, Colors.blue),
+              _summaryBadge(L10n.s('common.spirits'), totalS, Colors.blue),
             ],
           ),
         ),
@@ -1999,7 +2002,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             (momentContext != null &&
                                     momentContext.trim().isNotEmpty)
                                 ? cleanDisplay(momentContext)
-                                : 'Ajouter un contexte...',
+                                  : L10n.s('journal.add_context'),
                             style: TextStyle(
                               color:
                                   (momentContext != null &&
@@ -2103,21 +2106,21 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: widget.isDarkMode
             ? const Color(0xFF1A1F26)
             : Colors.white,
-        title: const Text("Contexte"),
+        title: Text(L10n.s('journal.context_title')),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           style: TextStyle(
             color: widget.isDarkMode ? Colors.white : Colors.black87,
           ),
-          decoration: const InputDecoration(
-            hintText: "Saisissez votre texte ici...",
+          decoration: InputDecoration(
+            hintText: L10n.s('journal.context_hint'),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text("Annuler"),
+            child: Text(L10n.s('common.cancel')),
           ),
           TextButton(
             onPressed: () {
@@ -2130,9 +2133,9 @@ class _HomeScreenState extends State<HomeScreen> {
               );
               Navigator.pop(c);
             },
-            child: const Text(
-              "Valider",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            child: Text(
+              L10n.s('common.validate'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -2189,7 +2192,7 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  String _period = 'Semaine';
+  String _period = 'Semaine'; // will be updated below to use localized keys or stay as is for logic
 
   double _calculateCurrentBAC() {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
@@ -2228,8 +2231,11 @@ class _StatsScreenState extends State<StatsScreen> {
     double threshold = widget.isYoungDriver ? 0.2 : 0.5;
     bool isDanger = currentBac >= threshold;
     String countdownText = currentBac > threshold
-        ? "${((currentBac - threshold) / 0.15).floor()}h ${(((currentBac - threshold) / 0.15 - ((currentBac - threshold) / 0.15).floor()) * 60).round()}min"
-        : "Prêt à conduire";
+        ? L10n.s('stats.countdown_format', args: {
+            'h': ((currentBac - threshold) / 0.15).floor().toString(),
+            'm': (((currentBac - threshold) / 0.15 - ((currentBac - threshold) / 0.15).floor()) * 60).round().toString(),
+          })
+        : L10n.s('stats.ready_to_drive');
     final now = DateTime.now();
     final countedDrinks = widget.consumptions
         .where(
@@ -2297,7 +2303,7 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               children: [
                 Text(
-                  "ALCOOLÉMIE ESTIMÉE (WIDMARK + PIC)",
+                  L10n.s('stats.bac_estimated'),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -2332,7 +2338,9 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isDanger ? "⚠️ SEUIL DÉPASSÉ (${threshold.toStringAsFixed(1)}g/L)" : "SÉCURITÉ OK",
+                  isDanger 
+                      ? L10n.s('stats.danger_threshold', args: {'threshold': threshold.toStringAsFixed(1)}) 
+                      : L10n.s('stats.safety_ok'),
                   style: TextStyle(
                     color: isDanger ? Colors.red : Colors.green,
                     fontSize: 10,
@@ -2342,7 +2350,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 if (countedDrinks.isNotEmpty) ...[
                   const Divider(height: 30),
                   Text(
-                    "Verres comptés (12h glissantes) :",
+                    L10n.s('stats.counted_drinks'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -2376,7 +2384,7 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               children: [
                 Text(
-                  "RETOUR AU SEUIL LÉGAL DANS",
+                  L10n.s('stats.return_to_legal'),
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
@@ -2441,8 +2449,8 @@ class _StatsScreenState extends State<StatsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Text(
-                          "TEST DE RÉFLEXES",
-                          style: TextStyle(
+                          L10n.s('stats.reflex_btn'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -2450,8 +2458,8 @@ class _StatsScreenState extends State<StatsScreen> {
                           ),
                         ),
                         Text(
-                          "Vérifiez votre réactivité maintenant",
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                          L10n.s('stats.reflex_desc'),
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),
@@ -2464,7 +2472,7 @@ class _StatsScreenState extends State<StatsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             child: Text(
-              "Estimation théorique uniquement. Ne remplace pas un éthylotest.",
+              L10n.s('stats.disclaimer'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
@@ -2481,7 +2489,9 @@ class _StatsScreenState extends State<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "STATISTIQUES (${_period.toUpperCase()})",
+                    L10n.s('stats.title_period', args: {
+                      'period': _period == 'Semaine' ? L10n.s('stats.periods.week') : (_period == 'Mois' ? L10n.s('stats.periods.month') : L10n.s('stats.periods.year'))
+                    }),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -2492,7 +2502,10 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Du ${DateFormat('dd MMM').format(startDate)} au ${DateFormat('dd MMM').format(now)}",
+                    L10n.s('stats.date_range', args: {
+                      'start': DateFormat('dd MMM').format(startDate),
+                      'end': DateFormat('dd MMM').format(now),
+                    }),
                     style: TextStyle(
                       fontSize: 9,
                       fontStyle: FontStyle.italic,
@@ -2512,7 +2525,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
-                  children: ['Semaine', 'Mois', 'Année'].map((p) {
+                  children: [L10n.s('stats.periods.week'), L10n.s('stats.periods.month'), L10n.s('stats.periods.year')].map((localizedP) {
+                    // Logic mapping back to original keys if necessary, or just use indices
+                    String p;
+                    if (localizedP == L10n.s('stats.periods.week')) p = 'Semaine';
+                    else if (localizedP == L10n.s('stats.periods.month')) p = 'Mois';
+                    else p = 'Année';
+                    
                     bool isSelected = _period == p;
                     return GestureDetector(
                       onTap: () => setState(() => _period = p),
@@ -2569,9 +2588,9 @@ class _StatsScreenState extends State<StatsScreen> {
                   showHalo: false,
                   child: Column(
                     children: [
-                      const Text(
-                        "JOURS VERTS",
-                        style: TextStyle(
+                      Text(
+                        L10n.s('stats.green_days'),
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -2589,7 +2608,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       Text(
-                        "sur $daysToLookBack jours",
+                        L10n.s('stats.days_count', args: {'count': daysToLookBack.toString()}),
                         style: TextStyle(
                           fontSize: 9,
                           color: widget.isDarkMode
@@ -2608,7 +2627,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   child: Column(
                     children: [
                       Text(
-                        "UNITÉS OMS",
+                        L10n.s('stats.who_units'),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -2627,7 +2646,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       Text(
-                        "verres standards",
+                        L10n.s('stats.std_drinks'),
                         style: TextStyle(
                           fontSize: 9,
                           color: widget.isDarkMode
@@ -2667,7 +2686,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "OBJECTIFS RESPECTÉS",
+                          L10n.s('stats.goals_respected'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -2684,7 +2703,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           ),
                         ),
                         Text(
-                          "Objectifs tenus sur la période",
+                          L10n.s('stats.goals_count'),
                           style: TextStyle(
                             fontSize: 10,
                             color: widget.isDarkMode ? Colors.white54 : Colors.black54,
@@ -2726,7 +2745,7 @@ class _StatsScreenState extends State<StatsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
-              "1 unité OMS = 10g d'alcool pur (ex: un demi de bière à 5° = 10cl de vin).\nRecommandations : max 10 unités/semaine et des jours 100% verts.",
+              L10n.s('stats.who_info'),
               style: TextStyle(
                 fontSize: 9,
                 height: 1.4,
@@ -2744,7 +2763,7 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "TENDANCE",
+                  L10n.s('stats.trend'),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -2783,7 +2802,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "RÉPARTITION GLOBALE PAR TYPE",
+                    L10n.s('stats.global_split'),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -3523,7 +3542,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               margin: const EdgeInsets.only(bottom: 20),
             ),
             Text(
-              "SOUTENIR JOURNAL CONSO",
+              L10n.s('settings.support_title'),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: widget.accentColor,
@@ -3532,7 +3551,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              "Si vous souhaitez soutenir le développement de l’application, vous pouvez effectuer un don via PayPal à l’adresse suivante :",
+              L10n.s('settings.support_desc'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -3555,17 +3574,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   )) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Impossible d'ouvrir PayPal"),
+                        SnackBar(
+                          content: Text(L10n.s('settings.paypal_error')),
                         ),
                       );
                     }
                   }
                 },
                 icon: const Icon(Icons.payment, color: Colors.white),
-                label: const Text(
-                  "FAIRE UN DON VIA PAYPAL",
-                  style: TextStyle(
+                label: Text(
+                  L10n.s('settings.paypal_btn'),
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.1,
                   ),
@@ -3581,7 +3600,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             ),
             const SizedBox(height: 25),
             Text(
-              "Les dons sont facultatifs et servent à soutenir le développement de l’application.",
+              L10n.s('settings.donation_notice'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
@@ -3649,7 +3668,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       margin: const EdgeInsets.only(bottom: 20),
                     ),
                     Text(
-                      "CRÉDITS",
+                      L10n.s('settings.credits_title'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: widget.accentColor,
@@ -3672,7 +3691,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Application créée par ChrisK",
+                            L10n.s('settings.author_text'),
                             style: TextStyle(
                               fontSize: 14,
                               color: widget.accentColor,
@@ -3681,7 +3700,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            "Pour toute question, suggestion ou retour :",
+                            L10n.s('settings.contact_text'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -3710,7 +3729,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                         dense: true,
                         title: Center(
                           child: Text(
-                            "Fermer",
+                            L10n.s('common.close'),
                             style: TextStyle(
                               color: widget.accentColor,
                               fontWeight: FontWeight.bold,
@@ -3765,7 +3784,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
       children: [
         // ---------------------------
         Text(
-          "PROFILS",
+          L10n.s('settings.profiles_header'),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -3845,22 +3864,22 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     children: [
                       _miniAction(
                         Icons.upload,
-                        "Export",
+                        L10n.s('common.export'),
                         () => widget.onExportProfile(p),
                       ),
                       _miniAction(
                         Icons.download,
-                        "Import",
+                        L10n.s('common.import'),
                         () => widget.onImportProfile(p),
                       ),
                       _miniAction(
                         Icons.print,
-                        "Imprimer",
+                        L10n.s('common.print'),
                         () => widget.onPrintProfile(p),
                       ),
                       _miniAction(
                         Icons.delete_outline,
-                        "Supprimer",
+                        L10n.s('common.delete'),
                         () => _confirmDelete(p),
                         color: Colors.redAccent,
                       ),
@@ -3881,7 +3900,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   visualDensity: VisualDensity.compact,
                   leading: Icon(Icons.person_add_alt_1, color: widget.accentColor, size: 20),
                    title: Text(
-                    "Créer un profil",
+                    L10n.s('settings.create_profile'),
                     style: TextStyle(
                       color: widget.accentColor,
                       fontSize: 10,
@@ -3902,7 +3921,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   visualDensity: VisualDensity.compact,
                   leading: Icon(Icons.file_download_outlined, color: widget.accentColor, size: 20),
                   title: Text(
-                    "Importer un profil Json",
+                    L10n.s('settings.import_json_profile'),
                     style: TextStyle(
                       color: widget.accentColor,
                       fontSize: 10,
@@ -3931,7 +3950,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Compte connecté", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: widget.accentColor, letterSpacing: 1.1)),
+                          Text(L10n.s('settings.account_connected'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: widget.accentColor, letterSpacing: 1.1)),
                           Text(
                             Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
                             style: TextStyle(
@@ -3944,7 +3963,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     TextButton(
                       onPressed: widget.onLogout,
-                      child: Text("Déconnexion", style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                      child: Text(L10n.s('settings.logout'), style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
                     ),
                   ],
                 ),
@@ -3955,7 +3974,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 visualDensity: VisualDensity.compact,
                 leading: Icon(Icons.cloud_upload_rounded, color: widget.accentColor),
                 title: Text(
-                  "Enregistrer dans le Cloud",
+                  L10n.s('settings.save_cloud'),
                   style: TextStyle(
                     color: widget.accentColor,
                     fontWeight: FontWeight.bold,
@@ -3963,7 +3982,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text("Sauvegarder vos profils sur internet", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(L10n.s('settings.save_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
                 onTap: widget.onPushCloud,
               ),
               _divider(),
@@ -3972,7 +3991,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 visualDensity: VisualDensity.compact,
                 leading: Icon(Icons.cloud_download_rounded, color: widget.accentColor),
                 title: Text(
-                  "Récupérer depuis le Cloud",
+                  L10n.s('settings.sync_cloud'),
                   style: TextStyle(
                     color: widget.accentColor,
                     fontWeight: FontWeight.bold,
@@ -3980,7 +3999,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text("Synchroniser vos profils sur cet appareil", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(L10n.s('settings.sync_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
                 onTap: widget.onSyncCloud,
               ),
             ],
@@ -3988,7 +4007,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ),
         const SizedBox(height: 25),
         Text(
-          "PRÉFÉRENCES GLOBALES",
+          L10n.s('settings.global_prefs'),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -4004,7 +4023,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SwitchListTile(
                 dense: true,
                 title: Text(
-                  widget.isDarkMode ? "Mode Sombre" : "Mode Clair",
+                  widget.isDarkMode ? L10n.s('settings.theme_dark') : L10n.s('settings.theme_light'),
                   style: TextStyle(color: itemTxt, fontSize: 13),
                 ),
                 value: widget.isDarkMode,
@@ -4019,7 +4038,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SwitchListTile(
                 dense: true,
                 secondary: Icon(Icons.warning_amber_rounded, color: widget.accentColor, size: 20),
-                title: const Text("Jeune conducteur (0.2g/L)", style: TextStyle(fontSize: 13)),
+                title: Text(L10n.s('settings.young_driver'), style: const TextStyle(fontSize: 13)),
                 value: widget.isYoungDriver,
                 onChanged: widget.onYoungDriverChanged,
               ),
@@ -4027,7 +4046,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SwitchListTile(
                 dense: true,
                 secondary: Icon(Icons.straighten, color: widget.accentColor, size: 20),
-                title: const Text("Unités en ML (ex: 250ml)", style: TextStyle(fontSize: 13)),
+                title: Text(L10n.s('settings.unit_ml'), style: const TextStyle(fontSize: 13)),
                 value: widget.unitMl,
                 onChanged: widget.onUnitMlChanged,
               ),
@@ -4036,7 +4055,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ),
         const SizedBox(height: 25),
         Text(
-          "À PROPOS & LÉGAL",
+          L10n.s('settings.about_legal'),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -4051,31 +4070,31 @@ class _OptionsScreenState extends State<OptionsScreen> {
             children: [
               _legalTile(
                 Icons.help_outline,
-                "Mode d'emploi / Guide",
+                L10n.s('legal.guide'),
                 _showUserGuide,
               ),
               _divider(),
               _legalTile(
                 Icons.privacy_tip_outlined,
-                "Politique de confidentialité",
+                L10n.s('legal.privacy'),
                 _showPrivacyPolicy,
               ),
               _divider(),
               _legalTile(
                 Icons.gavel_outlined,
-                "Informations légales",
+                L10n.s('legal.info'),
                 _showLegalInfo,
               ),
               _divider(),
               _legalTile(
                 Icons.favorite_outline,
-                "Soutenir le projet",
+                L10n.s('legal.support'),
                 _showDonationDialog,
               ),
               _divider(),
               _legalTile(
                 Icons.info_outline,
-                "Crédits & Contacts",
+                L10n.s('legal.credits'),
                 _showCreditsDialog,
               ),
             ],
@@ -4088,13 +4107,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
             children: [
               _legalTile(
                 Icons.cloud_upload_outlined,
-                "Sauvegarder tout le projet (JSON)",
+                L10n.s('legal.save_json'),
                 widget.onExportFullProject,
               ),
               _divider(),
               _legalTile(
                 Icons.restore,
-                "Restaurer tout l'historique (JSON)",
+                L10n.s('legal.restore_json'),
                 widget.onImportFullProject,
               ),
             ],
@@ -4102,7 +4121,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ),
         const SizedBox(height: 30),
         Text(
-          "ZONE DE DANGER",
+          L10n.s('settings.danger_zone'),
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
@@ -4117,9 +4136,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
-            title: const Text(
-              "Réinitialiser toutes les données",
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            title: Text(
+              L10n.s('settings.reset_all'),
+              style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
             ),
             onTap: () => _confirmFullReset(),
           ),
@@ -4133,14 +4152,14 @@ class _OptionsScreenState extends State<OptionsScreen> {
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text("Réinitialisation totale ?"),
-        content: const Text(
-          "ATTENTION : Cette action supprimera TOUTES les données de l'application (profils, historique, consommations) et est irréversible.",
+        title: Text(L10n.s('settings.reset_confirm_title')),
+        content: Text(
+          L10n.s('settings.reset_confirm_content'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text("ANNULER"),
+            child: Text(L10n.s('common.cancel').toUpperCase()),
           ),
           TextButton(
             onPressed: () {
@@ -4365,16 +4384,16 @@ class _OptionsScreenState extends State<OptionsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text("Annuler"),
+            child: Text(L10n.s('common.cancel')),
           ),
           TextButton(
             onPressed: () {
               widget.onDeleteProfile(p.id);
               Navigator.pop(c);
             },
-            child: const Text(
-              "Supprimer",
-              style: TextStyle(color: Colors.redAccent),
+            child: Text(
+              L10n.s('common.delete'),
+              style: const TextStyle(color: Colors.redAccent),
             ),
           ),
         ],
@@ -4406,16 +4425,27 @@ class _SaisieSheet extends StatefulWidget {
   static TimeOfDay getDefaultTimeForMoment(String moment) {
     switch (moment) {
       case 'Matin':
+      case 'Morning': // potential logic fallback
         return const TimeOfDay(hour: 8, minute: 0);
       case 'Midi':
+      case 'Noon':
         return const TimeOfDay(hour: 12, minute: 30);
       case 'Après-midi':
+      case 'Afternoon':
         return const TimeOfDay(hour: 16, minute: 0);
       case 'Soir':
+      case 'Evening':
         return const TimeOfDay(hour: 19, minute: 30);
       case 'Soirée':
+      case 'Night':
         return const TimeOfDay(hour: 23, minute: 0);
       default:
+        // fallback matching potentially localized strings from L10n if they are passed back
+        if (moment == L10n.s('moments.morning')) return const TimeOfDay(hour: 8, minute: 0);
+        if (moment == L10n.s('moments.noon')) return const TimeOfDay(hour: 12, minute: 30);
+        if (moment == L10n.s('moments.afternoon')) return const TimeOfDay(hour: 16, minute: 0);
+        if (moment == L10n.s('moments.evening')) return const TimeOfDay(hour: 19, minute: 30);
+        if (moment == L10n.s('moments.night')) return const TimeOfDay(hour: 23, minute: 0);
         return const TimeOfDay(hour: 19, minute: 30);
     }
   }
@@ -4433,7 +4463,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   @override
   void initState() {
     super.initState();
-    _t = widget.existingConso?.type ?? 'Bière';
+    _t = widget.existingConso?.type ?? L10n.s('common.beer');
     _v = widget.existingConso?.volume ?? '33cl';
     _d = widget.existingConso?.degree ?? 6.0;
 
@@ -4502,7 +4532,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                 ),
                 
                 Text(
-                  "NOUVELLE CONSOMMATION",
+                  L10n.s('entry.title'),
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2.0,
@@ -4524,7 +4554,12 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                 // Sélecteur de type premium
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['Bière', 'Vin', 'Spiritueux', 'Soft']
+                  children: [
+                    L10n.s('common.beer'),
+                    L10n.s('common.wine'),
+                    L10n.s('common.spirits'),
+                    L10n.s('common.soft'),
+                  ]
                       .map((type) => _buildTypeCard(type))
                       .toList(),
                 ),
@@ -4535,7 +4570,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "VOLUME",
+                    L10n.s('entry.volume'),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -4562,7 +4597,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "ALCOOL",
+                      L10n.s('entry.alcohol'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -4620,7 +4655,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   child: ListTile(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     leading: Icon(Icons.access_time_filled, color: widget.accentColor, size: 20),
-                    title: const Text("Heure de consommation", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    title: Text(L10n.s('entry.time'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
@@ -4669,7 +4704,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     onPressed: () {
                       final String calculatedMoment = _getMomentFromTime(_time);
                       DateTime finalDate = widget.date;
-                      if (calculatedMoment == 'Soirée' && _time.hour < 6) {
+                      if (calculatedMoment == L10n.s('moments.night') && _time.hour < 6) {
                         finalDate = widget.date.add(const Duration(days: 1));
                       }
                       final fDate = DateTime(
@@ -4683,16 +4718,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         id: widget.existingConso?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                         date: fDate,
                         moment: calculatedMoment,
-                        type: _t == 'Soft' ? 'Sans alcool' : _t,
+                        type: _t == L10n.s('entry.types.soft') ? L10n.s('entry.types.no_alcohol') : _t,
                         volume: _v,
                         degree: _d,
                         userId: widget.activeUserId,
                       ));
                       Navigator.pop(context);
                     },
-                    child: const Text(
-                      "ENREGISTRER",
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
+                    child: Text(
+                      L10n.s('entry.save'),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
                     ),
                   ),
                 ),
@@ -4705,23 +4740,26 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   }
 
   Widget _buildTypeCard(String type) {
-    bool isSel = _t == type || (_t == 'Sans alcool' && type == 'Soft');
+    bool isSel = _t == type || (_t == L10n.s('entry.types.no_alcohol') && type == L10n.s('entry.types.soft'));
     IconData icon;
-    switch(type) {
-      case 'Bière': icon = Icons.sports_bar; break;
-      case 'Vin': icon = Icons.wine_bar; break;
-      case 'Soft': icon = Icons.local_cafe; break;
-      default: icon = Icons.local_drink;
+    if (type == L10n.s('common.beer')) {
+      icon = Icons.sports_bar;
+    } else if (type == L10n.s('common.wine')) {
+      icon = Icons.wine_bar;
+    } else if (type == L10n.s('common.soft')) {
+      icon = Icons.local_cafe;
+    } else {
+      icon = Icons.local_drink;
     }
 
     return GestureDetector(
       onTap: () => setState(() {
         _t = type;
-        if (type == 'Bière') {
+        if (type == L10n.s('common.beer')) {
           _d = 6.0;
-        } else if (type == 'Vin') {
+        } else if (type == L10n.s('common.wine')) {
           _d = 13.0;
-        } else if (type == 'Spiritueux') {
+        } else if (type == L10n.s('common.spirits')) {
           _d = 40.0;
         } else {
           _d = 0.0;

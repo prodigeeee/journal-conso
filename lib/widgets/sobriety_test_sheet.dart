@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'glass_widgets.dart';
+import '../utils/l10n_service.dart';
 
 class SobrietyTestSheet extends StatefulWidget {
   final bool isDarkMode;
@@ -84,9 +85,9 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
 
     String statusText = !_isPlaying
         ? (_reactionTime == null
-              ? "PRÊT ?"
-              : (_reactionTime == -1 ? "TROP TÔT !" : "$_reactionTime ms"))
-        : (_isReady ? "APPUYEZ !" : "ATTENDEZ...");
+              ? L10n.s('test.ready')
+              : (_reactionTime == -1 ? L10n.s('test.too_early') : "$_reactionTime ms"))
+        : (_isReady ? L10n.s('test.press') : L10n.s('test.wait'));
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
@@ -115,7 +116,7 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "LABORATOIRE",
+                      L10n.s('test.lab'),
                       style: TextStyle(
                         color: widget.accentColor,
                         fontSize: 10,
@@ -124,7 +125,7 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
                       ),
                     ),
                     Text(
-                      "RÉFLEXOMÈTRE",
+                      L10n.s('test.reflex_title'),
                       style: TextStyle(
                         color: widget.isDarkMode
                             ? Colors.white
@@ -167,7 +168,7 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "Appuyez sur le cercle pour démarrer, puis restez concentré. Appuyez dès qu'il passe au VERT !",
+                        L10n.s('test.instructions'),
                         style: TextStyle(
                           color: widget.isDarkMode
                               ? Colors.white70
@@ -255,8 +256,8 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
                 const SizedBox(height: 20),
                 Text(
                   _isPlaying
-                      ? "Ne quittez pas l'écran des yeux !"
-                      : "Appuyez sur le cercle pour démarrer",
+                      ? L10n.s('test.dont_quit')
+                      : L10n.s('test.tap_to_start'),
                   style: const TextStyle(
                     color: Colors.blueGrey,
                     fontSize: 13,
@@ -273,14 +274,14 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
   }
 
   Widget _buildResultsCard() {
-    String rank = "PILOTE";
+    String rank = L10n.s('test.rank_pilot');
     Color rankColor = Colors.greenAccent;
     if (_reactionTime! > 300) {
-      rank = "MOYEN";
+      rank = L10n.s('test.rank_medium');
       rankColor = Colors.orangeAccent;
     }
     if (_reactionTime! > 500) {
-      rank = "RALENTI";
+      rank = L10n.s('test.rank_slowed');
       rankColor = Colors.redAccent;
     }
 
@@ -291,13 +292,13 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _resultStat("TEMPS", "$_reactionTime", "ms"),
+          _resultStat(L10n.s('test.time_label'), "$_reactionTime", "ms"),
           Container(
             width: 1,
             height: 40,
             color: widget.isDarkMode ? Colors.white10 : Colors.black12,
           ),
-          _resultStat("RANG", rank, "", color: rankColor),
+          _resultStat(L10n.s('test.rank_label'), rank, "", color: rankColor),
         ],
       ),
     );

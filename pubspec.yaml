@@ -42,6 +42,7 @@ dependencies:
   image_picker: ^1.2.1
   url_launcher: ^6.3.2
   supabase_flutter: ^2.8.1
+  yaml: ^3.1.2
   
 dev_dependencies:
   flutter_launcher_icons: "^0.14.4"
@@ -71,6 +72,7 @@ flutter:
     - assets/images/splash.jpg
     - assets/images/terrasse_credits.jpg
     - assets/images/title.png
+    - assets/lang/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
