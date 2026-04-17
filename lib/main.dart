@@ -968,22 +968,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                                           : Colors.black87,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "•  ${DateFormat('EEEE d MMMM', 'fr_FR').format(DateTime.now())}",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: widget.isDarkMode
-                                          ? Colors.white54
-                                          : Colors.black45,
-                                    ),
-                                  ),
                                 ],
                               ),
                             ],
                           ),
                         ),
+                        Text(
+                          DateFormat('EEEE d MMMM', 'fr_FR').format(DateTime.now()),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: widget.isDarkMode
+                                ? Colors.white54
+                                : Colors.black45,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
                         PopupMenuButton<String>(
                           tooltip: "Changer de profil",
                           offset: const Offset(0, 40),
