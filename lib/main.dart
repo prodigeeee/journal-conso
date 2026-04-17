@@ -277,6 +277,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     if (state == AppLifecycleState.resumed) {
       // On resynchronise quand l'utilisateur revient sur l'app
       _pullFromCloud();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // On sauvegarde tout avant de quitter
+      _saveAll();
     }
   }
 
@@ -351,15 +354,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     }
   }
 
-  void _deleteProfile(String id) {
+  Future<void> _deleteProfile(String id) async {
     if (_profiles.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Impossible de supprimer le dernier profil."),
+        SnackBar(
+          content: Text(L10n.s('common.error_last_profile')),
         ),
       );
       return;
     }
+    
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      // Suppression immédiate sur le cloud
+      await SupabaseService.deleteProfile(id, user.id);
+    }
+
     setState(() {
       _profiles.removeWhere((p) => p.id == id);
       _allConsumptions.removeWhere((c) => c.userId == id);
@@ -1063,10 +1073,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                         }
                         _saveAll();
                       },
-                      onDelete: (id) {
-                        setState(
-                          () => _allConsumptions.removeWhere((c) => c.id == id),
-                        );
+                      onDelete: (id) async {
+                        setState(() => _allConsumptions.removeWhere((c) => c.id == id));
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user != null) {
+                          await SupabaseService.deleteConsumption(id, user.id);
+                        }
                         _saveAll();
                       },
                       onUpdateContext: (key, val) {
