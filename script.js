@@ -234,55 +234,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = "Envoyer le message";
             }
         });
+    }
 
-        // Burger Menu Logic
-        const burger = document.querySelector('#burger-toggle');
-        const menu = document.querySelector('#mobile-menu');
-        const menuLinks = document.querySelectorAll('.mobile-links a');
+    // Burger Menu Logic
+    const burger = document.querySelector('#burger-toggle');
+    const menu = document.querySelector('#mobile-menu');
+    const menuLinks = document.querySelectorAll('.mobile-links a');
 
-        if (burger) {
-            burger.addEventListener('click', () => {
-                menu.classList.toggle('active');
-                burger.classList.toggle('toggle');
-            });
-        }
-
-        // Fermer le menu au clic sur un lien
-        menuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                menu.classList.remove('active');
-                burger.classList.remove('toggle');
-            });
+    if (burger) {
+        burger.addEventListener('click', () => {
+            menu.classList.toggle('active');
+            burger.classList.toggle('toggle');
         });
-        // Smooth Scroll pour tous les liens internes
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href === '#') return;
-                
-                e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
+    }
 
-        // Logo Click -> Retour en haut
-        const logo = document.getElementById('main-logo');
-        if (logo) {
-            logo.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.scrollTo({
-                    top: 0,
+    // Fermer le menu au clic sur un lien
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            menu.classList.remove('active');
+            burger.classList.remove('toggle');
+        });
+    });
+
+    // Smooth Scroll pour tous les liens internes
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+            
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                target.scrollIntoView({
                     behavior: 'smooth'
                 });
+            }
+        });
+    });
+
+    // Logo Click -> Retour en haut
+    const logo = document.getElementById('main-logo');
+    if (logo) {
+        logo.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
-        // 7. Tracking des visites
-        logVisit();
+        });
     }
+
+    // 7. Tracking des visites
+    logVisit();
 });
 
 // Fonction de tracking anonyme
