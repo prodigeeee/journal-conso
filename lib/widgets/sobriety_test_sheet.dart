@@ -201,8 +201,8 @@ class _SobrietyTestSheetState extends State<SobrietyTestSheet>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: widget.accentColor.withOpacity(
-                                  0.1 * (1 - _pulseController.value),
+                                color: widget.accentColor.withValues(
+                                  alpha: 0.1 * (1 - _pulseController.value),
                                 ),
                               ),
                             ),

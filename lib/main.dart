@@ -18,7 +18,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 // On n'importe dart:io que si on n'est PAS sur le web pour éviter les crashs de compilation
-import 'dart:io' show File; 
+import 'dart:io' if (dart.library.html) 'utils/web_stubs.dart' as io;
 
 import 'models/models.dart';
 import 'utils/helpers.dart';
@@ -29,6 +29,8 @@ import 'screens/auth_screen.dart'; // Ajout de l'écran auth
 import 'utils/supabase_service.dart'; // Import du service de synchro
 
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
+
+typedef File = io.File;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -389,14 +391,66 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     _saveAll();
   }
   
+  void _showAuraSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                   Icon(isError ? Icons.error_outline : Icons.cloud_done_rounded, color: isError ? Colors.redAccent : widget.accentColor),
+                   const SizedBox(width: 12),
+                   Expanded(child: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pushToCloud() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      _showAuraSnackBar("Veuillez vous connecter pour sauvegarder", isError: true);
+      return;
+    }
+    _showAuraSnackBar("Sauvegarde vers le Cloud...");
+    try {
+      await SupabaseService.syncProfiles(_profiles, user.id);
+      await SupabaseService.syncConsumptions(_allConsumptions, user.id);
+      _showAuraSnackBar("✅ Données sauvegardées dans le Cloud !");
+    } catch (e) {
+      _showAuraSnackBar("❌ Erreur de sauvegarde : $e", isError: true);
+    }
+  }
+
   Future<void> _pullFromCloud() async {
     final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-
+    if (user == null) {
+      _showAuraSnackBar("Veuillez vous connecter pour synchroniser", isError: true);
+      return;
+    }
+    _showAuraSnackBar("Récupération de vos données...");
     try {
       final data = await SupabaseService.fetchAllData(user.id);
-      final List<UserProfile> cloudProfiles = List<UserProfile>.from(data['profiles']);
-      final List<Consumption> cloudConsos = List<Consumption>.from(data['consumptions']);
+      final List<UserProfile> cloudProfiles = data['profiles'] != null ? List<UserProfile>.from(data['profiles']) : [];
+      final List<Consumption> cloudConsos = data['consumptions'] != null ? List<Consumption>.from(data['consumptions']) : [];
       
       if (cloudProfiles.isNotEmpty) {
         setState(() {
@@ -412,9 +466,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
+        _showAuraSnackBar("✅ Synchronisation réussie !");
+      } else {
+        _showAuraSnackBar("ℹ️ Aucune donnée trouvée dans le Cloud");
       }
     } catch (e) {
-      print("Sync Cloud Silencieuse (Echec): $e");
+      _showAuraSnackBar("❌ Erreur de synchronisation : $e", isError: true);
     }
   }
 
@@ -1047,9 +1104,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       unitMl: widget.unitMl,
                       onUnitMlChanged: widget.onUnitMlChanged,
                       onSyncCloud: _pullFromCloud,
+                      onPushCloud: _pushToCloud,
                       onLogout: () async {
                         await Supabase.instance.client.auth.signOut();
-                        // Pas besoin de setState car le parent (MainNavigationWrapper) détectera le changement de session
                       },
                     ),
                   ],
@@ -2341,7 +2398,7 @@ class _StatsScreenState extends State<StatsScreen> {
           const SizedBox(height: 15),
           // AGENT: BOUTON TEST RÉFLEXES PROÉMINENT
           GestureDetector(
-            onTap: _showSobrietyTest,
+            onTap: _showSobrietyTestFromStats,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               decoration: BoxDecoration(
@@ -2739,7 +2796,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  void _showSobrietyTest() {
+  void _showSobrietyTestFromStats() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -3107,6 +3164,7 @@ class OptionsScreen extends StatefulWidget {
   final bool unitMl;
   final Function(bool) onUnitMlChanged;
   final VoidCallback? onSyncCloud;
+  final VoidCallback? onPushCloud;
   final VoidCallback onLogout;
 
   const OptionsScreen({
@@ -3129,6 +3187,7 @@ class OptionsScreen extends StatefulWidget {
     required this.unitMl,
     required this.onUnitMlChanged,
     this.onSyncCloud,
+    this.onPushCloud,
     required this.onLogout,
   });
   @override
@@ -3140,7 +3199,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
   Future<void> _pickImage(UserProfile p) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      setState(() => p.imagePath = image.path);
+      final bytes = await image.readAsBytes();
+      setState(() => p.imagePath = base64Encode(bytes));
       widget.onProfilesChanged();
     }
   }
@@ -3877,6 +3937,24 @@ class _OptionsScreenState extends State<OptionsScreen> {
               _divider(),
               ListTile(
                 dense: true,
+                visualDensity: VisualDensity.compact,
+                leading: Icon(Icons.cloud_upload_rounded, color: widget.accentColor),
+                title: Text(
+                  "Enregistrer dans le Cloud",
+                  style: TextStyle(
+                    color: widget.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                subtitle: Text("Sauvegarder vos profils sur internet", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                onTap: widget.onPushCloud,
+              ),
+              _divider(),
+              ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
                 leading: Icon(Icons.cloud_download_rounded, color: widget.accentColor),
                 title: Text(
                   "Récupérer depuis le Cloud",
@@ -4067,7 +4145,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
     );
   }
 
-  void _showSobrietyTest() {
+  void _showSobrietyTestFromOptions() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -4132,7 +4210,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context); // Close guide
-                        _showSobrietyTest();
+                        _showSobrietyTestFromOptions();
                       },
                       child: _guideStep(
                         Icons.psychology,

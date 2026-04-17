@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
+import 'dart:convert';
 
 String cleanDisplay(String? text) {
   if (text == null) return '';
@@ -24,9 +25,18 @@ bool belongsToLogicalDay(DateTime consumptionDate, DateTime dayInCalendar) {
 
 ImageProvider getProfileImage(String? imagePath) {
   if (imagePath == null || imagePath.isEmpty) {
-    // On retourne une image transparente ou un asset existant
     return const AssetImage('assets/images/title.png'); 
   }
+  
+  if (imagePath.startsWith('data:image') || imagePath.length > 1000) {
+    try {
+      final base64String = imagePath.contains(',') ? imagePath.split(',').last : imagePath;
+      return MemoryImage(base64Decode(base64String));
+    } catch (e) {
+      return const AssetImage('assets/images/title.png');
+    }
+  }
+
   if (kIsWeb) {
     return NetworkImage(imagePath);
   } else {
