@@ -24,9 +24,9 @@ bool belongsToLogicalDay(DateTime consumptionDate, DateTime dayInCalendar) {
       logical.day == dayInCalendar.day;
 }
 
-ImageProvider getProfileImage(String? imagePath) {
+ImageProvider? getProfileImage(String? imagePath) {
   if (imagePath == null || imagePath.isEmpty) {
-    return const AssetImage('assets/images/title.png'); 
+    return null; 
   }
   
   if (imagePath.startsWith('data:image') || imagePath.length > 1000) {
