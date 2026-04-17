@@ -1,33 +1,46 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
+import 'dart:developer' as dev;
 
 class L10n {
-  static Map<dynamic, dynamic> _localizedValues = {};
+  static Map<String, dynamic> _localizedValues = {};
 
   static Future<void> load() async {
     try {
-      String yamlString = await rootBundle.loadString('assets/lang/fr.yaml');
+      final String yamlString = await rootBundle.loadString('assets/lang/fr.yaml');
       final dynamic yamlMap = loadYaml(yamlString);
-      _localizedValues = _convertYamlMapToMap(yamlMap);
-      print("✅ Langue chargée : ${_localizedValues.length} clés trouvées.");
+      
+      if (yamlMap is YamlMap) {
+        _localizedValues = _yamlToMap(yamlMap);
+        dev.log("✅ L10n: Loaded ${_localizedValues.length} top-level keys");
+      } else {
+        dev.log("⚠️ L10n: Yaml is not a Map");
+        _localizedValues = {};
+      }
     } catch (e) {
-      print("⚠️ Erreur chargement langue : $e");
+      dev.log("❌ L10n Error: $e");
       _localizedValues = {};
     }
   }
 
-  static Map<String, dynamic> _convertYamlMapToMap(dynamic yamlMap) {
-    if (yamlMap is YamlMap) {
-      return yamlMap.map((key, value) => MapEntry(key.toString(), _convertYamlMapToMap(value)));
-    } else if (yamlMap is YamlList) {
-      return yamlMap.map((value) => _convertYamlMapToMap(value)).toList().asMap().map((key, value) => MapEntry(key.toString(), value));
-    } else {
-      return yamlMap;
-    }
+  static Map<String, dynamic> _yamlToMap(YamlMap yamlMap) {
+    final Map<String, dynamic> map = {};
+    yamlMap.forEach((key, value) {
+      if (value is YamlMap) {
+        map[key.toString()] = _yamlToMap(value);
+      } else if (value is YamlList) {
+        map[key.toString()] = value.map((e) => e is YamlMap ? _yamlToMap(e) : e).toList();
+      } else {
+        map[key.toString()] = value;
+      }
+    });
+    return map;
   }
 
   static String s(String key, {Map<String, String>? args}) {
+    if (_localizedValues.isEmpty) return key;
+
     List<String> keys = key.split('.');
     dynamic value = _localizedValues;
 
@@ -35,12 +48,12 @@ class L10n {
       if (value is Map && value.containsKey(k)) {
         value = value[k];
       } else {
-        return key; // Retourne la clé si non trouvé
+        return key;
       }
     }
 
-    if (value is String) {
-      String result = value;
+    if (value != null) {
+      String result = value.toString();
       if (args != null) {
         args.forEach((k, v) {
           result = result.replaceAll('{$k}', v);
