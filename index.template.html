@@ -45,11 +45,11 @@
             
             <!-- Menu Bureau -->
             <div class="nav-links desktop-menu">
-                <a href="#screenshots">Aperçu</a>
-                <a href="#multiplatform">Web App</a>
-                <a href="#contact">Contact</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">Se connecter</a>
-                <a href="#download" class="nav-btn">Télécharger</a>
+                <a href="#screenshots">{{ nav.overview }}</a>
+                <a href="#multiplatform">{{ nav.webapp }}</a>
+                <a href="#contact">{{ nav.contact }}</a>
+                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">{{ nav.login }}</a>
+                <a href="#download" class="nav-btn">{{ nav.download }}</a>
             </div>
 
             <!-- Bouton Burger Mobile -->
@@ -63,22 +63,22 @@
         <!-- Menu Mobile (Overlay) -->
         <div class="mobile-overlay" id="mobile-menu">
             <div class="mobile-links">
-                <a href="#screenshots">Aperçu</a>
-                <a href="#multiplatform">Web App</a>
-                <a href="#contact">Contact</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">Lancer l'App</a>
+                <a href="#screenshots">{{ nav.overview }}</a>
+                <a href="#multiplatform">{{ nav.webapp }}</a>
+                <a href="#contact">{{ nav.contact }}</a>
+                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener">{{ nav.launch }}</a>
             </div>
         </div>
     </nav>
 
     <header class="hero">
         <div class="hero-text">
-            <div class="badge">V2 • Refonte Totale</div>
-            <h1>Prenez le contrôle<br>with <span class="highlight">élégance.</span></h1>
-            <p>Une application de suivi de consommation premium, conçue pour vous accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu.</p>
+            <div class="badge">{{ hero.badge }}</div>
+            <h1>{{ hero.title_start }}<br>with <span class="highlight">{{ hero.title_highlight }}</span></h1>
+            <p>{{ hero.description }}</p>
             <div class="hero-actions">
-                <a href="#download" class="btn btn-primary">Installer l'APK</a>
-                <a href="#features" class="btn btn-secondary">Fonctionnalités</a>
+                <a href="#download" class="btn btn-primary">{{ hero.btn_apk }}</a>
+                <a href="#features" class="btn btn-secondary">{{ hero.btn_features }}</a>
             </div>
         </div>
 
@@ -92,7 +92,7 @@
                         <img src="assets/images/user.png" alt="Chris" class="avatar-img">
                     </div>
                     <div>
-                        <div class="profile-desc">PROFIL</div>
+                        <div class="profile-desc">{{ mockup.profile }}</div>
                         <div class="profile-name">Chris</div>
                     </div>
                 </div>
@@ -100,10 +100,10 @@
 
             <!-- Composant Global : Alcoolémie -->
             <div class="glass-panel" style="z-index: 2; padding: 20px; animation: float 8s ease-in-out infinite reverse;">
-                <div class="stats-label">VOTRE ALCOOLÉMIE (TEMPS RÉEL)</div>
+                <div class="stats-label">{{ mockup.bac_title }}</div>
                 <div class="stats-value">0.42 <span class="stats-unit">g/L</span></div>
-                <div class="drinks-count">4.2 unités</div>
-                <div class="safety-badge">Sécurité OK</div>
+                <div class="drinks-count">4.2 {{ mockup.units }}</div>
+                <div class="safety-badge">{{ mockup.safety_ok }}</div>
             </div>
 
             <!-- Composant Bas : Réflexes -->
@@ -111,14 +111,14 @@
                 <div class="profile-row">
                     <div class="reflex-icon">🧠</div>
                     <div>
-                        <div class="reflex-title">TEST DE RÉFLEXES</div>
-                        <div class="reflex-desc">Vérifiez votre réactivité maintenant</div>
+                        <div class="reflex-title">{{ mockup.reflex_btn }}</div>
+                        <div class="reflex-desc">{{ mockup.reflex_desc }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="mockup-disclaimer">
-                Estimation théorique uniquement. Ne remplace pas un éthylotest.
+                {{ mockup.disclaimer }}
             </div>
         </div>
     </header>
@@ -126,53 +126,53 @@
     <section id="features" class="features">
         <div class="features-header">
             <div class="badge">FEATURES</div>
-            <h2>L'intelligence <br><span class="highlight">discrète.</span></h2>
-            <p>Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.</p>
+            <h2>{{ features.title }} <br><span class="highlight">{{ features.title_highlight }}</span></h2>
+            <p>{{ features.subtitle }}</p>
         </div>
 
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
-                <h3>SUIVI COMPLET</h3>
-                <p>Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume.</p>
+                <h3>{{ features.card1_title }}</h3>
+                <p>{{ features.card1_desc }}</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📈</div>
-                <h3>STATS AVANCÉES</h3>
-                <p>Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil.</p>
+                <h3>{{ features.card2_title }}</h3>
+                <p>{{ features.card2_desc }}</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🎯</div>
-                <h3>OBJECTIFS SANTÉ</h3>
-                <p>Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès.</p>
+                <h3>{{ features.card3_title }}</h3>
+                <p>{{ features.card3_desc }}</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔒</div>
-                <h3>CONFIDENTIALITÉ</h3>
-                <p>Vos données sont stockées localement et ne sont jamais partagées sans votre accord.</p>
+                <h3>{{ features.card4_title }}</h3>
+                <p>{{ features.card4_desc }}</p>
             </div>
         </div>
     </section>
 
     <section class="analysis">
         <div class="analysis-content">
-            <div class="badge">ANALYSE & DONNÉES</div>
-            <h2>Comprenez votre <br><span class="highlight">consommation.</span></h2>
-            <p>Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies.</p>
+            <div class="badge">{{ analysis.badge }}</div>
+            <h2>{{ analysis.title_start }} <br><span class="highlight">{{ analysis.title_highlight }}</span></h2>
+            <p>{{ analysis.description }}</p>
             
             <ul class="analysis-list">
-                <li><span>✓</span> Estimation de l'alcoolémie (Widmark + Pic)</li>
-                <li><span>✓</span> Calcul du temps de retour au seuil légal</li>
-                <li><span>✓</span> Répartition globale par type de boisson</li>
-                <li><span>✓</span> Historique complet des consommations</li>
+                <li><span>✓</span> {{ analysis.item1 }}</li>
+                <li><span>✓</span> {{ analysis.item2 }}</li>
+                <li><span>✓</span> {{ analysis.item3 }}</li>
+                <li><span>✓</span> {{ analysis.item4 }}</li>
             </ul>
         </div>
         
         <div class="analysis-chart">
             <div class="glass-panel chart-container">
                 <div class="chart-header">
-                    <div class="chart-title">TENDANCE MENSUELLE</div>
-                    <div class="chart-subtitle">DU 15 MARS AU 14 AVRIL</div>
+                    <div class="chart-title">{{ analysis.trend_title }}</div>
+                    <div class="chart-subtitle">{{ analysis.trend_date }}</div>
                 </div>
                 
                 <div class="chart-placeholder">
@@ -182,12 +182,12 @@
                     </svg>
                     
                     <div class="chart-info-card">
-                        <div class="chart-info-label">ALCOOLÉMIE ESTIMÉE</div>
+                        <div class="chart-info-label">{{ analysis.bac_label }}</div>
                         <div class="chart-info-value">0.24 <span class="unit">g/L</span></div>
                         <div class="chart-info-badge">
-                            <span class="dot"></span> SÉCURITÉ OK
+                            <span class="dot"></span> {{ analysis.safety_label }}
                         </div>
-                        <div class="chart-info-status">Prêt à conduire</div>
+                        <div class="chart-info-status">{{ analysis.ready_label }}</div>
                     </div>
                 </div>
             </div>
@@ -196,16 +196,16 @@
 
     <section id="screenshots" class="gallery">
         <div class="gallery-header">
-            <h2>L'application en <span class="highlight">images</span></h2>
-            <p>Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal.</p>
+            <h2>{{ gallery.title }} <span class="highlight">{{ gallery.title_highlight }}</span></h2>
+            <p>{{ gallery.subtitle }}</p>
         </div>
         
         <div class="gallery-grid">
-            <img src="assets/images/screen1.png" alt="Vue Journal" class="gallery-img">
-            <img src="assets/images/screen2.png" alt="Vue Calendrier" class="gallery-img">
-            <img src="assets/images/screen3.png" alt="Vue Réglages" class="gallery-img">
-            <img src="assets/images/screen4.png" alt="Vue Alcoolémie" class="gallery-img">
-            <img src="assets/images/screen5.png" alt="Vue Statistiques" class="gallery-img">
+            <img src="assets/images/screen1.png" alt="{{ gallery.alt1 }}" class="gallery-img">
+            <img src="assets/images/screen2.png" alt="{{ gallery.alt2 }}" class="gallery-img">
+            <img src="assets/images/screen3.png" alt="{{ gallery.alt3 }}" class="gallery-img">
+            <img src="assets/images/screen4.png" alt="{{ gallery.alt4 }}" class="gallery-img">
+            <img src="assets/images/screen5.png" alt="{{ gallery.alt5 }}" class="gallery-img">
         </div>
     </section>
 
@@ -215,58 +215,58 @@
         </div>
         
         <div class="platform-text">
-            <div class="badge">DISPONIBLE PARTOUT</div>
-            <h2>Un seul compte. <br><span class="highlight">Tous vos appareils.</span></h2>
-            <p>Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil.</p>
+            <div class="badge">{{ multi.badge }}</div>
+            <h2>{{ multi.title_start }} <br><span class="highlight">{{ multi.title_highlight }}</span></h2>
+            <p>{{ multi.description }}</p>
             
             <div class="platform-list">
                 <div class="platform-item">
-                    <span class="platform-icon">🤖</span> Android App
+                    <span class="platform-icon">🤖</span> {{ multi.android }}
                 </div>
                 <div class="platform-item">
-                    <span class="platform-icon">🍎</span> iOS (Web App)
+                    <span class="platform-icon">🍎</span> {{ multi.ios }}
                 </div>
                 <div class="platform-item">
-                    <span class="platform-icon">💻</span> Desktop Browser
+                    <span class="platform-icon">💻</span> {{ multi.desktop }}
                 </div>
             </div>
 
-            <a href="app/" class="btn btn-primary" target="_blank" rel="noopener">Lancer la Web App</a>
+            <a href="app/" class="btn btn-primary" target="_blank" rel="noopener">{{ multi.btn_launch }}</a>
         </div>
     </section>
 
     <section id="contact" class="contact">
         <div class="contact-header">
-            <h2>Un souci, une idée ?</h2>
-            <p>On discute ? Envoyez-nous un message, nous répondons en moins de 24h.</p>
+            <h2>{{ contact.title }}</h2>
+            <p>{{ contact.subtitle }}</p>
         </div>
         
         <div class="contact-container">
             <form class="contact-form" id="contact-form">
                 <div class="form-group">
-                    <label>Votre Nom</label>
-                    <input type="text" placeholder="Ex: Chris" required>
+                    <label>{{ contact.label_name }}</label>
+                    <input type="text" placeholder="{{ contact.placeholder_name }}" required>
                 </div>
                 <div class="form-group">
-                    <label>Votre Email</label>
-                    <input type="email" placeholder="nom@exemple.com" required>
+                    <label>{{ contact.label_email }}</label>
+                    <input type="email" placeholder="{{ contact.placeholder_email }}" required>
                 </div>
                 <div class="form-group">
-                    <label>Sujet</label>
-                    <input type="text" placeholder="Bug, Suggestion, Partenariat...">
+                    <label>{{ contact.label_subject }}</label>
+                    <input type="text" placeholder="{{ contact.placeholder_subject }}">
                 </div>
                 <div class="form-group">
-                    <label>Votre Message</label>
-                    <textarea placeholder="Dites-nous tout..." rows="5" required></textarea>
+                    <label>{{ contact.label_message }}</label>
+                    <textarea placeholder="{{ contact.placeholder_message }}" rows="5" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Envoyer le message</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">{{ contact.btn_send }}</button>
             </form>
 
             <div id="form-success" style="display: none; text-align: center; padding: 40px 0;">
                 <div style="font-size: 50px; margin-bottom: 20px;">✅</div>
-                <h3 style="color: white; margin-bottom: 10px;">Message envoyé !</h3>
-                <p style="color: rgba(255,255,255,0.7); margin-bottom:30px;">Merci pour votre retour. Chris vous répondra très prochainement.</p>
-                <button onclick="location.reload()" class="btn btn-secondary">Envoyer un autre message</button>
+                <h3 style="color: white; margin-bottom: 10px;">{{ contact.success_title }}</h3>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom:30px;">{{ contact.success_desc }}</p>
+                <button onclick="location.reload()" class="btn btn-secondary">{{ contact.btn_reload }}</button>
             </div>
         </div>
     </section>
@@ -277,40 +277,40 @@
                 <div class="logo">
                      <img src="assets/images/logo.png" alt="Logo" class="logo-img"> Journal Conso
                 </div>
-                <p>Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone.</p>
+                <p>{{ footer.description }}</p>
             </div>
             <div class="footer-section">
-                <h4>Navigation</h4>
+                <h4>{{ footer.nav_title }}</h4>
                 <ul>
-                    <li><a href="#">Accueil</a></li>
+                    <li><a href="#">{{ footer.home }}</a></li>
                     <li><a href="#features">Features</a></li>
-                    <li><a href="#screenshots">Aperçu</a></li>
-                    <li><a href="#download">Télécharger l'APK</a></li>
+                    <li><a href="#screenshots">{{ nav.overview }}</a></li>
+                    <li><a href="#download">{{ footer.apk }}</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h4>Légal</h4>
+                <h4>{{ footer.legal_title }}</h4>
                 <ul>
-                    <li><a href="#">Confidentialité</a></li>
-                    <li><a href="#">Mentions légales</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#">{{ footer.privacy }}</a></li>
+                    <li><a href="#">{{ footer.mentions }}</a></li>
+                    <li><a href="#contact">{{ footer.contact }}</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h4>Avertissement</h4>
+                <h4>{{ footer.warning_title }}</h4>
                 <p style="font-size: 11px; opacity: 0.7; line-height: 1.6;">
-                    Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire.
+                    {{ footer.warning_text }}
                 </p>
             </div>
         </div>
         
         <div class="footer-bottom">
-            <p>Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone.</p>
+            <p>{{ footer.description }}</p>
             <div class="footer-badges">
                 <span class="f-badge">100% Mobile</span>
-                <span class="f-badge">Données 100% locales</span>
+                <span class="f-badge">{{ footer.trust_badge }}</span>
             </div>
-            <p style="margin-top: 30px; opacity: 0.5; font-size: 11px;">© 2026 ChrisK • Journal Conso. Tous droits réservés.</p>
+            <p style="margin-top: 30px; opacity: 0.5; font-size: 11px;">{{ footer.copy }}</p>
         </div>
     </footer>
 

@@ -19,11 +19,15 @@ def flatten_dict(d, parent_key='', sep='.'):
     return dict(items)
 
 def update_html():
-    template_path = 'index.html' # On utilise directement le fichier comme base si on veut rester simple
+    template_path = 'index.template.html'
     lang_path = 'assets/lang/site_fr.yaml'
     
     if not os.path.exists(lang_path):
         print(f"Erreur : Fichier de langue introuvable : {lang_path}")
+        return
+
+    if not os.path.exists(template_path):
+        print(f"Erreur : Fichier template introuvable : {template_path}")
         return
 
     with open(lang_path, 'r', encoding='utf-8') as f:
