@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
 import 'dart:convert';
+import 'l10n_service.dart';
 
 String cleanDisplay(String? text) {
   if (text == null) return '';
@@ -46,4 +47,13 @@ ImageProvider getProfileImage(String? imagePath) {
       return const AssetImage('assets/images/title.png');
     }
   }
+}
+
+String getMomentFromTime(TimeOfDay time) {
+  int h = time.hour;
+  if (h >= 6 && h < 11) return L10n.s('moments.morning');
+  if (h >= 11 && h < 15) return L10n.s('moments.noon');
+  if (h >= 15 && h < 18) return L10n.s('moments.afternoon');
+  if (h >= 18 && h < 21) return L10n.s('moments.evening');
+  return L10n.s('moments.night');
 }

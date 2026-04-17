@@ -920,7 +920,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                           backgroundColor: Color(activeUser.colorValue),
                           radius: 16,
                           backgroundImage: getProfileImage(activeUser.imagePath),
-                          child: activeUser.imagePath == null
+                          child: (activeUser.imagePath == null || activeUser.imagePath!.isEmpty)
                               ? const Icon(
                                   Icons.person,
                                   size: 16,
@@ -997,7 +997,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                                           backgroundColor: Color(p.colorValue),
                                           radius: 12,
                                           backgroundImage: getProfileImage(p.imagePath),
-                                          child: p.imagePath == null
+                                          child: (p.imagePath == null || p.imagePath!.isEmpty)
                                               ? const Icon(
                                                   Icons.person,
                                                   size: 14,
@@ -2051,17 +2051,20 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
-            onTap: () => widget.onAddOrUpdate(
-              Consumption(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                date: c.date,
-                moment: c.moment,
-                type: c.type,
-                volume: c.volume,
-                degree: c.degree,
-                userId: c.userId,
-              ),
-            ),
+            onTap: () {
+              final now = DateTime.now();
+              widget.onAddOrUpdate(
+                Consumption(
+                  id: now.millisecondsSinceEpoch.toString(),
+                  date: now,
+                  moment: getMomentFromTime(TimeOfDay.fromDateTime(now)),
+                  type: c.type,
+                  volume: c.volume,
+                  degree: c.degree,
+                  userId: c.userId,
+                ),
+              );
+            },
             child: Icon(Icons.add_circle, size: 14, color: widget.accentColor),
           ),
           const SizedBox(width: 8),
@@ -3812,7 +3815,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                           backgroundColor: Color(p.colorValue),
                           radius: 24,
                           backgroundImage: getProfileImage(p.imagePath),
-                          child: p.imagePath == null
+                          child: (p.imagePath == null || p.imagePath!.isEmpty)
                               ? const Icon(Icons.person, color: Colors.white)
                               : null,
                         ),
@@ -4428,31 +4431,18 @@ class _SaisieSheet extends StatefulWidget {
   });
 
   static TimeOfDay getDefaultTimeForMoment(String moment) {
-    switch (moment) {
-      case 'Matin':
-      case 'Morning': // potential logic fallback
-        return const TimeOfDay(hour: 8, minute: 0);
-      case 'Midi':
-      case 'Noon':
-        return const TimeOfDay(hour: 12, minute: 30);
-      case 'Après-midi':
-      case 'Afternoon':
-        return const TimeOfDay(hour: 16, minute: 0);
-      case 'Soir':
-      case 'Evening':
-        return const TimeOfDay(hour: 19, minute: 30);
-      case 'Soirée':
-      case 'Night':
-        return const TimeOfDay(hour: 23, minute: 0);
-      default:
-        // fallback matching potentially localized strings from L10n if they are passed back
-        if (moment == L10n.s('moments.morning')) return const TimeOfDay(hour: 8, minute: 0);
-        if (moment == L10n.s('moments.noon')) return const TimeOfDay(hour: 12, minute: 30);
-        if (moment == L10n.s('moments.afternoon')) return const TimeOfDay(hour: 16, minute: 0);
-        if (moment == L10n.s('moments.evening')) return const TimeOfDay(hour: 19, minute: 30);
-        if (moment == L10n.s('moments.night')) return const TimeOfDay(hour: 23, minute: 0);
-        return const TimeOfDay(hour: 19, minute: 30);
+    if (moment == L10n.s('moments.morning') || moment == 'Matin') {
+      return const TimeOfDay(hour: 8, minute: 0);
+    } else if (moment == L10n.s('moments.noon') || moment == 'Midi') {
+      return const TimeOfDay(hour: 12, minute: 30);
+    } else if (moment == L10n.s('moments.afternoon') || moment == 'Après-midi') {
+      return const TimeOfDay(hour: 16, minute: 0);
+    } else if (moment == L10n.s('moments.evening') || moment == 'Soir') {
+      return const TimeOfDay(hour: 19, minute: 30);
+    } else if (moment == L10n.s('moments.night') || moment == 'Soirée') {
+      return const TimeOfDay(hour: 23, minute: 0);
     }
+    return const TimeOfDay(hour: 19, minute: 30);
   }
 
   @override
@@ -4480,12 +4470,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   }
 
   String _getMomentFromTime(TimeOfDay time) {
-    int h = time.hour;
-    if (h >= 6 && h < 11) return 'Matin';
-    if (h >= 11 && h < 15) return 'Midi';
-    if (h >= 15 && h < 18) return 'Après-midi';
-    if (h >= 18 && h < 21) return 'Soir';
-    return 'Soirée';
+    return getMomentFromTime(time);
   }
 
   @override
