@@ -71,8 +71,8 @@
     <header class="hero">
         <div class="hero-text">
             <div class="badge">V2 • Refonte Totale</div>
-            <h1>Prenez le contrôle<br>avec <span class="highlight">élégance.</span></h1>
-            <p>Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité.</p>
+            <h1 data-content-key="hero_title">Prenez le contrôle<br>avec <span class="highlight">élégance.</span></h1>
+            <p data-content-key="hero_desc">Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité.</p>
             <div class="hero-actions">
                 <a href="#download" class="btn btn-primary">Installer l'APK</a>
                 <a href="#features" class="btn btn-secondary">Fonctionnalités</a>
@@ -135,8 +135,8 @@
     <section id="features" class="features">
         <div class="section-header">
             <div class="badge">FEATURES</div>
-            <h2>L'intelligence <br><span class="highlight">discrète.</span></h2>
-            <p style="margin-bottom: 50px;">Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.</p>
+            <h2 data-content-key="feature_title">L'intelligence <br><span class="highlight">discrète.</span></h2>
+            <p data-content-key="feature_desc" style="margin-bottom: 50px;">Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.</p>
         </div>
 
         <div class="features-grid">
@@ -176,9 +176,9 @@
         <div class="spirit-container glass-panel">
             <div class="spirit-text">
                 <div class="badge">L'ESPRIT DU PROJET</div>
-                <h2>Une application faite avec <span class="highlight">passion.</span></h2>
-                <p>Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design.</p>
-                <p>Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>.</p>
+                <h2 data-content-key="spirit_title">Une application faite avec <span class="highlight">passion.</span></h2>
+                <p data-content-key="spirit_desc1">Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design.</p>
+                <p data-content-key="spirit_desc2">Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>.</p>
                 
                 <div class="spirit-actions">
                     <p class="spirit-disclaimer">Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée.</p>
@@ -479,5 +479,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="script.js"></script>
+    <script>
+        // CMS - Chargement dynamique des textes depuis Supabase
+        (async function loadDynamicContent() {
+            const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/site_content`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    data.forEach(item => {
+                        const elements = document.querySelectorAll(`[data-content-key="${item.key}"]`);
+                        elements.forEach(el => { el.innerHTML = item.value; });
+                    });
+                }
+            } catch (e) { /* Fallback aux textes HTML par défaut */ }
+        })();
+    </script>
 </body>
 </html>

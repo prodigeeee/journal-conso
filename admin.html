@@ -19,6 +19,7 @@
             --text-main: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.5);
             --danger: #ff4757;
+            --success: #2ed573;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -59,10 +60,13 @@
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 0; }
         .header-info h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; }
-        .header-info p { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
+
+        .tabs-nav { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tab-btn { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+        .tab-btn.active { background: var(--glass-strong); color: var(--accent); border-color: var(--accent); }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
 
         .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.8rem; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--glass-border); transition: 0.3s; cursor: pointer; }
-        .logout-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
 
         .grid-stats {
             display: grid;
@@ -80,7 +84,6 @@
 
         .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .stat-value { font-size: 1.8rem; font-weight: 950; color: var(--text-main); }
-        .stat-value span { font-size: 0.9rem; color: var(--accent); opacity: 0.8; margin-left: 4px; }
 
         .main-grid {
             display: grid;
@@ -89,63 +92,39 @@
             margin-bottom: 15px;
         }
 
-        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
-
         .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .panel-header h3 { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .panel-header h3 { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; }
 
         .chart-panel { padding: 25px; min-height: 400px; }
 
-        .active-users-card {
-            padding: 25px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .gauge-container {
-            width: 120px;
-            height: 120px;
-            position: relative;
-            margin: 15px 0;
-        }
-
-        .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .gauge-circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
-        .gauge-circle-val { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 1.5s ease-out; filter: drop-shadow(0 0 5px var(--accent)); }
-
-        .gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .gauge-number { font-size: 2.5rem; font-weight: 900; line-height: 1; }
-
-        .table-panel { padding: 20px; }
-        .table-wrapper { overflow-x: auto; width: 100%; max-height: 600px; overflow-y: auto; }
-
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 10px 12px; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--glass-border); }
-        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        tr:hover td { background: rgba(255,255,255,0.03); }
+        .sidebar-panel { display: flex; flex-direction: column; gap: 15px; }
 
         .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; font-weight: 700; }
-        .text-small { font-size: 0.75rem; color: var(--text-muted); }
-
-        .activity-item { padding: 10px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
-        .activity-label { font-size: 0.8rem; font-weight: 600; }
-        .activity-count { font-weight: 900; color: var(--accent); }
 
         #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         .login-card { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
         .input-group { text-align: left; margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; }
-        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        #error-overlay { position: fixed; top: 20px; right: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; font-family: inherit; }
+        .input-group textarea { height: 80px; resize: vertical; }
 
+        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .btn-save { background: var(--success) !important; color: #000 !important; width: auto; padding: 10px 25px; }
+
+        #error-overlay { position: fixed; top: 20px; right: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; }
+        #success-overlay { position: fixed; top: 20px; right: 20px; background: var(--success); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; }
+
+        /* EDITOR STYLES */
+        .editor-container { padding: 30px; }
+        .editor-item { margin-bottom: 25px; }
+        .editor-item label { color: var(--accent); font-weight: 800; font-size: 0.7rem; margin-bottom: 8px; display: block; display: flex; justify-content: space-between; }
+        .editor-item label span { opacity: 0.4; }
     </style>
 </head>
 <body>
     <div class="aura-bg"></div>
     <div id="error-overlay">Erreur détectée.</div>
+    <div id="success-overlay">Modifications enregistrées !</div>
 
     <div class="container">
         <!-- LOGIN SCREEN -->
@@ -170,102 +149,117 @@
         <div id="dashboard">
             <div class="header">
                 <div class="header-info">
-                    <h1 id="welcome-msg">Dashboard • <span style="color:var(--accent)">Journal Conso</span></h1>
-                    <p>Monitoring et analytics des dernières données reçues.</p>
+                    <h1>Back-Office • <span style="color:var(--accent)">Journal Conso</span></h1>
                 </div>
                 <a class="logout-btn" id="btn-logout">Quitter</a>
             </div>
 
-            <div class="grid-stats">
-                <div class="glass-panel stat-card">
-                    <div class="stat-label">Total Visites</div>
-                    <div class="stat-value" id="stat-total-visits">0</div>
-                </div>
-                <div class="glass-panel stat-card">
-                    <div class="stat-label">Uniques</div>
-                    <div class="stat-value" id="stat-unique-visits">0</div>
-                </div>
-                <div class="glass-panel stat-card">
-                    <div class="stat-label">Engagement</div>
-                    <div class="stat-value" id="stat-interactions">0%</div>
-                </div>
-                <div class="glass-panel stat-card">
-                    <div class="stat-label">Messages</div>
-                    <div class="stat-value" id="stat-messages">0</div>
-                </div>
-                <div class="glass-panel stat-card">
-                    <div class="stat-label">Downloads APK</div>
-                    <div class="stat-value" id="stat-downloads">0</div>
-                </div>
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="analytics">Analytics & Live</button>
+                <button class="tab-btn" data-tab="editor">Édition du site</button>
             </div>
 
-            <div class="main-grid">
-                <div class="glass-panel chart-panel">
-                    <div class="panel-header">
-                        <h3>Volume de visites (7 jours)</h3>
+            <!-- ANALYTICS TAB -->
+            <div id="tab-analytics">
+                <div class="grid-stats">
+                    <div class="glass-panel stat-card">
+                        <div class="stat-label">Total Visites</div>
+                        <div class="stat-value" id="stat-total-visits">0</div>
                     </div>
-                    <div style="height: 320px;">
-                        <canvas id="visitsChart"></canvas>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-label">Uniques</div>
+                        <div class="stat-value" id="stat-unique-visits">0</div>
                     </div>
-                </div>
-                
-                <div class="sidebar-panel">
-                    <div class="glass-panel active-users-card">
-                        <div class="stat-label">Live Traffic</div>
-                        <div class="gauge-container">
-                            <svg class="gauge-svg" viewBox="0 0 140 140">
-                                <circle class="gauge-circle-bg" cx="70" cy="70" r="65" />
-                                <circle class="gauge-circle-val" id="gauge-val" cx="70" cy="70" r="65" />
-                            </svg>
-                            <div class="gauge-text">
-                                <div class="gauge-number" id="stat-active-users">0</div>
-                            </div>
-                        </div>
-                        <div class="text-small">utilisateurs en ligne</div>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-label">Engagement</div>
+                        <div class="stat-value" id="stat-interactions">0%</div>
                     </div>
-                    
-                    <div class="glass-panel active-users-card" style="flex: 1; padding: 20px;">
-                        <div class="stat-label" style="margin-bottom: 20px;">Provenance</div>
-                        <ul id="top-referrers" style="list-style: none; width: 100%; text-align: left;">
-                            <!-- Injected -->
-                        </ul>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-label">Messages</div>
+                        <div class="stat-value" id="stat-messages">0</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <div class="stat-label">Downloads APK</div>
+                        <div class="stat-value" id="stat-downloads">0</div>
                     </div>
                 </div>
-            </div>
 
-            <div class="main-grid">
-                <div class="glass-panel table-panel">
-                    <div class="panel-header">
-                        <h3>Journal des Visites</h3>
+                <div class="main-grid">
+                    <div class="glass-panel chart-panel">
+                        <div class="panel-header"><h3>Activité Hebdomadaire</h3></div>
+                        <div style="height: 320px;"><canvas id="visitsChart"></canvas></div>
                     </div>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Heure</th>
-                                    <th>Page & Source</th>
-                                    <th>Système</th>
-                                    <th>Identification</th>
-                                </tr>
-                            </thead>
-                            <tbody id="visits-table-body">
-                                <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted)">Initialisation...</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="sidebar-panel">
+                        <div class="glass-panel stat-card" style="text-align: center; align-items: center; padding: 25px;">
+                            <div class="stat-label">Live Traffic</div>
+                            <div style="font-size: 3rem; font-weight: 900;" id="stat-active-users">0</div>
+                            <div class="text-small">utilisateurs en ligne</div>
+                        </div>
+                        <div class="glass-panel stat-card" style="flex: 1; padding: 20px;">
+                            <div class="stat-label" style="margin-bottom: 15px;">Provenance</div>
+                            <ul id="top-referrers" style="list-style: none; width: 100%;"></ul>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="sidebar-panel">
-                    <div class="glass-panel table-panel" style="flex: 1;">
-                        <div class="panel-header">
-                            <h3>Contact Messages</h3>
-                        </div>
-                        <div class="table-wrapper" style="max-height: 500px;">
-                            <table style="border-spacing: 0;">
-                                <tbody id="messages-table-body">
-                                    <!-- Injected -->
-                                </tbody>
+
+                <div class="main-grid">
+                    <div class="glass-panel" style="padding: 20px;">
+                        <div class="panel-header"><h3>Journal des Visites</h3></div>
+                        <div style="overflow-x: auto; max-height: 500px;">
+                            <table>
+                                <thead><tr><th>Heure</th><th>Navigation</th><th>Appareil</th><th>Identification</th></tr></thead>
+                                <tbody id="visits-table-body"></tbody>
                             </table>
+                        </div>
+                    </div>
+                    <div class="glass-panel" style="padding: 20px;">
+                        <div class="panel-header"><h3>Derniers Contacts</h3></div>
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <table><tbody id="messages-table-body"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDITOR TAB -->
+            <div id="tab-editor" style="display: none;">
+                <div class="glass-panel editor-container">
+                    <div class="panel-header" style="margin-bottom: 40px;">
+                        <div>
+                            <h3>Éditeur de contenu</h3>
+                            <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Modifiez les textes du site en temps réel. Les modifications sont appliquées instantanément.</p>
+                        </div>
+                        <button id="btn-save-content" class="btn-primary btn-save">ENREGISTRER TOUT</button>
+                    </div>
+
+                    <div id="cms-fields">
+                        <div class="editor-item">
+                            <label>TITRE HERO <span>[hero_title]</span></label>
+                            <textarea data-key="hero_title" placeholder="Ex: Prenez le contrôle avec élégance."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>DESCRIPTION HERO <span>[hero_desc]</span></label>
+                            <textarea data-key="hero_desc" placeholder="Ex: Une application premium, gratuite et sans pub."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>TITRE FEATURES <span>[feature_title]</span></label>
+                            <textarea data-key="feature_title" placeholder="Ex: L'intelligence discrète."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>SOUS-TITRE FEATURES <span>[feature_desc]</span></label>
+                            <textarea data-key="feature_desc" placeholder="Description courte de la section features."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>TITRE ESPRIT <span>[spirit_title]</span></label>
+                            <textarea data-key="spirit_title" placeholder="Titre de la section Spirit."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>TEXTE ESPRIT 1 <span>[spirit_desc1]</span></label>
+                            <textarea data-key="spirit_desc1" placeholder="Premier paragraphe."></textarea>
+                        </div>
+                        <div class="editor-item">
+                            <label>TEXTE ESPRIT 2 <span>[spirit_desc2]</span></label>
+                            <textarea data-key="spirit_desc2" placeholder="Second paragraphe."></textarea>
                         </div>
                     </div>
                 </div>
@@ -274,203 +268,136 @@
     </div>
 
     <script>
-        // On attend que tout soit chargé (Supabase + DOM)
         window.addEventListener('load', () => {
-            console.log("DASHBOARD: Script starting...");
-            
             const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
-            
-            if (!window.supabase) {
-                console.error("DASHBOARD: Supabase library not found!");
-                return;
-            }
-
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             let vChart = null;
 
-            // DOM Elements
+            // UI Elements
             const btnLogin = document.getElementById('btn-login');
             const btnLogout = document.getElementById('btn-logout');
+            const btnSave = document.getElementById('btn-save-content');
             const loginScreen = document.getElementById('login-screen');
             const dashboard = document.getElementById('dashboard');
-            const errorOverlay = document.getElementById('error-overlay');
+            
+            // TABS Logic
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const tab = btn.dataset.tab;
+                    document.getElementById('tab-analytics').style.display = tab === 'analytics' ? 'block' : 'none';
+                    document.getElementById('tab-editor').style.display = tab === 'editor' ? 'block' : 'none';
+                    if (tab === 'editor') loadCMSData();
+                };
+            });
 
-            function showError(msg) {
-                errorOverlay.innerText = msg;
-                errorOverlay.style.display = 'block';
-                setTimeout(() => { errorOverlay.style.display = 'none'; }, 5000);
-            }
-
-            async function checkSession() {
-                try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
-                } catch(e) { console.error("Session check error:", e); }
-            }
-
-            function showDashboard() {
-                loginScreen.style.display = 'none';
-                dashboard.style.display = 'block';
-                loadData();
-                setInterval(loadData, 30000); 
+            function showMsg(type, txt) {
+                const el = document.getElementById(type + '-overlay');
+                el.innerText = txt; el.style.display = 'block';
+                setTimeout(() => el.style.display = 'none', 3000);
             }
 
             btnLogin.onclick = async () => {
-                console.log("DASHBOARD: Login attempt...");
-                btnLogin.disabled = true;
-                btnLogin.innerText = "CONNEXION...";
-                
+                btnLogin.disabled = true; btnLogin.innerText = "CONNEXION...";
                 try {
-                    const email = document.getElementById('email').value;
-                    const password = document.getElementById('password').value;
-                    
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    
-                    if (error) throw error;
-                    if (data.user.email === 'christophek@hotmail.com') {
-                        showDashboard();
-                    } else {
-                        throw new Error("Accès non autorisé.");
-                    }
+                    const { data, error } = await supabase.auth.signInWithPassword({ 
+                        email: document.getElementById('email').value, 
+                        password: document.getElementById('password').value 
+                    });
+                    if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
+                    else throw error || new Error("Accès refusé");
                 } catch(e) { 
-                    console.error("Login Error:", e);
+                    btnLogin.disabled = false; btnLogin.innerText = "AUTHENTIFICATION";
                     document.getElementById('login-error').style.display = 'block'; 
-                    btnLogin.disabled = false; 
-                    btnLogin.innerText = "AUTHENTIFICATION";
                 }
             };
 
-            btnLogout.onclick = async (e) => { 
-                e.preventDefault(); 
-                await supabase.auth.signOut(); 
-                window.location.reload(); 
-            };
+            btnLogout.onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.reload(); };
 
-            async function loadData() {
-                console.log("DASHBOARD: Loading active data...");
-                try {
-                    // 1. Visits
-                    const { data: visits, error: vError } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
-                    if (vError) throw vError;
-
-                    if (visits) {
-                        document.getElementById('stat-total-visits').innerText = visits.length;
-                        const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent || "anon")).size;
-                        document.getElementById('stat-unique-visits').innerText = uniqueIps;
-
-                        const refs = {};
-                        visits.forEach(v => {
-                            let r = 'Direct';
-                            if (v.referrer && v.referrer !== 'direct') {
-                                try { r = v.referrer.split('/')[2] || 'Inconnu'; } catch(e) {}
-                            }
-                            refs[r] = (refs[r] || 0) + 1;
-                        });
-                        document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
-                            <li class="activity-item">
-                                <span class="activity-label">${r}</span>
-                                <span class="activity-count">${c}</span>
-                            </li>
-                        `).join('');
-
-                        const visitBody = document.getElementById('visits-table-body');
-                        visitBody.innerHTML = visits.slice(0, 50).map(v => {
-                            let ts = "--:--", ds = "--/--";
-                            try {
-                                const d = new Date(v.created_at);
-                                ts = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                                ds = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                            } catch(e) {}
-                            
-                            let sys = (v.device_type === 'mobile') ? '📱' : '💻';
-                            const ua = v.user_agent || "";
-                            if (ua.includes('Android')) sys += ' Android';
-                            else if (ua.includes('iPhone')) sys += ' iOS';
-                            else if (ua.includes('Windows')) sys += ' Windows';
-                            
-                            return `
-                                <tr>
-                                    <td><span style="font-weight:800">${ts}</span> <br><small class="text-small">${ds}</small></td>
-                                    <td>${v.page_path || "/"} <br><small class="text-small">via ${v.referrer === 'direct' ? 'Direct' : (v.referrer ? v.referrer.split('/')[2] : 'Direct')}</small></td>
-                                    <td>${sys} <br><small class="text-small">${v.screen_resolution || "-"}</small></td>
-                                    <td><span class="badge-ip">${v.ip_address || '---'}</span></td>
-                                </tr>
-                            `;
-                        }).join('');
-                        
-                        renderVisitsChart(visits);
-                    }
-
-                    // 2. Events & Interactions
-                    const { data: events } = await supabase.from('site_events').select('*');
-                    if (events) {
-                        const dl = events.filter(e => e.event_name && e.event_name.includes('click_download')).length;
-                        const interact = events.filter(e => e.event_name && e.event_name.includes('simulator_')).length;
-                        document.getElementById('stat-downloads').innerText = dl;
-                        if (visits && visits.length > 0) {
-                            document.getElementById('stat-interactions').innerText = `${Math.round((interact / visits.length) * 100)}%`;
-                        }
-
-                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
-                        document.getElementById('stat-active-users').innerText = active;
-                        const offset = 440 - (Math.min(active / 10, 1) * 440);
-                        document.getElementById('gauge-val').style.strokeDashoffset = offset;
-                    }
-
-                    // 3. Messages
-                    const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
-                    if (msgs) {
-                        document.getElementById('stat-messages').innerText = msgs.length;
-                        const msgT = document.getElementById('messages-table-body');
-                        if (msgs.length === 0) msgT.innerHTML = '<tr><td style="color:var(--text-muted); text-align:center; padding:30px">Aucun message.</td></tr>';
-                        else msgT.innerHTML = msgs.slice(0, 15).map(m => `
-                            <tr>
-                                <td style="padding:15px">
-                                    <div style="font-weight:900; color:var(--accent); font-size:0.9rem">${m.name || "Anonyme"}</div>
-                                    <div class="text-small" style="margin-bottom:5px">${m.email || "-"}</div>
-                                    <div style="font-size:0.8rem; line-height:1.4; color:rgba(255,255,255,0.8)">${m.message || ""}</div>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                } catch(err) {
-                    console.error("DASHBOARD DATA ERROR:", err);
-                    showError("Sync Error: " + err.message);
-                }
+            function showDashboard() {
+                loginScreen.style.display = 'none'; dashboard.style.display = 'block';
+                loadData(); setInterval(loadData, 30000);
             }
 
-            function renderVisitsChart(visits) {
-                const ctx = document.getElementById('visitsChart');
-                if (!ctx || !window.Chart) return;
-                const days = {};
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date(); d.setDate(d.getDate() - i);
-                    days[d.toISOString().split('T')[0]] = 0;
+            async function loadData() {
+                try {
+                    const { data: visits } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
+                    if (visits) {
+                        document.getElementById('stat-total-visits').innerText = visits.length;
+                        document.getElementById('stat-unique-visits').innerText = new Set(visits.map(v => v.ip_address || v.user_agent)).size;
+                        
+                        const visitBody = document.getElementById('visits-table-body');
+                        visitBody.innerHTML = visits.slice(0, 30).map(v => {
+                            const d = new Date(v.created_at);
+                            return `<tr>
+                                <td style="font-weight:700">${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</td>
+                                <td>${v.page_path}<br><small class="text-small">${v.referrer.split('/')[2] || 'Direct'}</small></td>
+                                <td>${v.device_type === 'mobile' ? '📱' : '💻'}</td>
+                                <td><span class="badge-ip">${v.ip_address || '---'}</span></td>
+                            </tr>`;
+                        }).join('');
+                        renderVisitsChart(visits);
+                    }
+                    const { data: events } = await supabase.from('site_events').select('*');
+                    if (events) {
+                        const dl = events.filter(e => e.event_name.includes('click_download')).length;
+                        document.getElementById('stat-downloads').innerText = dl;
+                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
+                        document.getElementById('stat-active-users').innerText = active;
+                    }
+                    const { data: messages } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+                    if (messages) {
+                        document.getElementById('stat-messages').innerText = messages.length;
+                        document.getElementById('messages-table-body').innerHTML = messages.slice(0, 10).map(m => `
+                            <tr><td style="padding:15px"><div style="font-weight:900; color:var(--accent)">${m.name}</div><div style="font-size:0.8rem">${m.message}</div></td></tr>
+                        `).join('');
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            async function loadCMSData() {
+                try {
+                    const { data } = await supabase.from('site_content').select('*');
+                    if (data) {
+                        data.forEach(item => {
+                            const tex = document.querySelector(`textarea[data-key="${item.key}"]`);
+                            if (tex) tex.value = item.value;
+                        });
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            btnSave.onclick = async () => {
+                btnSave.disabled = true; btnSave.innerText = "ENREGISTREMENT...";
+                const textareas = document.querySelectorAll('#cms-fields textarea');
+                const updates = Array.from(textareas).map(t => ({ key: t.dataset.key, value: t.value }));
+                
+                try {
+                    // Upsert (Insert or Update)
+                    const { error } = await supabase.from('site_content').upsert(updates, { onConflict: 'key' });
+                    if (error) throw error;
+                    showMsg('success', 'Modifications publiées !');
+                } catch(e) {
+                    showMsg('error', 'Erreur lors de la sauvegarde : ' + e.message);
+                } finally {
+                    btnSave.disabled = false; btnSave.innerText = "ENREGISTRER TOUT";
                 }
-                visits.forEach(v => {
-                    const date = v.created_at.split('T')[0];
-                    if (days[date] !== undefined) days[date]++;
-                });
+            };
+
+            function renderVisitsChart(visits) {
+                const ctx = document.getElementById('visitsChart'); if (!ctx || !window.Chart) return;
+                const days = {}; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days[d.toISOString().split('T')[0]] = 0; }
+                visits.forEach(v => { const dd = v.created_at.split('T')[0]; if (days[dd] !== undefined) days[dd]++; });
                 if (vChart) vChart.destroy();
                 vChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                        datasets: [{ 
-                            label: 'Visites', data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, 
-                            tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', 
-                            pointRadius: 4, pointBackgroundColor: '#EA9216'
-                        }]
+                        datasets: [{ data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', pointRadius: 4 }]
                     },
-                    options: { 
-                        responsive: true, maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } }, 
-                        scales: { 
-                            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.3)' } }, 
-                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.3)' } } 
-                        } 
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
                 });
             }
 
