@@ -284,7 +284,7 @@
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Elements
         const loginScreen = document.getElementById('login-screen');
@@ -295,11 +295,11 @@
 
         // Check Session
         async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseAdmin.auth.getSession();
             if (session && session.user.email === 'christophek@hotmail.com') {
                 showDashboard();
             } else if (session) {
-                await supabase.auth.signOut();
+                await supabaseAdmin.auth.signOut();
             }
         }
 
@@ -312,7 +312,7 @@
             btnLogin.innerText = "Connexion...";
             loginError.style.display = 'none';
 
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabaseAdmin.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
@@ -324,7 +324,7 @@
             } else {
                 // SÉCURITÉ SUPPLÉMENTAIRE : Vérification de l'email autorisé
                 if (data.user.email !== 'christophek@hotmail.com') {
-                    await supabase.auth.signOut();
+                    await supabaseAdmin.auth.signOut();
                     loginError.innerText = "Accès refusé : vous n'êtes pas administrateur.";
                     loginError.style.display = 'block';
                     btnLogin.disabled = false;
@@ -336,7 +336,7 @@
         };
 
         btnLogout.onclick = async () => {
-            await supabase.auth.signOut();
+            await supabaseAdmin.auth.signOut();
             window.location.reload();
         };
 
@@ -348,7 +348,7 @@
 
         async function loadData() {
             // 1. Charger les Visites
-            const { data: visits, error: vError } = await supabase
+            const { data: visits, error: vError } = await supabaseAdmin
                 .from('site_visits')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -358,7 +358,7 @@
             }
 
             // 2. Charger les Messages
-            const { data: messages, error: mError } = await supabase
+            const { data: messages, error: mError } = await supabaseAdmin
                 .from('contact_messages')
                 .select('*')
                 .order('created_at', { ascending: false });
