@@ -296,7 +296,7 @@
         // Check Session
         async function checkSession() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (session && session.user.email === 'journalconso@gmail.com') {
+            if (session && session.user.email === 'christophek@hotmail.com') {
                 showDashboard();
             } else if (session) {
                 await supabase.auth.signOut();
@@ -323,7 +323,7 @@
                 btnLogin.innerText = "Se connecter";
             } else {
                 // SÉCURITÉ SUPPLÉMENTAIRE : Vérification de l'email autorisé
-                if (data.user.email !== 'journalconso@gmail.com') {
+                if (data.user.email !== 'christophek@hotmail.com') {
                     await supabase.auth.signOut();
                     loginError.innerText = "Accès refusé : vous n'êtes pas administrateur.";
                     loginError.style.display = 'block';
