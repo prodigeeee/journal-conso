@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Gestion des Modales Légales
     const modalOverlay = document.getElementById('modal-overlay');
-    const modalContent = document.getElementById('modal-content');
-    const modalClose = document.querySelector('.modal-close');
+    const modalContent = document.getElementById('modal-content-inner');
+    const modalClose = document.querySelector('.modal-close'); 
     const openPrivacy = document.getElementById('open-privacy');
     const openLegal = document.getElementById('open-legal');
 
@@ -72,12 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (source) {
                 modalContent.innerHTML = source.innerHTML;
             }
-            modalOverlay.style.display = 'flex';
+            modalOverlay.classList.add('active');
             document.body.style.overflow = 'hidden'; 
         }
 
         function closeModal() {
-            modalOverlay.style.display = 'none';
+            modalOverlay.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
