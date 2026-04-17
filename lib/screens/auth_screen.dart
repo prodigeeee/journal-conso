@@ -169,7 +169,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 40),
                   Text(
-                    _isSignUp ? L10n.s('auth.signup_title').toUpperCase() : L10n.s('auth.login_title').toUpperCase(),
+                    _isSignUp ? L10n.s('auth.signup_title') : L10n.s('auth.login_title'),
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
