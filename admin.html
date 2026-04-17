@@ -45,12 +45,6 @@
             max-width: 1600px;
             margin: 0 auto;
             padding: 20px 30px;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .glass-panel {
@@ -67,7 +61,7 @@
         .header-info h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; }
         .header-info p { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
 
-        .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.8rem; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--glass-border); transition: 0.3s; }
+        .logout-btn { color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.8rem; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--glass-border); transition: 0.3s; cursor: pointer; }
         .logout-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
 
         .grid-stats {
@@ -82,9 +76,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            transition: transform 0.3s ease;
         }
-        .stat-card:hover { transform: translateY(-5px); background: var(--glass-strong); }
 
         .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .stat-value { font-size: 1.8rem; font-weight: 950; color: var(--text-main); }
@@ -131,10 +123,10 @@
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 10px 12px; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--glass-border); }
-        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); line-height: 1.4; }
+        td { padding: 12px; color: var(--text-main); font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
         tr:hover td { background: rgba(255,255,255,0.03); }
 
-        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+        .badge-ip { background: rgba(234, 146, 22, 0.1); border: 1px solid rgba(234, 146, 22, 0.2); padding: 3px 8px; border-radius: 6px; color: var(--accent); font-family: monospace; font-size: 0.75rem; font-weight: 700; }
         .text-small { font-size: 0.75rem; color: var(--text-muted); }
 
         .activity-item { padding: 10px 0; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
@@ -147,16 +139,13 @@
         .input-group label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
         .input-group input { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; outline: none; }
         .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        
-        #error-overlay { position: fixed; top: 20px; right: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #error-overlay { position: fixed; top: 20px; right: 20px; background: var(--danger); color: white; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; display: none; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
     </style>
 </head>
 <body>
     <div class="aura-bg"></div>
-    <div id="error-overlay">Une erreur est survenue lors de la récupération des données.</div>
+    <div id="error-overlay">Erreur détectée.</div>
 
     <div class="container">
         <!-- LOGIN SCREEN -->
@@ -166,10 +155,10 @@
                 <h2 style="margin-bottom: 30px; font-weight:900; font-size: 1.8rem;">DASHBOARD V2</h2>
                 <div class="input-group">
                     <label>E-mail</label>
-                    <input type="email" id="email" placeholder="votre@email.com">
+                    <input type="email" id="email" value="christophek@hotmail.com">
                 </div>
                 <div class="input-group">
-                    <label>Clé d'accès</label>
+                    <label>Mot de passe</label>
                     <input type="password" id="password" placeholder="••••••••">
                 </div>
                 <button id="btn-login" class="btn-primary">AUTHENTIFICATION</button>
@@ -184,7 +173,7 @@
                     <h1 id="welcome-msg">Dashboard • <span style="color:var(--accent)">Journal Conso</span></h1>
                     <p>Monitoring et analytics des dernières données reçues.</p>
                 </div>
-                <a href="#" class="logout-btn" id="btn-logout">Quitter</a>
+                <a class="logout-btn" id="btn-logout">Quitter</a>
             </div>
 
             <div class="grid-stats">
@@ -193,7 +182,7 @@
                     <div class="stat-value" id="stat-total-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
-                    <div class="stat-label">Uniques (IP/UA)</div>
+                    <div class="stat-label">Uniques</div>
                     <div class="stat-value" id="stat-unique-visits">0</div>
                 </div>
                 <div class="glass-panel stat-card">
@@ -254,13 +243,13 @@
                             <thead>
                                 <tr>
                                     <th>Heure</th>
-                                    <th>Navigation</th>
+                                    <th>Page & Source</th>
                                     <th>Système</th>
                                     <th>Identification</th>
                                 </tr>
                             </thead>
                             <tbody id="visits-table-body">
-                                <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted)">Synchronisation des données...</td></tr>
+                                <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted)">Initialisation...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -269,7 +258,7 @@
                 <div class="sidebar-panel">
                     <div class="glass-panel table-panel" style="flex: 1;">
                         <div class="panel-header">
-                            <h3>Derniers Contacts</h3>
+                            <h3>Contact Messages</h3>
                         </div>
                         <div class="table-wrapper" style="max-height: 500px;">
                             <table style="border-spacing: 0;">
@@ -285,199 +274,208 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let vChart = null;
-
-        btnLogin.onclick = async () => {
-            btnLogin.disabled = true;
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({ 
-                    email: document.getElementById('email').value, 
-                    password: document.getElementById('password').value 
-                });
-                if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
-                else throw new Error("Accès refusé");
-            } catch(e) { 
-                document.getElementById('login-error').style.display = 'block'; 
-                btnLogin.disabled = false; 
+        // On attend que tout soit chargé (Supabase + DOM)
+        window.addEventListener('load', () => {
+            console.log("DASHBOARD: Script starting...");
+            
+            const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+            
+            if (!window.supabase) {
+                console.error("DASHBOARD: Supabase library not found!");
+                return;
             }
-        };
 
-        btnLogout.onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.reload(); };
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let vChart = null;
 
-        async function checkSession() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
-            } catch(e) {}
-        }
+            // DOM Elements
+            const btnLogin = document.getElementById('btn-login');
+            const btnLogout = document.getElementById('btn-logout');
+            const loginScreen = document.getElementById('login-screen');
+            const dashboard = document.getElementById('dashboard');
+            const errorOverlay = document.getElementById('error-overlay');
 
-        function showDashboard() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            loadData();
-            setInterval(loadData, 30000); 
-        }
+            function showError(msg) {
+                errorOverlay.innerText = msg;
+                errorOverlay.style.display = 'block';
+                setTimeout(() => { errorOverlay.style.display = 'none'; }, 5000);
+            }
 
-        function showError(msg) {
-            const overlay = document.getElementById('error-overlay');
-            overlay.innerText = msg;
-            overlay.style.display = 'block';
-            setTimeout(() => { overlay.style.display = 'none'; }, 5000);
-        }
+            async function checkSession() {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
+                } catch(e) { console.error("Session check error:", e); }
+            }
 
-        async function loadData() {
-            console.log("DASHBOARD: Starting data load...");
-            try {
-                // 1. Fetch Visits
-                const { data: visits, error: vError } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
-                if (vError) throw vError;
+            function showDashboard() {
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                loadData();
+                setInterval(loadData, 30000); 
+            }
+
+            btnLogin.onclick = async () => {
+                console.log("DASHBOARD: Login attempt...");
+                btnLogin.disabled = true;
+                btnLogin.innerText = "CONNEXION...";
                 
-                if (!visits || !Array.isArray(visits)) {
-                    console.warn("DASHBOARD: No visits data found or invalid format");
-                    return;
+                try {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    
+                    if (error) throw error;
+                    if (data.user.email === 'christophek@hotmail.com') {
+                        showDashboard();
+                    } else {
+                        throw new Error("Accès non autorisé.");
+                    }
+                } catch(e) { 
+                    console.error("Login Error:", e);
+                    document.getElementById('login-error').style.display = 'block'; 
+                    btnLogin.disabled = false; 
+                    btnLogin.innerText = "AUTHENTIFICATION";
                 }
+            };
 
-                console.log(`DASHBOARD: Processing ${visits.length} visits`);
-                document.getElementById('stat-total-visits').innerText = visits.length;
-                
-                // Uniques calculation (SAFE)
-                const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent || "unknown")).size;
-                document.getElementById('stat-unique-visits').innerText = uniqueIps;
+            btnLogout.onclick = async (e) => { 
+                e.preventDefault(); 
+                await supabase.auth.signOut(); 
+                window.location.reload(); 
+            };
 
-                // Referrers calculation (SAFE)
-                const refs = {};
-                visits.forEach(v => {
-                    let r = 'Direct';
-                    try {
-                        if (v.referrer && v.referrer !== 'direct') {
-                            r = v.referrer.split('/')[2] || 'Inconnu';
-                        }
-                    } catch(e) { r = 'Erreur URL'; }
-                    refs[r] = (refs[r] || 0) + 1;
-                });
-                document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
-                    <li class="activity-item">
-                        <span class="activity-label">${r}</span>
-                        <span class="activity-count">${c}</span>
-                    </li>
-                `).join('');
+            async function loadData() {
+                console.log("DASHBOARD: Loading active data...");
+                try {
+                    // 1. Visits
+                    const { data: visits, error: vError } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
+                    if (vError) throw vError;
 
-                // Table detail (SAFE)
-                const visitBody = document.getElementById('visits-table-body');
-                visitBody.innerHTML = visits.slice(0, 50).map(v => {
-                    let timeStr = "--:--", dateStr = "--/--";
-                    try {
-                        const date = new Date(v.created_at);
-                        timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                    } catch(e) {}
-                    
-                    let system = v.device_type === 'mobile' ? '📱' : '💻';
-                    const ua = v.user_agent || "";
-                    if (ua.includes('Android')) system += ' Android';
-                    else if (ua.includes('iPhone')) system += ' iOS';
-                    else if (ua.includes('Windows')) system += ' Windows';
-                    else if (ua.includes('Macintosh')) system += ' MacOS';
-                    
-                    const refShort = v.referrer === 'direct' ? 'Direct' : (v.referrer ? v.referrer.split('/')[2] : '---');
-                    
-                    return `
-                        <tr>
-                            <td><span style="font-weight:800">${timeStr}</span> <br><small class="text-small">${dateStr}</small></td>
-                            <td>${v.page_path || "/"} <br><small class="text-small">via ${refShort}</small></td>
-                            <td>${system} <br><small class="text-small">${v.screen_resolution || "---"}</small></td>
-                            <td><span class="badge-ip">${v.ip_address || '---'}</span></td>
-                        </tr>
-                    `;
-                }).join('');
-                
-                // Chart (SAFE)
-                try { renderVisitsChart(visits); } catch(ce) { console.error("Chart Error:", ce); }
+                    if (visits) {
+                        document.getElementById('stat-total-visits').innerText = visits.length;
+                        const uniqueIps = new Set(visits.map(v => v.ip_address || v.user_agent || "anon")).size;
+                        document.getElementById('stat-unique-visits').innerText = uniqueIps;
 
-                // 2. Fetch Events
-                const { data: events, error: eError } = await supabase.from('site_events').select('*');
-                if (events) {
-                    const downloads = events.filter(e => e.event_name && e.event_name.includes('click_download')).length;
-                    const interactions = events.filter(e => e.event_name && e.event_name.includes('simulator_')).length;
-                    document.getElementById('stat-downloads').innerText = downloads;
-                    if (visits.length > 0) {
-                        const rate = Math.round((interactions / visits.length) * 100);
-                        document.getElementById('stat-interactions').innerText = `${rate}%`;
+                        const refs = {};
+                        visits.forEach(v => {
+                            let r = 'Direct';
+                            if (v.referrer && v.referrer !== 'direct') {
+                                try { r = v.referrer.split('/')[2] || 'Inconnu'; } catch(e) {}
+                            }
+                            refs[r] = (refs[r] || 0) + 1;
+                        });
+                        document.getElementById('top-referrers').innerHTML = Object.entries(refs).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([r, c]) => `
+                            <li class="activity-item">
+                                <span class="activity-label">${r}</span>
+                                <span class="activity-count">${c}</span>
+                            </li>
+                        `).join('');
+
+                        const visitBody = document.getElementById('visits-table-body');
+                        visitBody.innerHTML = visits.slice(0, 50).map(v => {
+                            let ts = "--:--", ds = "--/--";
+                            try {
+                                const d = new Date(v.created_at);
+                                ts = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                                ds = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                            } catch(e) {}
+                            
+                            let sys = (v.device_type === 'mobile') ? '📱' : '💻';
+                            const ua = v.user_agent || "";
+                            if (ua.includes('Android')) sys += ' Android';
+                            else if (ua.includes('iPhone')) sys += ' iOS';
+                            else if (ua.includes('Windows')) sys += ' Windows';
+                            
+                            return `
+                                <tr>
+                                    <td><span style="font-weight:800">${ts}</span> <br><small class="text-small">${ds}</small></td>
+                                    <td>${v.page_path || "/"} <br><small class="text-small">via ${v.referrer === 'direct' ? 'Direct' : (v.referrer ? v.referrer.split('/')[2] : 'Direct')}</small></td>
+                                    <td>${sys} <br><small class="text-small">${v.screen_resolution || "-"}</small></td>
+                                    <td><span class="badge-ip">${v.ip_address || '---'}</span></td>
+                                </tr>
+                            `;
+                        }).join('');
+                        
+                        renderVisitsChart(visits);
                     }
 
-                    const activeCount = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
-                    document.getElementById('stat-active-users').innerText = activeCount;
-                    const circle = document.getElementById('gauge-val');
-                    const offset = 440 - (Math.min(activeCount / 10, 1) * 440);
-                    circle.style.strokeDashoffset = offset;
-                }
+                    // 2. Events & Interactions
+                    const { data: events } = await supabase.from('site_events').select('*');
+                    if (events) {
+                        const dl = events.filter(e => e.event_name && e.event_name.includes('click_download')).length;
+                        const interact = events.filter(e => e.event_name && e.event_name.includes('simulator_')).length;
+                        document.getElementById('stat-downloads').innerText = dl;
+                        if (visits && visits.length > 0) {
+                            document.getElementById('stat-interactions').innerText = `${Math.round((interact / visits.length) * 100)}%`;
+                        }
 
-                // 3. Fetch Messages
-                const { data: messages, error: mError } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
-                if (messages) {
-                    document.getElementById('stat-messages').innerText = messages.length;
-                    const msgTable = document.getElementById('messages-table-body');
-                    if (messages.length === 0) {
-                        msgTable.innerHTML = '<tr><td style="color:var(--text-muted); text-align:center; padding:30px">Aucun message reçu.</td></tr>';
-                    } else {
-                        msgTable.innerHTML = messages.slice(0, 15).map(m => `
+                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
+                        document.getElementById('stat-active-users').innerText = active;
+                        const offset = 440 - (Math.min(active / 10, 1) * 440);
+                        document.getElementById('gauge-val').style.strokeDashoffset = offset;
+                    }
+
+                    // 3. Messages
+                    const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+                    if (msgs) {
+                        document.getElementById('stat-messages').innerText = msgs.length;
+                        const msgT = document.getElementById('messages-table-body');
+                        if (msgs.length === 0) msgT.innerHTML = '<tr><td style="color:var(--text-muted); text-align:center; padding:30px">Aucun message.</td></tr>';
+                        else msgT.innerHTML = msgs.slice(0, 15).map(m => `
                             <tr>
-                                <td style="padding:18px">
+                                <td style="padding:15px">
                                     <div style="font-weight:900; color:var(--accent); font-size:0.9rem">${m.name || "Anonyme"}</div>
-                                    <div class="text-small" style="margin-bottom:8px">${m.email || "Pas d'email"}</div>
-                                    <div style="font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.8)">${m.message || ""}</div>
+                                    <div class="text-small" style="margin-bottom:5px">${m.email || "-"}</div>
+                                    <div style="font-size:0.8rem; line-height:1.4; color:rgba(255,255,255,0.8)">${m.message || ""}</div>
                                 </td>
                             </tr>
                         `).join('');
                     }
+                } catch(err) {
+                    console.error("DASHBOARD DATA ERROR:", err);
+                    showError("Sync Error: " + err.message);
                 }
-
-                console.log("DASHBOARD: Load complete.");
-            } catch(err) {
-                console.error("DASHBOARD CRITICAL ERROR:", err);
-                showError("Erreur fatale: " + (err.message || "Problème de connexion Supabase"));
             }
-        }
 
-        function renderVisitsChart(visits) {
-            const ctx = document.getElementById('visitsChart');
-            if (!ctx || !window.Chart) return;
-            const days = {};
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                days[d.toISOString().split('T')[0]] = 0;
-            }
-            visits.forEach(v => {
-                const date = v.created_at.split('T')[0];
-                if (days[date] !== undefined) days[date]++;
-            });
-            if (vChart) vChart.destroy();
-            vChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                    datasets: [{ 
-                        label: 'Visites', data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, 
-                        tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', 
-                        pointRadius: 4, pointBackgroundColor: '#EA9216'
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.3)' } }, 
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.3)' } } 
-                    } 
+            function renderVisitsChart(visits) {
+                const ctx = document.getElementById('visitsChart');
+                if (!ctx || !window.Chart) return;
+                const days = {};
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(); d.setDate(d.getDate() - i);
+                    days[d.toISOString().split('T')[0]] = 0;
                 }
-            });
-        }
+                visits.forEach(v => {
+                    const date = v.created_at.split('T')[0];
+                    if (days[date] !== undefined) days[date]++;
+                });
+                if (vChart) vChart.destroy();
+                vChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
+                        datasets: [{ 
+                            label: 'Visites', data: Object.values(days), borderColor: '#EA9216', borderWidth: 3, 
+                            tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.05)', 
+                            pointRadius: 4, pointBackgroundColor: '#EA9216'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { 
+                            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.3)' } }, 
+                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.3)' } } 
+                        } 
+                    }
+                });
+            }
 
-        checkSession();
+            checkSession();
+        });
     </script>
 </body>
 </html>
