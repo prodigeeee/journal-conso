@@ -1110,9 +1110,10 @@ h1 {
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
-    display: none;
-    justify-content: center;
-    align-items: center;
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
     z-index: 2000;
     padding: 20px;
 }
@@ -1479,6 +1480,7 @@ h1 {
 
 .modal-overlay.active {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
 }
 
