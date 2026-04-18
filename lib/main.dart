@@ -3747,24 +3747,28 @@ class _OptionsScreenState extends State<OptionsScreen> {
                           ),
                         ),
                         Text(
-                          "Introduction\nL'application Journal Conso s'engage à respecter la vie privée de ses utilisateurs. Cette politique détaille comment vos données sont traitées, stockées et protégées.\n",
+                          L10n.s('legal_content.privacy_intro'),
                           style: TextStyle(color: widget.isDarkMode ? Colors.white70 : Colors.black87),
                         ),
                         _infoSection(
-                          "1. Nature des données collectées",
-                          "Nous collectons uniquement les données nécessaires au fonctionnement de l'application :\n\n• Données de profil : Nom d'utilisateur (pseudonyme), âge, sexe et poids (nécessaires au calcul théorique de l'alcoolémie).\n• Données d'activité : Historique des consommations (date, heure, type de boisson).\n• Données de compte : Adresse e-mail (uniquement pour le mode Cloud).",
+                          L10n.s('legal_content.privacy_section1_title'),
+                          L10n.s('legal_content.privacy_section1_body'),
                         ),
                         _infoSection(
-                          "2. Stockage et Sécurité",
-                          "Deux modes de stockage sont proposés pour garantir votre souveraineté numérique :\n\n• Mode Local : Vos données sont stockées exclusivement dans la mémoire sécurisée de votre appareil. Aucune donnée ne quitte votre téléphone.\n• Mode Cloud (Optionnel) : Vos données sont synchronisées via Supabase. Elles sont chiffrées au repos et durant le transfert. L'infrastructure est située en Europe et répond aux standards de sécurité les plus stricts.\n• Exportation JSON : L'utilisateur dispose d'une fonction d'exportation intégrée lui permettant de récupérer l'intégralité de ses données sous format standard JSON, garantissant la portabilité totale de ses informations.",
+                          L10n.s('legal_content.privacy_section2_title'),
+                          L10n.s('legal_content.privacy_section2_body'),
                         ),
                         _infoSection(
-                          "3. Utilisation et Non-diffusion",
-                          "Journal Conso applique une politique de 'Zéro Data Partagée' :\n\n• Vos données ne sont ni vendues, ni louées, ni partagées avec des tiers (régies publicitaires ou assureurs).\n• Les données servent exclusivement à fournir les calculs statistiques et l'historique personnel à l'utilisateur.",
+                          L10n.s('legal_content.privacy_section3_title'),
+                          L10n.s('legal_content.privacy_section3_body'),
                         ),
                         _infoSection(
-                          "4. Vos droits (RGPD)",
-                          "Conformément au Règlement Général sur la Protection des Données, vous disposez d'un droit d'accès, de rectification et de suppression. Vous pouvez supprimer votre compte et l'intégralité des données associées instantanément depuis les réglages de l'application.",
+                          L10n.s('legal_content.privacy_section4_title'),
+                          L10n.s('legal_content.privacy_section4_body'),
+                        ),
+                        _infoSection(
+                          L10n.s('legal_content.privacy_section5_title'),
+                          L10n.s('legal_content.privacy_section5_body'),
                         ),
                         const SizedBox(height: 50),
                       ],
@@ -3827,20 +3831,20 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       children: [
                         _infoSection(
-                          "1. Édition de l'application",
-                          "L'application Journal Conso est éditée par :\nChristophe Kirsch, agissant en qualité de développeur indépendant.\nContact : journalconso@gmail.com.",
+                          L10n.s('legal_content.info_section1_title'),
+                          L10n.s('legal_content.info_section1_body'),
                         ),
                         _infoSection(
-                          "2. Hébergement",
-                          "• Site Web / Landing Page : Hébergé par GitHub Inc.\n• Données Applicatives (Cloud) : Hébergées par Supabase Inc., serveurs situés en Europe (Région AWS eu-central-1, Francfort).",
+                          L10n.s('legal_content.info_section2_title'),
+                          L10n.s('legal_content.info_section2_body'),
                         ),
                         _infoSection(
-                          "3. Propriété intellectuelle",
-                          "L'interface, le logo et le code source de l'application sont la propriété exclusive de l'éditeur. Toute reproduction sans accord préalable est interdite.",
+                          L10n.s('legal_content.info_section3_title'),
+                          L10n.s('legal_content.info_section3_body'),
                         ),
                         _infoSection(
-                          "4. Clause de non-responsabilité",
-                          "Journal Conso est un outil de sensibilisation et d'auto-suivi à but informatif.\n\n• Absence de valeur médicale : Les calculs d'alcoolémie sont des estimations théoriques et ne remplacent en aucun cas un éthylotest certifié.\n• Sécurité routière : L'application ne doit jamais servir à déterminer votre aptitude à la conduite. En cas de doute, ne prenez pas le volant. L'éditeur décline toute responsabilité en cas d'accident lié à l'utilisation de l'application.",
+                          L10n.s('legal_content.info_section4_title'),
+                          L10n.s('legal_content.info_section4_body'),
                         ),
                         const SizedBox(height: 50),
                       ],
@@ -4533,7 +4537,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.7+9",
+            "Version 1.1.8+10",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
