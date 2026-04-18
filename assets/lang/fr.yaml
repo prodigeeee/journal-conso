@@ -114,7 +114,7 @@ legal:
   restore_json: "Restaurer tout l'historique (JSON)"
 
 legal_content:
-  privacy_intro: "Introduction\nL'application Journal Conso s'engage à respecter la vie privée de ses utilisateurs. Cette politique détaille comment vos données sont traitées, stockées et protégées.\n"
+  privacy_intro: "L'application Journal Conso s'engage à respecter la vie privée de ses utilisateurs. Cette politique détaille comment vos données sont traitées, stockées et protégées.\n"
   privacy_section1_title: "1. Nature des données collectées"
   privacy_section1_body: "Nous collectons uniquement les données nécessaires au fonctionnement de l'application :\n\n• Données de profil : Nom d'utilisateur (pseudonyme), âge, sexe et poids (nécessaires au calcul théorique de l'alcoolémie).\n• Données d'activité : Historique des consommations (date, heure, type de boisson).\n• Données de compte : Adresse e-mail (uniquement pour le mode Cloud)."
   privacy_section2_title: "2. Stockage et Sécurité"
@@ -127,7 +127,7 @@ legal_content:
   privacy_section5_body: "Journal Conso n'est pas un dispositif médical. Les estimations d'alcoolémie sont purement indicatives et ne doivent jamais être utilisées pour déterminer votre aptitude à conduire."
 
   info_section1_title: "1. Édition de l'application"
-  info_section1_body: "L'application Journal Conso est éditée par :\nChristophe Kirsch, agissant en qualité de développeur indépendant.\nContact : journalconso@gmail.com."
+  info_section1_body: "L'application Journal Conso est éditée par :\nChrisK, agissant en qualité de développeur indépendant.\nContact : journalconso@gmail.com."
   info_section2_title: "2. Hébergement"
   info_section2_body: "• Site Web / Landing Page : Hébergé par GitHub Inc.\n• Données Applicatives (Cloud) : Hébergées par Supabase Inc., serveurs situés en Europe (Région AWS eu-central-1, Francfort)."
   info_section3_title: "3. Propriété intellectuelle"

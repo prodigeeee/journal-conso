@@ -8,12 +8,14 @@ import '../utils/l10n_service.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthSuccess;
+  final VoidCallback onOfflineSelected;
   final Color accentColor;
   final bool isDarkMode;
 
   const AuthScreen({
     super.key,
     required this.onAuthSuccess,
+    required this.onOfflineSelected,
     required this.accentColor,
     required this.isDarkMode,
   });
@@ -330,6 +332,18 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Text(
                       _isSignUp ? L10n.s('auth.already_account') : L10n.s('auth.no_account'),
                       style: TextStyle(color: widget.isDarkMode ? Colors.white70 : Colors.black54),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: widget.onOfflineSelected,
+                    child: Text(
+                      "Utiliser sans compte (Mode Local)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        color: widget.accentColor,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                   const Divider(height: 40, color: Colors.white10),

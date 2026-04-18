@@ -162,6 +162,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   bool _isDarkMode = true;
   bool _isYoungDriver = false;
   bool _unitMl = false;
+  bool _isOfflineMode = false;
   late StreamSubscription<AuthState> _authSubscription;
 
   @override
@@ -169,8 +170,13 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     super.initState();
     _loadTheme();
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      if (data.event == AuthChangeEvent.signedIn) {
+        _isOfflineMode = false;
+        await StorageService.savePref('isOfflineMode', false);
+      }
       if (data.event == AuthChangeEvent.signedOut) {
         await StorageService.clearAll();
+        _isOfflineMode = false;
       }
       if (mounted) setState(() {});
     });
@@ -188,6 +194,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       _isDarkMode = data['isDarkMode'] ?? true;
       _isYoungDriver = data['isYoungDriver'] ?? false;
       _unitMl = data['unitMl'] ?? false;
+      _isOfflineMode = data['isOfflineMode'] ?? false;
     });
   }
 
@@ -215,12 +222,18 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         ? const Color(0xFFEA9216)
         : const Color(0xFF1A3A5F);
 
-    if (session == null) {
+    if (session == null && !_isOfflineMode) {
       return AuthScreen(
         onAuthSuccess: () => setState(() {
           // On recharge les données au succès de l'auth
           _loadTheme();
         }),
+        onOfflineSelected: () async {
+          await StorageService.savePref('isOfflineMode', true);
+          setState(() {
+            _isOfflineMode = true;
+          });
+        },
         accentColor: accentColor,
         isDarkMode: _isDarkMode,
       );
@@ -234,6 +247,10 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       onYoungDriverChanged: _updateYoungDriver,
       unitMl: _unitMl,
       onUnitMlChanged: _updateUnitMl,
+      onOfflineLogout: () async {
+        await StorageService.savePref('isOfflineMode', false);
+        setState(() => _isOfflineMode = false);
+      },
     );
   }
 }
@@ -246,6 +263,7 @@ class MainNavigationScreen extends StatefulWidget {
   final Function(bool) onYoungDriverChanged;
   final bool unitMl;
   final Function(bool) onUnitMlChanged;
+  final VoidCallback onOfflineLogout;
 
   const MainNavigationScreen({
     super.key,
@@ -256,6 +274,7 @@ class MainNavigationScreen extends StatefulWidget {
     required this.onYoungDriverChanged,
     required this.unitMl,
     required this.onUnitMlChanged,
+    required this.onOfflineLogout,
   });
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -1178,7 +1197,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       onSyncCloud: _pullFromCloud,
                       onPushCloud: _pushToCloud,
                       onLogout: () async {
-                        await Supabase.instance.client.auth.signOut();
+                        final session = Supabase.instance.client.auth.currentSession;
+                        if (session != null) {
+                          await Supabase.instance.client.auth.signOut();
+                        } else {
+                          widget.onOfflineLogout();
+                        }
                       },
                     ),
                   ],
@@ -3067,7 +3091,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Cette application utilise une version améliorée et plus réaliste de la formule de Widmark.",
+                    "Cette application utilise une Version 1.1.9+11
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -4537,7 +4561,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.8+10",
+            "Version 1.1.9+11
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
@@ -4604,12 +4628,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
           initialChildSize: 0.85,
           maxChildSize: 0.95,
           minChildSize: 0.5,
-          builder: (_, scrollController) => Container(
-            decoration: BoxDecoration(
-              color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-            ),
-            child: Column(
+          builder: (_, scrollController) => ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white).withValues(alpha: 0.8),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
+                ),
+                child: Column(
               children: [
                 const SizedBox(height: 12),
                 Container(
@@ -4647,8 +4676,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   child: TabBarView(
                     children: [
                       _buildGuideTab(scrollController, [
-                        _guideStep(Icons.add_circle_outline, "Saisie ultra-rapide", "Utilisez le bouton '+' central pour ajouter un verre. Les volumes sont automatisés par type (33cl bière, 12.5cl vin, 4cl spiritueux)."),
-                        _guideStep(Icons.edit_note_rounded, "Ajouter du contexte", "Sous chaque heure, appuyez pour noter un repas ou l'endroit. Cela vous aide à mieux comprendre l'impact de l'alcool."),
+                        _guideStep(Icons.add_circle_outline, L10n.s('guide.step1_title'), L10n.s('guide.step1_desc')),
+                        _guideStep(Icons.edit_note_rounded, L10n.s('guide.step2_title'), L10n.s('guide.step2_desc')),
                         _guideStep(Icons.copy_rounded, "Duplication intelligente", "Gagnez du temps en dupliquant un verre ou même une série complète en un clic."),
                         _guideStep(Icons.timelapse, "Journal 24h", "Parcourez votre journée. Les tranches horaires s'adaptent dynamiquement à vos consommations."),
                       ]),
@@ -4656,13 +4685,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                         _guideStep(Icons.analytics_outlined, "Alcoolémie Réaliste", "Votre taux n'est pas instantané. Nous simulons une montée linéaire sur 45 min pour refléter le temps de boisson et d'absorption."),
                         _guideStep(Icons.directions_car_filled_outlined, "Prêt à conduire ?", "L'application calcule en temps réel quand votre taux repassera sous le seuil légal (jeune permis ou confirmé)."),
                         _guideStep(Icons.calendar_month_outlined, "Calendrier & PDF", "Visualisez votre activité mensuelle et exportez des rapports PDF professionnels pour un suivi médical ou personnel."),
-                        _guideStep(Icons.psychology_outlined, "Test de réflexes", "Évaluez votre temps de réaction indicatif pour prendre conscience de l'altération de vos facultés."),
+                        _guideStep(Icons.psychology_outlined, L10n.s('guide.step3_title'), L10n.s('guide.step3_desc')),
                       ]),
                       _buildGuideTab(scrollController, [
-                        _guideStep(Icons.people_outline, "Multi-profils par Drag-and-Drop", "Gérez plusieurs utilisateurs. Réorganisez-les par glisser-déposer pour définir qui est le profil prioritaire au chargement."),
-                        _guideStep(Icons.cloud_done_outlined, "Cloud & Backup JSON", "Synchronisation automatique sur internet et sauvegarde physique sur disque (JSON) pour une sécurité totale de vos données."),
+                        _guideStep(Icons.people_outline, L10n.s('guide.step4_title'), L10n.s('guide.step4_desc')),
+                        _guideStep(Icons.cloud_done_outlined, L10n.s('guide.step6_title'), L10n.s('guide.step6_desc')),
                         _guideStep(Icons.security_outlined, "Vie Privée", "Vos données de santé sont les vôtres. Elles restent anonymisées et chiffrées sur nos serveurs Supabase."),
-                        _guideStep(Icons.style_outlined, "Interface Aura Glass", "Basculez entre le mode Clair ou Sombre cinématique depuis les réglages globaux."),
+                        _guideStep(Icons.style_outlined, L10n.s('guide.step8_title'), L10n.s('guide.step8_desc')),
                       ]),
                     ],
                   ),
@@ -4675,6 +4704,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
     );
   }
 
+
   Widget _buildGuideTab(ScrollController sc, List<Widget> steps) {
     return ListView(
       controller: sc,
@@ -4683,18 +4713,24 @@ class _OptionsScreenState extends State<OptionsScreen> {
     );
   }
 
-  Widget _guideStep(IconData icon, String title, String desc) => Padding(
-    padding: const EdgeInsets.only(bottom: 24),
+  Widget _guideStep(IconData icon, String title, String desc) => Container(
+    margin: const EdgeInsets.only(bottom: 24),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(alpha: 0.03),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: widget.accentColor.withValues(alpha: 0.1)),
+    ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: widget.accentColor.withValues(alpha: 0.1),
+            color: widget.accentColor.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: widget.accentColor, size: 20),
+          child: Icon(icon, color: widget.accentColor, size: 22),
         ),
         const SizedBox(width: 15),
         Expanded(
@@ -4703,20 +4739,12 @@ class _OptionsScreenState extends State<OptionsScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: widget.isDarkMode ? Colors.white : Colors.black87,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: widget.accentColor),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 desc,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: widget.isDarkMode ? Colors.white60 : Colors.black54,
-                  height: 1.4,
-                ),
+                style: TextStyle(fontSize: 13, height: 1.4, color: widget.isDarkMode ? Colors.white70 : Colors.black87),
               ),
             ],
           ),
