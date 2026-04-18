@@ -3091,7 +3091,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Cette application utilise une Version 1.1.9+11
+                    "Cette application utilise une version améliorée et plus réaliste de la formule de Widmark.",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -4561,7 +4561,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.9+11
+            "Version 1.1.9+11",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
@@ -4701,8 +4701,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
 
   Widget _buildGuideTab(ScrollController sc, List<Widget> steps) {
