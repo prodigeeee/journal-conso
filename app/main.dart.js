@@ -110435,7 +110435,7 @@ return A.p(j.b.gel().ng(),$async$ui)
 case 8:n.T(new A.aJh(n))
 s=9
 return A.p(n.kj(),$async$ui)
-case 9:n.uJ("Compte et donn\xe9es cloud supprim\xe9s avec succ\xe8s.")
+case 9:n.uJ("Donn\xe9es effac\xe9es. Vote compte email reste enregistr\xe9 mais est maintenant vide.")
 p=2
 s=6
 break
@@ -111897,7 +111897,7 @@ o=f.a.f
 o=A.b([c,B.cL,new A.Ic(new A.aLD(f,d),b,new A.aLE(f),new A.aLF(),B.QF,!0,e),s,B.cL,a,B.fj,i,B.cL,g,B.fj,j,B.cL,a0,B.ec,r,B.cL,A.em(B.bw.aq(0.3),A.jC(!1,B.aX,e,e,!0,e,e,e,!0,e,B.a5g,e,e,e,e,new A.aLG(f),!1,e,e,e,e,e,A.a0(A.Q("settings.reset_all",e),e,e,e,e,B.py,e,e,e),e,e),o,e,!1)],q)
 c=p.b.gel().c
 if((c==null?e:c.r)!=null){c=f.a.f
-B.l.S(o,A.b([B.cL,A.em(B.bw.aq(0.3),A.jC(!1,B.aX,e,e,!0,e,e,e,!0,e,B.a5s,e,e,e,e,new A.aLH(f),!1,e,e,e,e,e,B.bbX,e,e),c,e,!1)],q))}o.push(B.dL)
+B.l.S(o,A.b([B.cL,A.em(B.bw.aq(0.3),A.jC(!1,B.aX,e,e,!0,e,e,e,!0,e,B.a5s,e,e,e,e,new A.aLH(f),!1,e,e,e,e,e,B.bbY,e,e),c,e,!1)],q))}o.push(B.dL)
 o.push(A.dU(A.a0("Version 1.1.9+13",e,e,e,e,A.ak(e,e,f.a.f?B.dD:B.er,e,e,e,e,e,e,e,e,10,e,e,B.X,e,e,!0,e,e,e,e,e,e,e,e),e,e,e),e,e))
 o.push(B.b5V)
 return A.Gi(o,e,B.dX)},
@@ -111930,7 +111930,7 @@ $0(){return this.a.r=B.wR.gzs().cN(this.b)},
 $S:0}
 A.aLf.prototype={
 $1(a){var s=this,r=null,q=s.b,p=q.a.f?B.fG:B.D,o=A.an(a,r,t.l).w,n=s.c,m=s.d,l=s.a,k=s.e,j=s.f,i=t.p
-return A.bq(r,A.bK(A.b([A.a0(n==null?"NOUVEAU PROFIL":"MODIFIER PROFIL",r,r,r,r,B.eg,r,r,r),A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),m,r,r,r,r,r,2,B.a6_,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),B.cL,new A.r2(new A.aLd(l),r),B.cL,A.bT(A.b([A.cs(A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),k,r,r,r,r,r,2,B.a5Z,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,B.pv,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),1),B.po,A.cs(A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),j,r,r,r,r,r,2,B.a60,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,B.pv,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),1)],i),B.U,B.Q,B.S,0,r,r),B.ec,A.cQ(A.ai0(B.bbW,new A.aLe(l,q,n,m,k,j,a),A.Tv(r,r,q.a.r,r,r,r,r,r,r,B.D,r,B.b5Q,r,r,r,r,r,r,r,r)),r,1/0)],i),B.aR,B.Q,B.bv,0,B.a8),B.N,r,r,new A.bj(p,r,r,B.dw,r,r,B.ak),r,r,r,r,new A.ad(24,24,24,o.f.d+40),r,r,r)},
+return A.bq(r,A.bK(A.b([A.a0(n==null?"NOUVEAU PROFIL":"MODIFIER PROFIL",r,r,r,r,B.eg,r,r,r),A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),m,r,r,r,r,r,2,B.a6_,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),B.cL,new A.r2(new A.aLd(l),r),B.cL,A.bT(A.b([A.cs(A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),k,r,r,r,r,r,2,B.a5Z,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,B.pv,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),1),B.po,A.cs(A.JR(r,B.eA,!1,r,!0,B.a9,r,A.acJ(),j,r,r,r,r,r,2,B.a60,B.an,!0,r,!0,r,!1,r,B.ej,r,r,r,r,B.pv,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.dX,r,r,r,r,r,r,r,r,r,r,r,r,!0,B.b7,r,B.iK,r,r,r,r),1)],i),B.U,B.Q,B.S,0,r,r),B.ec,A.cQ(A.ai0(B.bbX,new A.aLe(l,q,n,m,k,j,a),A.Tv(r,r,q.a.r,r,r,r,r,r,r,B.D,r,B.b5Q,r,r,r,r,r,r,r,r)),r,1/0)],i),B.aR,B.Q,B.bv,0,B.a8),B.N,r,r,new A.bj(p,r,r,B.dw,r,r,B.ak),r,r,r,r,new A.ad(24,24,24,o.f.d+40),r,r,r)},
 $S:97}
 A.aLd.prototype={
 $2(a,b){var s=t.fD
@@ -112066,7 +112066,7 @@ $0(){return this.a.az2()},
 $S:0}
 A.aL9.prototype={
 $1(a){var s=null,r=A.a0(A.Q("settings.reset_confirm_title",s),s,s,s,s,s,s,s,s),q=A.a0(A.Q("settings.reset_confirm_content",s),s,s,s,s,s,s,s,s)
-return A.QM(A.b([A.fx(A.a0(A.Q("common.cancel",s).toUpperCase(),s,s,s,s,s,s,s,s),new A.aL7(a),s),A.fx(B.bbU,new A.aL8(this.a,a),s)],t.p),s,q,r)},
+return A.QM(A.b([A.fx(A.a0(A.Q("common.cancel",s).toUpperCase(),s,s,s,s,s,s,s,s),new A.aL7(a),s),A.fx(B.bbV,new A.aL8(this.a,a),s)],t.p),s,q,r)},
 $S:75}
 A.aL7.prototype={
 $0(){A.dO(this.a,!1).fE(null)
@@ -112080,7 +112080,7 @@ s.c.af(t.c).f.i2(B.b6a)},
 $S:0}
 A.aLm.prototype={
 $1(a){var s=null
-return A.QM(A.b([A.fx(A.a0(A.Q("common.cancel",s).toUpperCase(),s,s,s,s,s,s,s,s),new A.aLk(a),s),A.fx(B.bc0,new A.aLl(this.a,a),s)],t.p),s,B.bbY,B.bbZ)},
+return A.QM(A.b([A.fx(A.a0(A.Q("common.cancel",s).toUpperCase(),s,s,s,s,s,s,s,s),new A.aLk(a),s),A.fx(B.bc0,new A.aLl(this.a,a),s)],t.p),s,B.bbT,B.bbZ)},
 $S:75}
 A.aLk.prototype={
 $0(){A.dO(this.a,!1).fE(null)
@@ -112447,7 +112447,7 @@ $0(){return this.a.Q=!0},
 $S:0}
 A.aCZ.prototype={
 $1(a){var s=null,r=A.a0(A.Q("auth.check_email_title",s),s,s,s,s,s,s,s,s),q=A.a0(A.Q("auth.check_email",s),s,s,s,s,s,s,s,s),p=this.a
-return A.QM(A.b([A.fx(B.bbO,new A.aCW(p),s),A.fx(B.bbV,new A.aCX(p,a),s)],t.p),s,q,r)},
+return A.QM(A.b([A.fx(B.bbO,new A.aCW(p),s),A.fx(B.bbW,new A.aCX(p,a),s)],t.p),s,q,r)},
 $S:75}
 A.aCW.prototype={
 $0(){var s=0,r=A.z(t.H),q=1,p=[],o=this,n,m,l,k,j
@@ -130636,8 +130636,8 @@ B.b66=new A.mY(3,"hide")
 B.bgM=new A.mY(4,"remove")
 B.b67=new A.mY(5,"timeout")
 B.b68=new A.Al(null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.bbT=new A.ek("Veuillez remplir tous les champs",null,null,null,null,null,null,null,null,null,null)
-B.b69=new A.oU(B.bbT,B.Qt,null,null,null,null,null,null,null,null,null,null,null,B.ce,!1,null,null,null,B.a9,null)
+B.bbU=new A.ek("Veuillez remplir tous les champs",null,null,null,null,null,null,null,null,null,null)
+B.b69=new A.oU(B.bbU,B.Qt,null,null,null,null,null,null,null,null,null,null,null,B.ce,!1,null,null,null,B.a9,null)
 B.bbS=new A.ek("Toutes les donn\xe9es ont \xe9t\xe9 effac\xe9es",null,null,null,null,null,null,null,null,null,null)
 B.b6a=new A.oU(B.bbS,null,null,null,null,null,null,null,null,null,null,null,null,B.ce,!1,null,null,null,B.a9,null)
 B.bc_=new A.ek("Email de confirmation renvoy\xe9 !",null,null,null,null,null,null,null,null,null,null)
@@ -131062,11 +131062,11 @@ B.b9C=new A.E(!0,B.D,null,null,null,null,13,B.X,null,null,null,null,null,null,nu
 B.bbQ=new A.ek("journalconso@gmail.com",null,B.b9C,null,null,null,null,null,null,null,null)
 B.ba0=new A.E(!0,B.bw,null,null,null,null,11,B.X,null,null,null,null,1.5,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.bbR=new A.ek("ATTENTION : Il s'agit d'une estimation th\xe9orique. La fatigue, l'alimentation et la sant\xe9 peuvent modifier ces valeurs. Ne remplace jamais un \xe9thylotest.",null,B.ba0,null,null,null,null,null,null,null,null)
-B.bbU=new A.ek("TOUT SUPPRIMER",null,B.py,null,null,null,null,null,null,null,null)
-B.bbV=new A.ek("OK",null,B.eg,null,null,null,null,null,null,null,null)
-B.bbW=new A.ek("ENREGISTRER",null,null,null,null,null,null,null,null,null,null)
-B.bbX=new A.ek("Supprimer mon compte & mes donn\xe9es",null,B.py,null,null,null,null,null,null,null,null)
-B.bbY=new A.ek("Cette action est irr\xe9versible. Vos donn\xe9es seront d\xe9finitivement effac\xe9es du cloud et votre application sera r\xe9initialis\xe9e.",null,null,null,null,null,null,null,null,null,null)
+B.bbT=new A.ek("Cette action effacera d\xe9finitivement votre historique et vos profils du Cloud. Vos identifiants (e-mail/mot de passe) restent techniquement r\xe9serv\xe9s par le serveur, mais l'int\xe9gralit\xe9 de vos donn\xe9es personnelles sera supprim\xe9e.",null,null,null,null,null,null,null,null,null,null)
+B.bbV=new A.ek("TOUT SUPPRIMER",null,B.py,null,null,null,null,null,null,null,null)
+B.bbW=new A.ek("OK",null,B.eg,null,null,null,null,null,null,null,null)
+B.bbX=new A.ek("ENREGISTRER",null,null,null,null,null,null,null,null,null,null)
+B.bbY=new A.ek("Supprimer mon compte & mes donn\xe9es",null,B.py,null,null,null,null,null,null,null,null)
 B.bbZ=new A.ek("Supprimer le compte ?",null,null,null,null,null,null,null,null,null,null)
 B.bc0=new A.ek("SUPPRIMER MON COMPTE",null,B.py,null,null,null,null,null,null,null,null)
 B.bc1=new A.K0(0,"system")

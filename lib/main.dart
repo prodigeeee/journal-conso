@@ -501,7 +501,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       });
       await _saveAll();
       
-      _showAuraSnackBar("Compte et données cloud supprimés avec succès.");
+      _showAuraSnackBar("Données effacées. Vote compte email reste enregistré mais est maintenant vide.");
     } catch (e) {
       _showAuraSnackBar("Erreur lors de la suppression: $e", isError: true);
     }
@@ -4695,7 +4695,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
       builder: (c) => AlertDialog(
         title: const Text("Supprimer le compte ?"),
         content: const Text(
-          "Cette action est irréversible. Vos données seront définitivement effacées du cloud et votre application sera réinitialisée.",
+          "Cette action effacera définitivement votre historique et vos profils du Cloud. Vos identifiants (e-mail/mot de passe) restent techniquement réservés par le serveur, mais l'intégralité de vos données personnelles sera supprimée.",
         ),
         actions: [
           TextButton(
