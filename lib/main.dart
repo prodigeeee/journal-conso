@@ -1194,8 +1194,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       onYoungDriverChanged: widget.onYoungDriverChanged,
                       unitMl: widget.unitMl,
                       onUnitMlChanged: widget.onUnitMlChanged,
-                      onSyncCloud: _pullFromCloud,
-                      onPushCloud: _pushToCloud,
+                      onSyncCloud: () => _pullFromCloud(silent: false),
+                      onPushCloud: () => _pushToCloud(silent: false),
                       onLogout: () async {
                         final session = Supabase.instance.client.auth.currentSession;
                         if (session != null) {
