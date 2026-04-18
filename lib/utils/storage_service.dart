@@ -122,4 +122,14 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
   }
+
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyProfiles);
+    await prefs.remove(_keyContexts);
+    await prefs.remove(_keyConsumptions);
+    await prefs.remove(_keyActiveUserId);
+    await prefs.remove(_keySyncId);
+    await prefs.remove(_keyFirstLaunch);
+  }
 }

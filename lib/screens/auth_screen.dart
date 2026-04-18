@@ -103,7 +103,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: const Text("RENVOYER L'EMAIL", style: TextStyle(fontSize: 12)),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(c),
+                  onPressed: () {
+                    Navigator.pop(c);
+                    setState(() => _isSignUp = false);
+                  },
                   child: const Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
