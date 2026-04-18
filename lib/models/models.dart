@@ -54,7 +54,7 @@ class Consumption {
   });
   Map<String, dynamic> toJson() => {
     'id': id,
-    'date': date.toIso8601String(),
+    'date': date.toUtc().toIso8601String(),
     'moment': moment,
     'type': type,
     'volume': volume,
@@ -63,7 +63,7 @@ class Consumption {
   };
   factory Consumption.fromJson(Map<String, dynamic> json) => Consumption(
     id: json['id'] ?? (DateTime.now().millisecondsSinceEpoch + (json.hashCode % 1000)).toString(),
-    date: DateTime.parse(json['date'] ?? json['Date'] ?? DateTime.now().toIso8601String()),
+    date: DateTime.parse(json['date'] ?? json['Date'] ?? DateTime.now().toIso8601String()).toLocal(),
     moment: json['moment'] ?? json['Moment'] ?? 'Soir',
     type: json['type'] ?? json['Type'] ?? 'Bière',
     volume: json['volume'] ?? json['Volume'] ?? '25cl',

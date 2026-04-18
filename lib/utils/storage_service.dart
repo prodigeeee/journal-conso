@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 
 class StorageService {
@@ -27,6 +30,24 @@ class StorageService {
     await prefs.setString(_keyActiveUserId, activeUserId);
     if (syncId != null) {
       await prefs.setString(_keySyncId, syncId);
+    }
+
+    // Sauvegarde physique JSON (Sécurité supplémentaire hors Web)
+    if (!kIsWeb) {
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/alcohol_tracker_local_backup.json');
+        final fullData = {
+          'profiles': profiles.map((e) => e.toJson()).toList(),
+          'momentsContexts': contexts,
+          'consumptions': consumptions.map((e) => e.toJson()).toList(),
+          'active_user_id': activeUserId,
+          'last_save': DateTime.now().toIso8601String(),
+        };
+        await file.writeAsString(jsonEncode(fullData));
+      } catch (e) {
+        debugPrint("Erreur lors de la sauvegarde physique : $e");
+      }
     }
   }
 

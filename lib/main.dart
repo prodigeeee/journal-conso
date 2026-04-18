@@ -24,7 +24,6 @@ import 'models/models.dart';
 import 'utils/helpers.dart';
 import 'widgets/glass_widgets.dart';
 import 'utils/storage_service.dart';
-import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart'; // Ajout de l'écran auth
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
 import 'utils/l10n_service.dart'; // Import L10n
@@ -320,11 +319,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       _contexts = data['contexts'];
       _allConsumptions = data['consumptions'];
     });
-    // On lance une synchro Cloud au démarrage pour être certain d'avoir le dernier état
-    _pullFromCloud();
+    // On lance une synchro Cloud au démarrage pour être certain d'avoir le dernier état (silencieuse)
+    _pullFromCloud(silent: true);
   }
 
-  Future<void> _saveAll() async {
+  Future<void> _saveAll({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
 
@@ -335,10 +334,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       activeUserId: _activeUserId,
     );
     
-    // Synchronisation vers Supabase avec l'UID réel
-    SupabaseService.syncProfiles(_profiles, user.id);
-    SupabaseService.syncConsumptions(_allConsumptions, user.id);
-    
+    await _pushToCloud(silent: silent);
     setState(() {});
   }
 
@@ -421,32 +417,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     );
   }
 
-  Future<void> _pushToCloud() async {
+  Future<void> _pushToCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      _showAuraSnackBar("Veuillez vous connecter pour sauvegarder", isError: true);
+      if (!silent) _showAuraSnackBar("Veuillez vous connecter pour sauvegarder", isError: true);
       return;
     }
-    _showAuraSnackBar("Sauvegarde vers le Cloud...");
+    if (!silent) _showAuraSnackBar("Sauvegarde vers le Cloud...");
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
-      _showAuraSnackBar(L10n.s('sync.success', args: {
+      if (!silent) _showAuraSnackBar(L10n.s('sync.success', args: {
         'profiles': _profiles.length.toString(),
         'consos': _allConsumptions.length.toString(),
       }));
     } catch (e) {
-      _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+      if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
     }
   }
 
-  Future<void> _pullFromCloud() async {
+  Future<void> _pullFromCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      _showAuraSnackBar("Veuillez vous connecter pour synchroniser", isError: true);
+      if (!silent) _showAuraSnackBar("Veuillez vous connecter pour synchroniser", isError: true);
       return;
     }
-    _showAuraSnackBar("Récupération de vos données...");
+    if (!silent) _showAuraSnackBar("Récupération de vos données...");
     try {
       final data = await SupabaseService.fetchAllData(user.id);
       final List<UserProfile> cloudProfiles = data['profiles'] != null ? List<UserProfile>.from(data['profiles']) : [];
@@ -466,18 +462,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
-        _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
+        if (!silent) _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
           'profiles': cloudProfiles.length.toString(),
           'consos': cloudConsos.length.toString(),
         }));
       } else {
-        _showAuraSnackBar(L10n.s('sync.no_data', args: {
+        if (!silent) _showAuraSnackBar(L10n.s('sync.no_data', args: {
           'profiles': cloudProfiles.length.toString(),
           'consos': cloudConsos.length.toString(),
         }));
       }
     } catch (e) {
-      _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+      if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
     }
   }
 
@@ -2235,35 +2231,146 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   String _period = 'Semaine'; // will be updated below to use localized keys or stay as is for logic
 
-  double _calculateCurrentBAC() {
+  double _calculateBACAt(DateTime targetTime) {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
     final now = DateTime.now();
     double total = 0.0;
-    final recentConsos = widget.consumptions
-        .where(
-          (c) => now.difference(c.date).inHours < 12 && c.date.isBefore(now),
-        )
+    // On prend en compte les consommations des dernières 24h, forcées en local
+    final relevantConsos = widget.consumptions
+        .where((c) {
+          final cDate = c.date.toLocal();
+          return targetTime.difference(cDate).inHours < 24 && cDate.isBefore(targetTime);
+        })
         .toList();
-    for (var c in recentConsos) {
+
+    for (var c in relevantConsos) {
+      final cDate = c.date.toLocal();
       double vol = 0;
       String vStr = c.volume.toLowerCase();
       if (vStr.contains('ml')) {
-        vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0; // Conversion ml -> cl pour le calcul
+        vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0;
       } else {
         vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
       }
+      
       double grammes = (vol * 10 * c.degree * 0.8) / 100;
-      double hoursSinceDrink = now.difference(c.date).inMinutes / 60.0;
-      double eliminationHours = (hoursSinceDrink - 0.75).clamp(
-        0.0,
-        double.infinity,
-      );
-      double bac =
-          (grammes / (widget.activeUser.weight * r)) -
-          (0.15 * eliminationHours);
+      double hoursSinceDrink = targetTime.difference(cDate).inMinutes / 60.0;
+      double peakBAC = grammes / (widget.activeUser.weight * r);
+      
+      double bac = 0;
+      // Phase montante (boisson + absorption) : max à 45 mins
+      if (hoursSinceDrink <= 0.75) {
+        bac = peakBAC * (hoursSinceDrink / 0.75);
+      } else {
+        // Phase d'élimination (0.15g/L par heure)
+        bac = peakBAC - (0.15 * (hoursSinceDrink - 0.75));
+      }
       if (bac > 0) total += bac;
     }
     return total;
+  }
+
+  double _calculateCurrentBAC() => _calculateBACAt(DateTime.now());
+
+  Widget _buildBACCurve() {
+    final now = DateTime.now();
+    List<FlSpot> spots = [];
+    double maxBAC = 0.5;
+
+    // On génère des points toutes les 15 minutes sur 12 heures (-1h à +11h)
+    for (int i = -4; i <= 44; i++) {
+      DateTime t = now.add(Duration(minutes: i * 15));
+      double val = _calculateBACAt(t);
+      if (val > maxBAC) maxBAC = val;
+      spots.add(FlSpot(i.toDouble(), val));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+             Text(
+              "ÉVOLUTION (12H)",
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: widget.accentColor,
+                letterSpacing: 1.2,
+              ),
+            ),
+            if (spots.any((s) => s.y > 0.01))
+               Icon(Icons.auto_graph, size: 12, color: widget.accentColor.withValues(alpha: 0.5)),
+          ],
+        ),
+        const SizedBox(height: 15),
+        SizedBox(
+          height: 100,
+          child: LineChart(
+            LineChartData(
+              gridData: const FlGridData(show: false),
+              titlesData: FlTitlesData(
+                show: true,
+                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 12, // Toutes les 3 heures
+                    getTitlesWidget: (v, m) {
+                      DateTime t = now.add(Duration(minutes: v.toInt() * 15));
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          DateFormat('HH:mm').format(t),
+                          style: TextStyle(color: widget.isDarkMode ? Colors.white30 : Colors.black26, fontSize: 8),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              minY: 0,
+              maxY: maxBAC * 1.2,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: true,
+                  barWidth: 3,
+                  color: widget.accentColor,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        widget.accentColor.withValues(alpha: 0.3),
+                        widget.accentColor.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+                // Ligne de seuil
+                LineChartBarData(
+                  spots: [
+                    FlSpot(-4, widget.isYoungDriver ? 0.2 : 0.5),
+                    FlSpot(44, widget.isYoungDriver ? 0.2 : 0.5),
+                  ],
+                  dashArray: [5, 5],
+                  barWidth: 1,
+                  color: Colors.red.withValues(alpha: 0.3),
+                  dotData: const FlDotData(show: false),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -2303,7 +2410,13 @@ class _StatsScreenState extends State<StatsScreen> {
     for (var c in widget.consumptions.where(
       (c) => !c.date.isBefore(startDate),
     )) {
-      double vol = double.tryParse(c.volume.replaceAll('cl', '')) ?? 0;
+      double vol = 0;
+      String vStr = c.volume.toLowerCase();
+      if (vStr.contains('ml')) {
+        vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0;
+      } else {
+        vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+      }
       double grammes = (vol * 10 * c.degree * 0.8) / 100;
       totalGrams += grammes;
     }
@@ -2411,6 +2524,18 @@ class _StatsScreenState extends State<StatsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: _showBACMethodInfo,
+                    child: Text(
+                      "Comment est calculé mon taux ?",
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: widget.accentColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -2458,6 +2583,12 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 15),
+          glassModule(
+            isDarkMode: widget.isDarkMode,
+            showHalo: false,
+            child: _buildBACCurve(),
           ),
           const SizedBox(height: 15),
           // AGENT: BOUTON TEST RÉFLEXES PROÉMINENT
@@ -2872,6 +3003,144 @@ class _StatsScreenState extends State<StatsScreen> {
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  void _showBACMethodInfo() {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: glassModule(
+          isDarkMode: widget.isDarkMode,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.biotech, color: widget.accentColor, size: 28),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Text(
+                          "Calcul de l'alcoolémie",
+                          style: TextStyle(
+                            color: widget.isDarkMode ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  Text(
+                    "Cette application utilise une version améliorée et plus réaliste de la formule de Widmark.",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      height: 1.5,
+                      color: widget.isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  _buildInfoSection(
+                    "1. La base (Formule de Widmark)",
+                    "Le calcul standard repose sur votre poids, votre sexe et la quantité d'alcool pur (en grammes) ingérée.",
+                  ),
+                  const Divider(height: 40, color: Colors.white12),
+                  _buildInfoSection(
+                    "2. Phase d'absorption progressive",
+                    "Contrairement aux calculs simplistes qui considèrent que l'alcool est dans le sang dès la première gorgée, notre modèle simule une montée linéaire sur 45 minutes. Cela reflète le temps réel de consommation et le délai biologique d'absorption.",
+                  ),
+                  const Divider(height: 40, color: Colors.white12),
+                  _buildInfoSection(
+                    "3. Élimination constante",
+                    "Une fois le pic atteint, votre organisme élimine l'alcool à un rythme moyen de 0,15 g/L par heure.",
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: const Text(
+                            "ATTENTION : Il s'agit d'une estimation théorique. La fatigue, l'alimentation et la santé peuvent modifier ces valeurs. Ne remplace jamais un éthylotest.",
+                            style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold, height: 1.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: widget.accentColor.withValues(alpha: 0.15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          side: BorderSide(color: widget.accentColor.withValues(alpha: 0.3)),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "J'ai compris", 
+                          style: TextStyle(
+                            color: widget.accentColor, 
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                            fontSize: 16,
+                          )
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(String title, String body) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: widget.accentColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          body,
+          style: TextStyle(
+            fontSize: 12,
+            height: 1.4,
+            color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+          ),
+        ),
+      ],
     );
   }
 
@@ -3616,7 +3885,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               child: ElevatedButton.icon(
                 onPressed: () async {
                   final Uri url = Uri.parse(
-                    "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=christophek@hotmail.com&currency_code=EUR",
+                    "https://www.paypal.com/paypalme/chriskprodigeee",
                   );
                   if (!await launchUrl(
                     url,
@@ -4087,6 +4356,40 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 subtitle: Text(L10n.s('settings.sync_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
                 onTap: widget.onSyncCloud,
               ),
+              _divider(),
+              ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                leading: Icon(Icons.cloud_upload_outlined, color: widget.accentColor),
+                title: Text(
+                  L10n.s('legal.save_json'),
+                  style: TextStyle(
+                    color: widget.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                subtitle: Text("Exporter une sauvegarde locale sur cet appareil", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                onTap: widget.onExportFullProject,
+              ),
+              _divider(),
+              ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                leading: Icon(Icons.restore, color: widget.accentColor),
+                title: Text(
+                  L10n.s('legal.restore_json'),
+                  style: TextStyle(
+                    color: widget.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                subtitle: Text("Restaurer depuis un fichier JSON local", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                onTap: widget.onImportFullProject,
+              ),
             ],
           ),
         ),
@@ -4186,25 +4489,6 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
         ),
         const SizedBox(height: 30),
-        glassModule(
-          isDarkMode: widget.isDarkMode,
-          child: Column(
-            children: [
-              _legalTile(
-                Icons.cloud_upload_outlined,
-                L10n.s('legal.save_json'),
-                widget.onExportFullProject,
-              ),
-              _divider(),
-              _legalTile(
-                Icons.restore,
-                L10n.s('legal.restore_json'),
-                widget.onImportFullProject,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
         Text(
           L10n.s('settings.danger_zone'),
           style: TextStyle(
@@ -4281,100 +4565,88 @@ class _OptionsScreenState extends State<OptionsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        maxChildSize: 0.95,
-        minChildSize: 0.5,
-        builder: (_, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: widget.accentColor.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context) => DefaultTabController(
+        length: 3,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          builder: (_, scrollController) => Container(
+            decoration: BoxDecoration(
+              color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: widget.accentColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                margin: const EdgeInsets.only(bottom: 20),
-              ),
-              Text(
-                "NOTICE D'UTILISATION",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: widget.accentColor,
-                  fontSize: 16,
-                  letterSpacing: 1.2,
+                const SizedBox(height: 15),
+                Text(
+                  "NOTICE D'UTILISATION",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: widget.accentColor,
+                    fontSize: 14,
+                    letterSpacing: 1.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  children: [
-                    _guideStep(
-                      Icons.add_circle,
-                      "Ajouter une consommation",
-                      "Utilisez le GROS BOUTON '+' central ou le '+' sur une tranche horaire. Sélectionnez le type, le volume et le degré.",
-                    ),
-                    _guideStep(
-                      Icons.edit_note,
-                      "Ajouter du contexte",
-                      "Appuyez sur le champ 'Ajouter un contexte...' sous une tranche horaire pour noter l'événement.",
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context); // Close guide
-                        _showSobrietyTestFromOptions();
-                      },
-                      child: _guideStep(
-                        Icons.psychology,
-                        "Test de réflexes (Cliquez pour tester)",
-                        "Évaluez votre temps de réaction indicatif. Ce test aide à prendre conscience de l'altération des facultés.",
-                      ),
-                    ),
-                    _guideStep(
-                      Icons.people_alt_outlined,
-                      "Multi-profils & Exports",
-                      "Chaque utilisateur dispose de ses propres réglages. Vous pouvez EXPORTER un profil seul (JSON) pour le sauvegarder ou l'envoyer par message.",
-                    ),
-                    _guideStep(
-                      Icons.sync_alt,
-                      "Import de profil",
-                      "Dans les réglages d'un profil, utilisez 'Import' pour restaurer des données existantes. Attention : cela remplace les données actuelles de ce profil.",
-                    ),
-                    _guideStep(
-                      Icons.backup_outlined,
-                      "Sauvegarde Totale",
-                      "Pour changer de téléphone, utilisez 'SAUVEGARDER TOUT LE PROJET'. Cela génère un fichier contenant tous les profils et tout l'historique.",
-                    ),
-                    _guideStep(
-                      Icons.insights,
-                      "Comprendre le graphique",
-                      "La courbe illustre la fréquence et le volume total de vos consommations sur la période.",
-                    ),
-                    _guideStep(
-                      Icons.brightness_6,
-                      "Mode Clair / Sombre",
-                      "Basculez entre l'ambiance claire ou sombre à l'aide de l'icône Soleil/Lune en haut de l'écran principal.",
-                    ),
-                    _guideStep(
-                      Icons.picture_as_pdf, // or print
-                      "Impression des données",
-                      "Imprimez ou générez un rapport PDF de votre activité directement depuis votre volet de Profil ou des statistiques mensuelles.",
-                    ),
-                    const SizedBox(height: 30),
+                const SizedBox(height: 15),
+                TabBar(
+                  dividerColor: Colors.transparent,
+                  indicatorColor: widget.accentColor,
+                  labelColor: widget.accentColor,
+                  unselectedLabelColor: widget.isDarkMode ? Colors.white38 : Colors.black38,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  tabs: const [
+                    Tab(text: "Journal"),
+                    Tab(text: "Stats"),
+                    Tab(text: "Réglages"),
                   ],
                 ),
-              ),
-            ],
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildGuideTab(scrollController, [
+                        _guideStep(Icons.add_circle_outline, "Saisie ultra-rapide", "Utilisez le bouton '+' central pour ajouter un verre. Les volumes sont automatisés par type (33cl bière, 12.5cl vin, 4cl spiritueux)."),
+                        _guideStep(Icons.edit_note_rounded, "Ajouter du contexte", "Sous chaque heure, appuyez pour noter un repas ou l'endroit. Cela vous aide à mieux comprendre l'impact de l'alcool."),
+                        _guideStep(Icons.copy_rounded, "Duplication intelligente", "Gagnez du temps en dupliquant un verre ou même une série complète en un clic."),
+                        _guideStep(Icons.timelapse, "Journal 24h", "Parcourez votre journée. Les tranches horaires s'adaptent dynamiquement à vos consommations."),
+                      ]),
+                      _buildGuideTab(scrollController, [
+                        _guideStep(Icons.analytics_outlined, "Alcoolémie Réaliste", "Votre taux n'est pas instantané. Nous simulons une montée linéaire sur 45 min pour refléter le temps de boisson et d'absorption."),
+                        _guideStep(Icons.directions_car_filled_outlined, "Prêt à conduire ?", "L'application calcule en temps réel quand votre taux repassera sous le seuil légal (jeune permis ou confirmé)."),
+                        _guideStep(Icons.calendar_month_outlined, "Calendrier & PDF", "Visualisez votre activité mensuelle et exportez des rapports PDF professionnels pour un suivi médical ou personnel."),
+                        _guideStep(Icons.psychology_outlined, "Test de réflexes", "Évaluez votre temps de réaction indicatif pour prendre conscience de l'altération de vos facultés."),
+                      ]),
+                      _buildGuideTab(scrollController, [
+                        _guideStep(Icons.people_outline, "Multi-profils par Drag-and-Drop", "Gérez plusieurs utilisateurs. Réorganisez-les par glisser-déposer pour définir qui est le profil prioritaire au chargement."),
+                        _guideStep(Icons.cloud_done_outlined, "Cloud & Backup JSON", "Synchronisation automatique sur internet et sauvegarde physique sur disque (JSON) pour une sécurité totale de vos données."),
+                        _guideStep(Icons.security_outlined, "Vie Privée", "Vos données de santé sont les vôtres. Elles restent anonymisées et chiffrées sur nos serveurs Supabase."),
+                        _guideStep(Icons.style_outlined, "Interface Aura Glass", "Basculez entre le mode Clair ou Sombre cinématique depuis les réglages globaux."),
+                      ]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGuideTab(ScrollController sc, List<Widget> steps) {
+    return ListView(
+      controller: sc,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      children: steps,
     );
   }
 
@@ -4730,7 +5002,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        _time.format(context),
+                        "${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}",
                         style: TextStyle(color: widget.accentColor, fontWeight: FontWeight.w900),
                       ),
                     ),
@@ -4738,7 +5010,26 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                       final p = await showTimePicker(
                         context: context,
                         initialTime: _time,
-                        initialEntryMode: TimePickerEntryMode.input,
+                        initialEntryMode: TimePickerEntryMode.dial,
+                        builder: (context, child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: widget.isDarkMode 
+                                  ? ColorScheme.dark(primary: widget.accentColor, onPrimary: Colors.white, surface: const Color(0xFF1A1F26), onSurface: Colors.white)
+                                  : ColorScheme.light(primary: widget.accentColor, onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black),
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: widget.accentColor,
+                                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                              child: child!,
+                            ),
+                          );
+                        },
                       );
                       if (p != null) setState(() => _time = p);
                     },
@@ -4824,12 +5115,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         _t = type;
         if (type == L10n.s('common.beer')) {
           _d = 6.0;
+          if (widget.existingConso == null) _v = '33cl';
         } else if (type == L10n.s('common.wine')) {
           _d = 13.0;
+          if (widget.existingConso == null) _v = '12.5cl';
         } else if (type == L10n.s('common.spirits')) {
           _d = 40.0;
+          if (widget.existingConso == null) _v = '4cl';
         } else {
           _d = 0.0;
+          if (widget.existingConso == null) _v = '25cl';
         }
       }),
       child: AnimatedContainer(

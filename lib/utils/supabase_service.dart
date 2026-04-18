@@ -32,7 +32,7 @@ class SupabaseService {
       'id': c.id,
       'owner_id': ownerId,
       'profile_id': c.userId,
-      'date': c.date.toIso8601String(),
+      'date': c.date.toUtc().toIso8601String(),
       'moment': c.moment,
       'type': c.type,
       'volume': c.volume,
@@ -75,7 +75,7 @@ class SupabaseService {
     final consumptions = (consumptionData as List).map((json) {
       return Consumption(
         id: json['id'],
-        date: DateTime.parse(json['date']),
+        date: DateTime.parse(json['date']).toLocal(),
         moment: json['moment'] ?? 'Soir',
         type: json['type'],
         volume: json['volume'],
