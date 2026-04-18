@@ -356,32 +356,73 @@
                     const { data: events } = await supabase.from('site_events').select('*');
                     const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
 
-                    if (visits) {
+                    if (visits && events) {
+                        // 1. STATS DE BASE
                         document.getElementById('stat-total-visits').innerText = visits.length;
                         
-                        // Calcul des uniques basé sur Session ID ou UserAgent
-                        const uniques = new Set(visits.map(v => v.session_id || v.ip_address || v.user_agent)).size;
-                        document.getElementById('stat-unique-visits').innerText = uniques;
+                        // Uniques basés sur session_id (nouvelles data) ou ip/userAgent (old data)
+                        const uniqueSessions = new Set(visits.map(v => v.session_id || v.ip_address || v.user_agent));
+                        document.getElementById('stat-unique-visits').innerText = uniqueSessions.size;
 
-                        document.getElementById('visits-table-body').innerHTML = visits.slice(0, 15).map(v => `
-                            <tr>
-                                <td style="font-weight:700">${new Date(v.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</td>
-                                <td>${v.page_path}</td>
-                                <td>${v.device_type === 'mobile' ? '📱' : '💻'}</td>
-                                <td><span class="badge-ip">${v.ip_address || '-'}</span></td>
-                            </tr>`).join('');
+                        // 2. ENGAGEMENT RÉEL (% de visiteurs ayant fait une action manuelle)
+                        const activeSessionIds = new Set(events
+                            .filter(e => e.event_name !== 'heartbeat')
+                            .map(e => {
+                                // On essaie de retrouver le session_id dans les events (si dispo)
+                                return e.event_data?.session_id || e.id; 
+                            })
+                        );
+                        // Version plus simple : visiteurs uniques ayant généré au moins un event non-heartbeat
+                        const visitorsWithEvent = visits.filter(v => 
+                            events.some(e => e.event_name !== 'heartbeat' && (e.created_at.substring(0,16) === v.created_at.substring(0,16)))
+                        ).length;
+
+                        // Calcul simplifié : % de clics sur les boutons clés
+                        const mainActions = events.filter(e => e.event_name.startsWith('click_') || e.event_name.startsWith('simulator_')).length;
+                        const engagementRate = visits.length > 0 ? Math.round((mainActions / visits.length) * 100) : 0;
+                        document.getElementById('stat-interactions').innerText = engagementRate + '%';
+
+                        // 3. TABLEAU DES VISITES AVEC INFOS PRÉCISES
+                        document.getElementById('visits-table-body').innerHTML = visits.slice(0, 20).map(v => {
+                            const time = new Date(v.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+                            const date = new Date(v.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit'});
+                            
+                            // Détection simplifiée OS
+                            let os = "Inconnu";
+                            if (v.user_agent.includes("iPhone")) os = "iOS";
+                            else if (v.user_agent.includes("Android")) os = "Android";
+                            else if (v.user_agent.includes("Windows")) os = "Windows";
+                            else if (v.user_agent.includes("Macintosh")) os = "macOS";
+
+                            const referrer = (v.referrer && v.referrer !== 'direct') ? v.referrer.split('/')[2] : 'Direct';
+
+                            return `
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:700">${time}</div>
+                                        <div style="font-size:0.6rem; color:var(--text-muted)">${date}</div>
+                                    </td>
+                                    <td style="font-size:0.75rem">${referrer}</td>
+                                    <td>
+                                        <div style="font-size:1.1rem">${v.device_type === 'mobile' ? '📱' : '💻'}</div>
+                                        <div style="font-size:0.6rem; font-weight:800; color:var(--accent)">${os.toUpperCase()}</div>
+                                    </td>
+                                    <td>
+                                        <div class="badge-ip">${v.ip_address || '-'}</div>
+                                        <div style="font-size:0.5rem; color:var(--text-muted); margin-top:2px;">${v.screen_resolution || ''}</div>
+                                    </td>
+                                </tr>`;
+                        }).join('');
+
                         renderChart(visits);
                         
-                        // Engagement (Nombre d'événements par rapport aux visites)
-                        if (events) {
-                            const rate = visits.length > 0 ? Math.round((events.length / visits.length) * 100) : 0;
-                            document.getElementById('stat-interactions').innerText = rate + '%';
-                            
-                            const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
-                            document.getElementById('stat-active-users').innerText = active;
-                        }
+                        // 4. LIVE & ACTIONS RÉCENTES
+                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 180000).toISOString()).length;
+                        document.getElementById('stat-active-users').innerText = active;
                     }
+                    
                     if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
+                    
                 } catch(e) { console.error(e); }
             }
 
