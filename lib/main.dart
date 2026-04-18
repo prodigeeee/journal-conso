@@ -2340,9 +2340,8 @@ class _StatsScreenState extends State<StatsScreen> {
   double _calculateBACAt(DateTime targetTime) {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
     double totalAbsorbedBAC = 0.0;
-    DateTime? firstDrinkTime;
-
-    // On récupère les consos pertinentes (dernières 24h avant targetTime)
+    
+    // 1. Filtrer et localiser les consos des dernières 24h
     final relevantConsos = widget.consumptions.where((c) {
       final cDate = c.date.toLocal();
       return targetTime.difference(cDate).inHours < 24 && cDate.isBefore(targetTime);
@@ -2350,41 +2349,44 @@ class _StatsScreenState extends State<StatsScreen> {
 
     if (relevantConsos.isEmpty) return 0.0;
 
-    // Trier par date pour trouver la première boisson
+    // 2. Trier par date pour trouver la première boisson
     relevantConsos.sort((a, b) => a.date.compareTo(b.date));
-    firstDrinkTime = relevantConsos.first.date.toLocal();
+    final DateTime firstDrinkTime = relevantConsos.first.date.toLocal();
 
     for (var c in relevantConsos) {
       final cDate = c.date.toLocal();
+      
+      // Nettoyage robuste du volume (ex: "33 cl" -> 33.0)
       double vol = 0;
-      String vStr = c.volume.toLowerCase();
-      if (vStr.contains('ml')) {
-        vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0;
-      } else {
-        vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+      String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
+      vol = double.tryParse(vStr) ?? 0;
+      
+      // Si c'était des ml, on convertit en cl pour la formule (qui attend des cl si on multiplie par 10 pour avoir des ml pur)
+      if (c.volume.toLowerCase().contains('ml')) {
+        vol = vol / 10.0;
       }
 
       double deg = c.degree;
+      // Grammes d'alcool = Volume(ml) * Degré * Densité(0.8)
       double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
       double drinkMaxBAC = alcoholGrams / (widget.activeUser.weight * r);
 
-      // Temps depuis cette boisson (avec 15min de délai avant début d'absorption)
-      final diffFromDrink = targetTime.difference(cDate.add(const Duration(minutes: 15))).inMinutes / 60.0;
+      // Temps depuis la boisson (+15 min de latence avant début absorption)
+      final diffFromDrinkInHours = targetTime.difference(cDate.add(const Duration(minutes: 15))).inMinutes / 60.0;
       
-      if (diffFromDrink > 0) {
-        // Montée linéaire sur 45 min
-        double absorptionFactor = (diffFromDrink * 60) / 45.0;
+      if (diffFromDrinkInHours > 0) {
+        // Absorption progressive (pic à 45 mins = 0.75h)
+        double absorptionFactor = (diffFromDrinkInHours * 60) / 45.0;
         if (absorptionFactor > 1.0) absorptionFactor = 1.0;
         totalAbsorbedBAC += (drinkMaxBAC * absorptionFactor);
       }
     }
 
-    // Élimination GLOBALE (un seul foie) depuis la toute première boisson
-    // L'élimination commence 15min après la toute première gorgée
-    final totalDiff = targetTime.difference(firstDrinkTime.add(const Duration(minutes: 15))).inMinutes / 60.0;
+    // 3. Élimination GLOBALE depuis la première boisson (+15 min latence)
+    final totalDiffInHours = targetTime.difference(firstDrinkTime.add(const Duration(minutes: 15))).inMinutes / 60.0;
     double globalElimination = 0.0;
-    if (totalDiff > 0) {
-      globalElimination = totalDiff * 0.15; 
+    if (totalDiffInHours > 0) {
+      globalElimination = totalDiffInHours * 0.15; 
     }
 
     double finalBAC = totalAbsorbedBAC - globalElimination;
