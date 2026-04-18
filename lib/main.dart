@@ -3697,17 +3697,18 @@ class _OptionsScreenState extends State<OptionsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
+        initialChildSize: 0.8,
         maxChildSize: 0.95,
         minChildSize: 0.5,
         builder: (_, scrollController) => Container(
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF14191F) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
           ),
-          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
+              const SizedBox(height: 12),
               Container(
                 width: 40,
                 height: 4,
@@ -3715,75 +3716,53 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   color: widget.accentColor.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
-                margin: const EdgeInsets.only(bottom: 20),
               ),
-              Text(
-                "POLITIQUE DE CONFIDENTIALITÉ",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: widget.accentColor,
-                  fontSize: 16,
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  "POLITIQUE DE CONFIDENTIALITÉ",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: widget.accentColor,
+                    fontSize: 18,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
               Expanded(
                 child: ListView(
                   controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   children: [
                     Text(
-                      "Dernière mise à jour : 21 Mars 2026\n",
+                      "Dernière mise à jour : 18 Avril 2026\n",
                       style: TextStyle(
                         fontStyle: FontStyle.italic,
-                        color: widget.isDarkMode
-                            ? Colors.white70
-                            : Colors.black54,
+                        fontSize: 12,
+                        color: widget.isDarkMode ? Colors.white54 : Colors.black54,
                       ),
                     ),
                     _infoSection(
                       "1. Présentation",
-                      "Journal Conso est une application mobile permettant à l’utilisateur de tenir un journal personnel de consommation d’alcool, de consulter des statistiques indicatives et de gérer ses données localement sur son appareil.",
+                      "Journal Conso permet de tenir un journal personnel de consommation d'alcool. Vos données sont soit stockées localement sur votre appareil, soit synchronisées de manière sécurisée dans le Cloud si vous possédez un compte.",
                     ),
                     _infoSection(
-                      "2. Données enregistrées",
-                      "L’application peut enregistrer localement :\n• les données de journal de consommation saisies par l’utilisateur ;\n• les informations liées aux profils créés dans l’application ;\n• les préférences d’affichage, notamment le thème ;\n• les données nécessaires aux statistiques et visualisations ;\n• les fichiers exportés volontairement par l’utilisateur.",
+                      "2. Données et stockage",
+                      "• Mode Local : Vos données restent uniquement sur votre téléphone.\n• Mode Cloud (Supabase) : Si vous créez un compte, vos données (profils, consommations) sont sauvegardées sur les serveurs sécurisés de Supabase. Elles sont chiffrées et protégées par votre mot de passe.",
                     ),
                     _infoSection(
-                      "3. Stockage local uniquement",
-                      "Toutes les données de Journal Conso sont stockées uniquement sur l’appareil de l’utilisateur.\nL’application n’envoie aucune donnée à son auteur, à un serveur distant ou à des tiers.",
+                      "3. Sécurité Cloud",
+                      "Nous utilisons Supabase, une infrastructure de pointe, pour garantir que seul vous pouvez accéder à vos données. Aucune donnée n'est vendue ni partagée avec des tiers.",
                     ),
                     _infoSection(
-                      "4. Absence de compte et de suivi",
-                      "L’application fonctionne sans compte utilisateur, sans synchronisation cloud, sans publicité, sans outil d’analyse d’usage et sans traqueur externe.",
+                      "4. Vos Droits",
+                      "Conformément au RGPD, vous disposez d'un droit total sur vos données. Vous pouvez supprimer votre compte et toutes les données associées instantanément depuis les réglages de l'application ou en nous contactant.",
                     ),
                     _infoSection(
-                      "5. Finalité",
-                      "Les données sont utilisées uniquement pour permettre à l’utilisateur de consigner sa consommation, consulter son calendrier, utiliser plusieurs profils et gérer ses données.",
+                      "5. Limites de responsabilité",
+                      "Journal Conso n'est pas un dispositif médical. Les estimations d'alcoolémie sont purement indicatives et ne doivent jamais être utilisées pour déterminer votre aptitude à conduire.",
                     ),
-                    _infoSection(
-                      "6. Partage des données",
-                      "Aucune donnée personnelle n’est partagée automatiquement par l’application.",
-                    ),
-                    _infoSection(
-                      "7. Export et import",
-                      "L’utilisateur peut exporter ses données au format JSON. Il reste responsable de leur stockage et de leur protection.",
-                    ),
-                    _infoSection(
-                      "8. Suppression des données",
-                      "L’utilisateur peut supprimer tout ou partie de ses données depuis l’application.",
-                    ),
-                    _infoSection(
-                      "9. Sécurité",
-                      "Les données étant conservées localement, leur sécurité dépend de la protection de l'appareil utilisé. Activez un code de verrouillage.",
-                    ),
-                    _infoSection(
-                      "10. Limites de l’application",
-                      "Journal Conso n'est pas un dispositif médical. Les estimations d'alcoolémie sont indicatives. L'application ne doit jamais déterminer une aptitude à conduire.",
-                    ),
-                    _infoSection(
-                      "11. Contact",
-                      "Auteur : ChrisK\nAdresse : journalconso@gmail.com",
-                    ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 50),
                   ],
                 ),
               ),
@@ -3805,12 +3784,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
         minChildSize: 0.5,
         builder: (_, scrollController) => Container(
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF14191F) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
           ),
-          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
+              const SizedBox(height: 12),
               Container(
                 width: 40,
                 height: 4,
@@ -3818,41 +3798,44 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   color: widget.accentColor.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
-                margin: const EdgeInsets.only(bottom: 20),
               ),
-              Text(
-                "INFORMATIONS LÉGALES",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: widget.accentColor,
-                  fontSize: 16,
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  "INFORMATIONS LÉGALES",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: widget.accentColor,
+                    fontSize: 18,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
               Expanded(
                 child: ListView(
                   controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   children: [
                     Text(
-                      "Journal Conso est une application de suivi personnel permettant d’enregistrer localement sa consommation d’alcool et d’afficher des statistiques indicatives.\n",
+                      "Journal Conso est édité par ChrisK. L'application utilise la technologie Supabase pour la synchronisation Cloud sécurisée.\n",
                       style: TextStyle(
-                        fontSize: 13,
-                        color: widget.isDarkMode
-                            ? Colors.white
-                            : Colors.black87,
+                        fontSize: 14,
+                        color: widget.isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                     _infoSection(
-                      "Confidentialité",
-                      "Vos données sont stockées uniquement sur votre appareil. L’application ne transmet aucune donnée à l’auteur ni à des tiers.",
+                      "Contact technique",
+                      "journalconso@gmail.com",
+                    ),
+                    _infoSection(
+                      "Hébergement Cloud",
+                      "Les données authentifiées sont hébergées par Supabase (serveurs en Europe).",
                     ),
                     _infoSection(
                       "Avertissement",
-                      "Journal Conso n’est pas un dispositif médical. Les estimations affichées sont indicatives et ne remplacent ni un éthylotest, ni un avis médical, ni les règles légales applicables.",
+                      "Le test de réflexes et les courbes d'alcoolémie sont des outils de sensibilisation et n'ont aucune valeur médicale ou légale.",
                     ),
-                    _infoSection("Auteur", "ChrisK"),
-                    _infoSection("Contact", "journalconso@gmail.com"),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 50),
                   ],
                 ),
               ),
@@ -4541,7 +4524,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.5+7",
+            "Version 1.1.6+8",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,

@@ -121,9 +121,17 @@ class _AuthScreenState extends State<AuthScreen> {
         widget.onAuthSuccess();
       }
     } on AuthException catch (e) {
+      String message = e.message;
+      if (message == "Invalid login credentials") {
+        message = "Identifiants invalides. Veuillez vérifier votre e-mail et mot de passe.";
+      } else if (message == "User already registered") {
+        message = "Cet e-mail est déjà utilisé.";
+      } else if (message == "Email not confirmed") {
+        message = "Veuillez confirmer votre adresse e-mail avant de vous connecter.";
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
         );
       }
     } catch (e) {
