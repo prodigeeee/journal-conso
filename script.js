@@ -295,9 +295,17 @@ async function logVisit() {
     
     try {
         // Fetch IP address (optional but requested)
+        // ID de session persistent pour les Uniques (plus fiable que l'IP)
+        let sessionId = localStorage.getItem('site_sid');
+        if (!sessionId) {
+            sessionId = 's_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('site_sid', sessionId);
+        }
+
+        // Fetch IP address (alternative service)
         let ip = 'anonyme';
         try {
-            const res = await fetch('https://ipapi.co/json/');
+            const res = await fetch('https://api.ipify.org?format=json');
             const data = await res.json();
             ip = data.ip || 'anonyme';
         } catch (e) { /* ignore */ }
@@ -309,6 +317,7 @@ async function logVisit() {
             user_agent: navigator.userAgent,
             device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
             ip_address: ip,
+            session_id: sessionId,
             created_at: new Date().toISOString()
         };
 

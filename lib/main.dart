@@ -487,7 +487,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
     try {
       // 1. Suppression des données sur le serveur
+      // 1. Suppression des données sur le serveur (Cascade SQL)
       await SupabaseService.deleteAllUserData(user.id);
+      
+      // 1.b Suppression DEFINITIVE du compte Auth (via la fonction RPC créée dans Supabase)
+      await Supabase.instance.client.rpc('delete_user');
       
       // 2. Déconnexion
       await Supabase.instance.client.auth.signOut();

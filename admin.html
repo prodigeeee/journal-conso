@@ -353,9 +353,16 @@
             async function loadData() {
                 try {
                     const { data: visits } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
+                    const { data: events } = await supabase.from('site_events').select('*');
+                    const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+
                     if (visits) {
                         document.getElementById('stat-total-visits').innerText = visits.length;
-                        document.getElementById('stat-unique-visits').innerText = new Set(visits.map(v => v.ip_address || v.user_agent)).size;
+                        
+                        // Calcul des uniques basé sur Session ID ou UserAgent
+                        const uniques = new Set(visits.map(v => v.session_id || v.ip_address || v.user_agent)).size;
+                        document.getElementById('stat-unique-visits').innerText = uniques;
+
                         document.getElementById('visits-table-body').innerHTML = visits.slice(0, 15).map(v => `
                             <tr>
                                 <td style="font-weight:700">${new Date(v.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</td>
@@ -364,15 +371,18 @@
                                 <td><span class="badge-ip">${v.ip_address || '-'}</span></td>
                             </tr>`).join('');
                         renderChart(visits);
+                        
+                        // Engagement (Nombre d'événements par rapport aux visites)
+                        if (events) {
+                            const rate = visits.length > 0 ? Math.round((events.length / visits.length) * 100) : 0;
+                            document.getElementById('stat-interactions').innerText = rate + '%';
+                            
+                            const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
+                            document.getElementById('stat-active-users').innerText = active;
+                        }
                     }
-                    const { data: events } = await supabase.from('site_events').select('*');
-                    if (events) {
-                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 120000).toISOString()).length;
-                        document.getElementById('stat-active-users').innerText = active;
-                    }
-                    const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
                     if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
-                } catch(e) {}
+                } catch(e) { console.error(e); }
             }
 
             async function loadCMS() {
