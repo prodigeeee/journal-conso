@@ -2341,23 +2341,24 @@ class _StatsScreenState extends State<StatsScreen> {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
     double totalAbsorbedBAC = 0.0;
     
-    // On travaille exclusivement en local pour la comparaison avec DateTime.now()
-    final DateTime targetLocal = targetTime.isUtc ? targetTime.toLocal() : targetTime;
+    // On utilise les timestamps en millisecondes pour une comparaison absolue (plus de bug de timezone)
+    final int nowMs = targetTime.millisecondsSinceEpoch;
 
     final relevantConsos = widget.consumptions.where((c) {
-      final cDateLocal = c.date.isUtc ? c.date.toLocal() : c.date;
-      return targetLocal.difference(cDateLocal).inHours < 24 && cDateLocal.isBefore(targetLocal);
+      final int cMs = c.date.millisecondsSinceEpoch;
+      // On convertit 24h en ms (24 * 3600 * 1000)
+      final bool isRecent = (nowMs - cMs) < (24 * 3600 * 1000);
+      final bool isPast = cMs <= nowMs;
+      return isRecent && isPast;
     }).toList();
 
     if (relevantConsos.isEmpty) return 0.0;
 
     relevantConsos.sort((a, b) => a.date.compareTo(b.date));
-    final DateTime firstDrinkTime = relevantConsos.first.date.isUtc 
-        ? relevantConsos.first.date.toLocal() 
-        : relevantConsos.first.date;
+    final int firstDrinkMs = relevantConsos.first.date.millisecondsSinceEpoch;
 
     for (var c in relevantConsos) {
-      final cDateLocal = c.date.isUtc ? c.date.toLocal() : c.date;
+      final int cMs = c.date.millisecondsSinceEpoch;
       
       double vol = 0;
       String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
@@ -2368,16 +2369,19 @@ class _StatsScreenState extends State<StatsScreen> {
       double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
       double drinkMaxBAC = alcoholGrams / (widget.activeUser.weight * r);
 
-      final diffFromDrinkInHours = targetLocal.difference(cDateLocal.add(const Duration(minutes: 15))).inMinutes / 60.0;
+      // Temps depuis la boisson (+15 min de latence = 900 000 ms)
+      final double diffFromDrinkInHours = (nowMs - (cMs + 900000)) / 3600000.0;
       
       if (diffFromDrinkInHours > 0) {
-        double absorptionFactor = (diffFromDrinkInHours * 60) / 45.0;
+        // Absorption sur 45 min (0.75h)
+        double absorptionFactor = diffFromDrinkInHours / 0.75;
         if (absorptionFactor > 1.0) absorptionFactor = 1.0;
         totalAbsorbedBAC += (drinkMaxBAC * absorptionFactor);
       }
     }
 
-    final totalDiffInHours = targetLocal.difference(firstDrinkTime.add(const Duration(minutes: 15))).inMinutes / 60.0;
+    // Élimination GLOBALE depuis la première boisson (+15 min latence)
+    final double totalDiffInHours = (nowMs - (firstDrinkMs + 900000)) / 3600000.0;
     double globalElimination = 0.0;
     if (totalDiffInHours > 0) {
       globalElimination = totalDiffInHours * 0.15; 
@@ -2387,7 +2391,10 @@ class _StatsScreenState extends State<StatsScreen> {
     return finalBAC > 0 ? finalBAC : 0.0;
   }
 
-  double _calculateCurrentBAC() => _calculateBACAt(DateTime.now());
+  double _calculateCurrentBAC() {
+    // On s'assure d'appeler avec l'heure précise du système
+    return _calculateBACAt(DateTime.now());
+  }
 
   Widget _buildBACCurve() {
     final now = DateTime.now();
