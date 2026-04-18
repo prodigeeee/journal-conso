@@ -369,16 +369,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   }
 
   Future<void> _saveAll({bool silent = true}) async {
-    // 1. Sauvegarde instantanée en local (Offline / Cache)
-    await StorageService.saveAll(
+    // 1. Mise à jour de l'UI IMMÉDIATE
+    if (mounted) setState(() {});
+
+    // 2. Sauvegarde en local (Offline / Cache) en arrière-plan
+    StorageService.saveAll(
       profiles: _profiles,
       contexts: _contexts,
       consumptions: _allConsumptions,
       activeUserId: _activeUserId,
     );
-    
-    // 2. Mise à jour de l'UI immédiate sans attendre de réseau
-    if (mounted) setState(() {});
   }
 
   Future<void> _exportFullProject() async {
@@ -3098,7 +3098,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Cette application utilise une Version 1.1.9+12
+                    "Cette application utilise une Version 1.1.9+13
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -3229,17 +3229,24 @@ class _StatsScreenState extends State<StatsScreen> {
       DateTime d = (_period == 'Année')
           ? DateTime(today.year, today.month - (count - 1 - i), 1)
           : today.subtract(Duration(days: (count - 1) - i));
-      double val = widget.consumptions
-          .where(
-            (c) => (_period == 'Année')
+      
+      double dayUnits = 0;
+      final dayConsos = widget.consumptions.where((c) => (_period == 'Année')
                 ? (c.date.year == d.year && c.date.month == d.month)
-                : (c.date.year == d.year &&
-                      d.month == c.date.month &&
-                      c.date.day == d.day),
-          )
-          .length
-          .toDouble();
-      if (val > maxFound) maxFound = val;
+                : belongsToLogicalDay(c.date, d));
+
+      for (var c in dayConsos) {
+        double vol = 0;
+        String vStr = c.volume.toLowerCase();
+        if (vStr.contains('ml')) {
+          vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0;
+        } else {
+          vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+        }
+        dayUnits += (vol * 10 * c.degree * 0.8) / 1000.0; // En unités (10g)
+      }
+
+      if (dayUnits > maxFound) maxFound = dayUnits;
     }
     double sharedMaxY = maxFound < 5 ? 6 : maxFound + 2;
 
@@ -3295,18 +3302,25 @@ class _StatsScreenState extends State<StatsScreen> {
       DateTime d = (_period == 'Année')
           ? DateTime(today.year, today.month - (count - 1 - i), 1)
           : today.subtract(Duration(days: (count - 1) - i));
-      double val = widget.consumptions
-          .where(
-            (c) => (_period == 'Année')
+      
+      double dayUnits = 0;
+      final dayConsos = widget.consumptions.where((c) => (_period == 'Année')
                 ? (c.date.year == d.year && c.date.month == d.month)
-                : (c.date.year == d.year &&
-                      d.month == c.date.month &&
-                      c.date.day == d.day),
-          )
-          .length
-          .toDouble();
-      if (val > maxFound) maxFound = val;
-      spots.add(FlSpot(i.toDouble(), val));
+                : belongsToLogicalDay(c.date, d));
+
+      for (var c in dayConsos) {
+        double vol = 0;
+        String vStr = c.volume.toLowerCase();
+        if (vStr.contains('ml')) {
+          vol = (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) / 10.0;
+        } else {
+          vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+        }
+        dayUnits += (vol * 10 * c.degree * 0.8) / 1000.0; // En unités (10g)
+      }
+
+      if (dayUnits > maxFound) maxFound = dayUnits;
+      spots.add(FlSpot(i.toDouble(), dayUnits));
     }
     double sharedMaxY = maxFound < 5 ? 6 : maxFound + 2;
 
@@ -4568,7 +4582,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.9+12
+            "Version 1.1.9+13
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
