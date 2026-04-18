@@ -41,8 +41,8 @@ void main() async {
   Supabase.initialize(
     url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
-  ).then((_) => print("✅ Supabase initialisé"))
-   .catchError((e) => print("⚠️ Erreur Supabase : $e"));
+  ).then((_) => debugPrint("✅ Supabase initialisé"))
+   .catchError((e) => debugPrint("⚠️ Erreur Supabase : $e"));
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initializeDateFormatting('fr_FR', null); // On réactive les dates
@@ -470,10 +470,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
-      if (!silent) _showAuraSnackBar(L10n.s('sync.success', args: {
-        'profiles': _profiles.length.toString(),
-        'consos': _allConsumptions.length.toString(),
-      }));
+      if (!silent) {
+        _showAuraSnackBar(L10n.s('sync.success', args: {
+          'profiles': _profiles.length.toString(),
+          'consos': _allConsumptions.length.toString(),
+        }));
+      }
     } catch (e) {
       if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
     }
@@ -2290,7 +2292,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
   double _calculateBACAt(DateTime targetTime) {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
-    final now = DateTime.now();
     double total = 0.0;
     // On prend en compte les consommations des dernières 24h, forcées en local
     final relevantConsos = widget.consumptions
@@ -3098,7 +3099,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Cette application utilise une Version 1.1.9+13
+                    "Cette application utilise une Version 1.1.9+13",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -4582,7 +4583,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.9+13
+            "Version 1.1.9+13",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
@@ -4626,17 +4627,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
     );
   }
 
-  void _showSobrietyTestFromOptions() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (c) => SobrietyTestSheet(
-        isDarkMode: widget.isDarkMode,
-        accentColor: widget.accentColor,
-      ),
-    );
-  }
+
 
   void _showUserGuide() {
     showModalBottomSheet(
