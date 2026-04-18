@@ -2139,11 +2139,21 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), bottomLeft: Radius.circular(14)),
               onTap: () {
                 final now = DateTime.now();
+                // On garde la DATE de la conso d'origine (pour rester sur le même jour logique)
+                // mais on prend l'HEURE actuelle.
+                final newDate = DateTime(
+                  c.date.year,
+                  c.date.month,
+                  c.date.day,
+                  now.hour,
+                  now.minute,
+                );
+                
                 widget.onAddOrUpdate(
                   Consumption(
                     id: now.millisecondsSinceEpoch.toString(),
-                    date: c.date,
-                    moment: c.moment,
+                    date: newDate,
+                    moment: getMomentFromTime(TimeOfDay.fromDateTime(newDate)),
                     type: c.type,
                     volume: c.volume,
                     degree: c.degree,
