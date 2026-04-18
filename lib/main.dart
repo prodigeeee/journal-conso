@@ -4522,6 +4522,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
             onTap: () => _confirmFullReset(),
           ),
         ),
+        const SizedBox(height: 20),
+        Center(
+          child: Text(
+            "Version 1.1.1+3",
+            style: TextStyle(
+              fontSize: 10,
+              color: widget.isDarkMode ? Colors.white24 : Colors.black26,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
         const SizedBox(height: 120),
       ],
     );
