@@ -171,17 +171,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       if (data.event == AuthChangeEvent.signedOut) {
         await StorageService.clearAll();
-        if (mounted) {
-          setState(() {
-            _profiles = [];
-            _allConsumptions = [];
-            _contexts = {};
-            _activeUserId = '1';
-          });
-        }
-      } else if (data.event == AuthChangeEvent.signedIn) {
-        // En cas de nouvelle connexion, on s'assure de recharger proprement depuis le Cloud
-        await _pullFromCloud();
       }
       if (mounted) setState(() {});
     });
@@ -4539,7 +4528,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.3+5",
+            "Version 1.1.4+6",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
