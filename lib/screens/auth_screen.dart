@@ -44,7 +44,14 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleAuth() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) return;
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Veuillez remplir tous les champs"), backgroundColor: Colors.orangeAccent),
+        );
+      }
+      return;
+    }
     
     setState(() => _isLoading = true);
     try {
@@ -65,10 +72,20 @@ class _AuthScreenState extends State<AuthScreen> {
           widget.onAuthSuccess();
           return;
         }
-        // Sinon on prévient qu'il faut vérifier ses mails
+        // Sinon on prévient qu'il faut vérifier ses mails (plus visible avec un Dialog)
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(L10n.s('auth.check_email'))),
+          showDialog(
+            context: context,
+            builder: (c) => AlertDialog(
+              title: Text(L10n.s('auth.check_email_title') ?? "Vérification requise"),
+              content: Text(L10n.s('auth.check_email')),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(c),
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
           );
         }
       } else {

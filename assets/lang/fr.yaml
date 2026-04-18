@@ -31,6 +31,7 @@ auth:
   no_account: "Pas de compte ? Inscrivez-vous"
   secure_notice: "Vos données sont chiffrées et sécurisées par Supabase"
   check_email: "Compte créé ! Veuillez vérifier vos e-mails pour valider votre inscription (ou connectez-vous si déjà validé)."
+  check_email_title: "Vérification requise"
   server_error: "Erreur de connexion au serveur"
   reset_prompt: "Veuillez saisir votre e-mail pour réinitialiser le mot de passe."
   reset_sent: "Lien de réinitialisation envoyé par e-mail !"

@@ -162,11 +162,21 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   bool _isDarkMode = true;
   bool _isYoungDriver = false;
   bool _unitMl = false;
+  late StreamSubscription<AuthState> _authSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadTheme();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
   }
 
   Future<void> _loadTheme() async {
