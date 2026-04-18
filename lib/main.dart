@@ -481,6 +481,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     }
   }
 
+  Future<void> _deleteOnlineAccount() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      // 1. Suppression des données sur le serveur
+      await SupabaseService.deleteAllUserData(user.id);
+      
+      // 2. Déconnexion
+      await Supabase.instance.client.auth.signOut();
+      
+      // 3. Réinitialisation locale pour un nouveau départ propre
+      setState(() {
+        _profiles = [UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35)];
+        _allConsumptions.clear();
+        _contexts.clear();
+        _activeUserId = '1';
+      });
+      await _saveAll();
+      
+      _showAuraSnackBar("Compte et données cloud supprimés avec succès.");
+    } catch (e) {
+      _showAuraSnackBar("Erreur lors de la suppression: $e", isError: true);
+    }
+  }
+
   Future<void> _pullFromCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -1196,6 +1222,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       onUnitMlChanged: widget.onUnitMlChanged,
                       onSyncCloud: () => _pullFromCloud(silent: false),
                       onPushCloud: () => _pushToCloud(silent: false),
+                      onDeleteAccount: _deleteOnlineAccount,
                       onLogout: () async {
                         final session = Supabase.instance.client.auth.currentSession;
                         if (session != null) {
@@ -3595,6 +3622,7 @@ class OptionsScreen extends StatefulWidget {
   final Function(bool) onUnitMlChanged;
   final VoidCallback? onSyncCloud;
   final VoidCallback? onPushCloud;
+  final VoidCallback? onDeleteAccount;
   final VoidCallback onLogout;
 
   const OptionsScreen({
@@ -3618,6 +3646,7 @@ class OptionsScreen extends StatefulWidget {
     required this.onUnitMlChanged,
     this.onSyncCloud,
     this.onPushCloud,
+    this.onDeleteAccount,
     required this.onLogout,
   });
   @override
@@ -4590,6 +4619,23 @@ class _OptionsScreenState extends State<OptionsScreen> {
             onTap: () => _confirmFullReset(),
           ),
         ),
+        if (Supabase.instance.client.auth.currentUser != null) ...[
+          const SizedBox(height: 10),
+          glassModule(
+            isDarkMode: widget.isDarkMode,
+            showHalo: false,
+            borderColor: Colors.redAccent.withValues(alpha: 0.3),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.person_off, color: Colors.redAccent),
+              title: const Text(
+                "Supprimer mon compte & mes données",
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              ),
+              onTap: () => _showDeleteAccountConfirm(),
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         Center(
           child: Text(
@@ -4614,6 +4660,24 @@ class _OptionsScreenState extends State<OptionsScreen> {
         content: Text(
           L10n.s('settings.reset_confirm_content'),
         ),
+            child: const Text(
+              "TOUT SUPPRIMER",
+              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountConfirm() {
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text("Supprimer le compte ?"),
+        content: const Text(
+          "Cette action est irréversible. Vos données seront définitivement effacées du cloud et votre application sera réinitialisée.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
@@ -4621,14 +4685,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ),
           TextButton(
             onPressed: () {
-              widget.onReset();
               Navigator.pop(c);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Toutes les données ont été effacées")),
-              );
+              if (widget.onDeleteAccount != null) {
+                widget.onDeleteAccount!();
+              }
             },
             child: const Text(
-              "TOUT SUPPRIMER",
+              "SUPPRIMER MON COMPTE",
               style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
             ),
           ),

@@ -130,6 +130,8 @@ class _AuthScreenState extends State<AuthScreen> {
         message = "Cet e-mail est déjà utilisé.";
       } else if (message == "Email not confirmed") {
         message = "Veuillez confirmer votre adresse e-mail avant de vous connecter.";
+      } else {
+        message = "$message\n(Vérifiez si vous avez déjà un compte)";
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -55,6 +55,11 @@ class SupabaseService {
     await _supabase.from('consumptions').delete().match({'id': id, 'owner_id': ownerId});
   }
 
+  static Future<void> deleteAllUserData(String ownerId) async {
+    await _supabase.from('profiles').delete().eq('owner_id', ownerId);
+    await _supabase.from('consumptions').delete().eq('owner_id', ownerId);
+  }
+
   // -- RÉCUPÉRATION FILTRÉE --
   static Future<Map<String, dynamic>> fetchAllData(String ownerId) async {
     final profileData = await _supabase.from('profiles').select().eq('owner_id', ownerId);
