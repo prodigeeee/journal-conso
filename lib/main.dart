@@ -2124,16 +2124,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _consoDraggable(Consumption c) {
     final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: widget.accentColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               final now = DateTime.now();
               widget.onAddOrUpdate(
@@ -2148,27 +2150,38 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-            child: Icon(Icons.add_circle, size: 14, color: widget.accentColor),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => _showSaisie(c.moment, existingConso: c),
-            child: Text(
-              '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
-              style: TextStyle(
-                fontSize: 10,
-                color: widget.accentColor,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 6, top: 4, bottom: 4),
+              child: Icon(Icons.copy_rounded, size: 20, color: widget.accentColor),
             ),
           ),
           const SizedBox(width: 8),
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _showSaisie(c.moment, existingConso: c),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: widget.accentColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => widget.onDelete(c.id),
-            child: const Icon(
-              Icons.delete_outline,
-              size: 14,
-              color: Colors.redAccent,
+            child: const Padding(
+              padding: EdgeInsets.only(left: 4, top: 4, bottom: 4),
+              child: Icon(
+                Icons.delete_outline,
+                size: 20,
+                color: Colors.redAccent,
+              ),
             ),
           ),
         ],
