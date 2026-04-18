@@ -302,7 +302,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     _initApp();
     
     // Timer de synchro auto toutes les 30 min (plus économe)
-    _syncTimer = Timer.periodic(const Duration(minutes: 30), (_) => _saveAll());
+    _syncTimer = Timer.periodic(const Duration(minutes: 30), (_) => _pushToCloud(silent: true));
   }
 
   @override
@@ -318,8 +318,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       // On resynchronise quand l'utilisateur revient sur l'app
       _pullFromCloud();
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      // On sauvegarde tout avant de quitter
-      _saveAll();
+      // Sauvegarde vers le cloud uniquement quand l'app passe en arrière-plan
+      _pushToCloud(silent: true);
     }
   }
 
@@ -369,9 +369,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   }
 
   Future<void> _saveAll({bool silent = true}) async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
-
+    // 1. Sauvegarde instantanée en local (Offline / Cache)
     await StorageService.saveAll(
       profiles: _profiles,
       contexts: _contexts,
@@ -379,8 +377,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       activeUserId: _activeUserId,
     );
     
-    await _pushToCloud(silent: silent);
-    setState(() {});
+    // 2. Mise à jour de l'UI immédiate sans attendre de réseau
+    if (mounted) setState(() {});
   }
 
   Future<void> _exportFullProject() async {
@@ -3100,7 +3098,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Cette application utilise une version améliorée et plus réaliste de la formule de Widmark.",
+                    "Cette application utilise une Version 1.1.9+12
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -4570,7 +4568,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.9+11",
+            "Version 1.1.9+12
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
