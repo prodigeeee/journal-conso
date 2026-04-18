@@ -533,18 +533,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
-        if (!silent) _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
-          'profiles': cloudProfiles.length.toString(),
-          'consos': cloudConsos.length.toString(),
-        }));
+        if (!silent) {
+          _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
+            'profiles': cloudProfiles.length.toString(),
+            'consos': cloudConsos.length.toString(),
+          }));
+        }
       } else {
-        if (!silent) _showAuraSnackBar(L10n.s('sync.no_data', args: {
-          'profiles': cloudProfiles.length.toString(),
-          'consos': cloudConsos.length.toString(),
-        }));
+        if (!silent) {
+          _showAuraSnackBar(L10n.s('sync.no_data', args: {
+            'profiles': cloudProfiles.length.toString(),
+            'consos': cloudConsos.length.toString(),
+          }));
+        }
       }
     } catch (e) {
-      if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+      if (!silent) {
+        _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+      }
     }
   }
 
@@ -4660,6 +4666,19 @@ class _OptionsScreenState extends State<OptionsScreen> {
         content: Text(
           L10n.s('settings.reset_confirm_content'),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c),
+            child: Text(L10n.s('common.cancel').toUpperCase()),
+          ),
+          TextButton(
+            onPressed: () {
+              widget.onReset();
+              Navigator.pop(c);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Toutes les données ont été effacées")),
+              );
+            },
             child: const Text(
               "TOUT SUPPRIMER",
               style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
