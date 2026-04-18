@@ -2123,76 +2123,72 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _consoDraggable(Consumption c) {
-    final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: widget.accentColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              final now = DateTime.now();
-              widget.onAddOrUpdate(
-                Consumption(
-                  id: now.millisecondsSinceEpoch.toString(),
-                  date: now,
-                  moment: getMomentFromTime(TimeOfDay.fromDateTime(now)),
-                  type: c.type,
-                  volume: c.volume,
-                  degree: c.degree,
-                  userId: c.userId,
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 6, top: 4, bottom: 4),
-              child: Icon(Icons.copy_rounded, size: 20, color: widget.accentColor),
+    final chip = Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: widget.accentColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            InkWell(
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), bottomLeft: Radius.circular(14)),
+              onTap: () {
+                final now = DateTime.now();
+                widget.onAddOrUpdate(
+                  Consumption(
+                    id: now.millisecondsSinceEpoch.toString(),
+                    date: c.date,
+                    moment: c.moment,
+                    type: c.type,
+                    volume: c.volume,
+                    degree: c.degree,
+                    userId: c.userId,
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+                child: Icon(Icons.add_circle, size: 20, color: widget.accentColor),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => _showSaisie(c.moment, existingConso: c),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: widget.accentColor,
-                  fontWeight: FontWeight.w700,
+            InkWell(
+              onTap: () => _showSaisie(c.moment, existingConso: c),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Text(
+                  '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: widget.accentColor,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => widget.onDelete(c.id),
-            child: const Padding(
-              padding: EdgeInsets.only(left: 4, top: 4, bottom: 4),
-              child: Icon(
-                Icons.delete_outline,
-                size: 20,
-                color: Colors.redAccent,
+            InkWell(
+              borderRadius: const BorderRadius.only(topRight: Radius.circular(14), bottomRight: Radius.circular(14)),
+              onTap: () => widget.onDelete(c.id),
+              child: const Padding(
+                padding: EdgeInsets.fromLTRB(6, 8, 10, 8),
+                child: Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.redAccent,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
     return LongPressDraggable<Consumption>(
       data: c,
-      feedback: Material(
-        color: Colors.transparent,
-        child: Opacity(opacity: 0.8, child: chip),
-      ),
+      feedback: Opacity(opacity: 0.8, child: chip),
       childWhenDragging: Opacity(opacity: 0.3, child: chip),
       child: chip,
     );
