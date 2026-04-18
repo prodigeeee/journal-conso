@@ -2339,60 +2339,66 @@ class _StatsScreenState extends State<StatsScreen> {
 
   double _calculateBACAt(DateTime targetTime) {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
-    double totalAbsorbedBAC = 0.0;
+    double weight = widget.activeUser.weight > 30 ? widget.activeUser.weight.toDouble() : 70.0;
     
-    // On utilise les timestamps en millisecondes pour une comparaison absolue (plus de bug de timezone)
-    final int nowMs = targetTime.millisecondsSinceEpoch;
-
+    // 1. Filtrer les consos des dernières 24h
+    final int targetMs = targetTime.millisecondsSinceEpoch;
     final relevantConsos = widget.consumptions.where((c) {
       final int cMs = c.date.millisecondsSinceEpoch;
-      // On convertit 24h en ms (24 * 3600 * 1000)
-      final bool isRecent = (nowMs - cMs) < (24 * 3600 * 1000);
-      final bool isPast = cMs <= nowMs;
-      return isRecent && isPast;
+      return (targetMs - cMs) < (24 * 3600 * 1000) && cMs <= targetMs;
     }).toList();
 
     if (relevantConsos.isEmpty) return 0.0;
 
+    // 2. Trier par ordre chronologique
     relevantConsos.sort((a, b) => a.date.compareTo(b.date));
-    final int firstDrinkMs = relevantConsos.first.date.millisecondsSinceEpoch;
+    
+    // 3. Simulation minute par minute (Modèle dynamique)
+    // On commence 1 minute avant le premier verre
+    int currentStepMs = relevantConsos.first.date.millisecondsSinceEpoch - 60000;
+    double currentBAC = 0.0;
+    const double eliminationPerMinute = 0.15 / 60.0;
 
-    for (var c in relevantConsos) {
-      final int cMs = c.date.millisecondsSinceEpoch;
+    // On avance par pas de 1 minute jusqu'à targetTime
+    while (currentStepMs < targetMs) {
+      currentStepMs += 60000; // +1 minute
       
-      double vol = 0;
-      String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
-      vol = double.tryParse(vStr) ?? 0;
-      if (c.volume.toLowerCase().contains('ml')) vol = vol / 10.0;
+      // A. Calcul de l'absorption pour TOUS les verres à cette minute précise
+      double minuteAbsorption = 0.0;
+      for (var c in relevantConsos) {
+        final int cMs = c.date.millisecondsSinceEpoch;
+        final double minutesSinceDrink = (currentStepMs - cMs) / 60000.0;
+        
+        // Un verre commence à être absorbé après 15 min de latence
+        // L'absorption est totale après 45 min supplémentaires (total 60 min)
+        if (minutesSinceDrink > 15 && minutesSinceDrink <= 60) {
+          double vol = 0;
+          String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
+          vol = double.tryParse(vStr) ?? 0;
+          if (c.volume.toLowerCase().contains('ml')) vol = vol / 10.0;
 
-      double deg = c.degree;
-      double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
-      double drinkMaxBAC = alcoholGrams / (widget.activeUser.weight * r);
-
-      // Temps depuis la boisson (+15 min de latence = 900 000 ms)
-      final double diffFromDrinkInHours = (nowMs - (cMs + 900000)) / 3600000.0;
+          double deg = c.degree;
+          double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
+          double drinkMaxBAC = alcoholGrams / (weight * r);
+          
+          // Absorption linéaire sur 45 min (1/45ème du total chaque minute)
+          minuteAbsorption += (drinkMaxBAC / 45.0);
+        }
+      }
       
-      if (diffFromDrinkInHours > 0) {
-        // Absorption sur 45 min (0.75h)
-        double absorptionFactor = diffFromDrinkInHours / 0.75;
-        if (absorptionFactor > 1.0) absorptionFactor = 1.0;
-        totalAbsorbedBAC += (drinkMaxBAC * absorptionFactor);
+      currentBAC += minuteAbsorption;
+
+      // B. Élimination (uniquement si BAC > 0)
+      if (currentBAC > 0) {
+        currentBAC -= eliminationPerMinute;
+        if (currentBAC < 0) currentBAC = 0.0;
       }
     }
 
-    // Élimination GLOBALE depuis la première boisson (+15 min latence)
-    final double totalDiffInHours = (nowMs - (firstDrinkMs + 900000)) / 3600000.0;
-    double globalElimination = 0.0;
-    if (totalDiffInHours > 0) {
-      globalElimination = totalDiffInHours * 0.15; 
-    }
-
-    double finalBAC = totalAbsorbedBAC - globalElimination;
-    return finalBAC > 0 ? finalBAC : 0.0;
+    return currentBAC;
   }
 
   double _calculateCurrentBAC() {
-    // On s'assure d'appeler avec l'heure précise du système
     return _calculateBACAt(DateTime.now());
   }
 
