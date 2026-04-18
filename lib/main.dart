@@ -305,8 +305,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   }
 
   Future<void> _initApp() async {
-    final data = await StorageService.loadAppData();
     final user = Supabase.instance.client.auth.currentUser;
+    final storedUserId = await StorageService.getSupabaseUserId();
+
+    // SECURITE CRITIQUE : Si on détecte un changement de compte, on vide tout le cache local
+    if (user != null && storedUserId != null && storedUserId != user.id) {
+      debugPrint("Changement de compte détecté : purge du cache local.");
+      await StorageService.clearAll();
+    }
+    
+    // On enregistre l'ID actuel pour la prochaine fois
+    if (user != null) {
+      await StorageService.setSupabaseUserId(user.id);
+    }
+
+    final data = await StorageService.loadAppData();
 
     setState(() {
       _profiles = data['profiles'];
@@ -4528,7 +4541,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.4+6",
+            "Version 1.1.5+7",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,

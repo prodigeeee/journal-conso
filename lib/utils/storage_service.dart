@@ -15,6 +15,7 @@ class StorageService {
   static const String _keyYoungDriver = 'isYoungDriver';
   static const String _keyUnitMl = 'unitMl';
   static const String _keySyncId = 'syncId';
+  static const String _keySupabaseUserId = 'supabase_user_id';
 
   static Future<void> saveAll({
     required List<UserProfile> profiles,
@@ -131,5 +132,16 @@ class StorageService {
     await prefs.remove(_keyActiveUserId);
     await prefs.remove(_keySyncId);
     await prefs.remove(_keyFirstLaunch);
+    await prefs.remove(_keySupabaseUserId);
+  }
+
+  static Future<String?> getSupabaseUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keySupabaseUserId);
+  }
+
+  static Future<void> setSupabaseUserId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keySupabaseUserId, id);
   }
 }
