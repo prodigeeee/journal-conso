@@ -111428,26 +111428,25 @@ $S:683}
 A.Jq.prototype={
 ae(){return new A.Ot()}}
 A.Ot.prototype={
-W3(a){var s,r,q,p,o,n,m,l,k,j,i,h,g=this.a,f=g.r.c==="Homme"?0.7:0.6,e=a.a
-g=g.c
-s=A.Y(g).h("aD<1>")
-r=A.V(new A.aD(g,new A.aPD(e),s),s.h("o.E"))
+W3(a){var s,r,q,p,o,n,m,l,k,j,i,h=this.a,g=h.r,f=g.c==="Homme"?0.7:0.6,e=g.e
+e=e>30?e:70
+s=a.a
+h=h.c
+g=A.Y(h).h("aD<1>")
+r=A.V(new A.aD(h,new A.aPD(s),g),g.h("o.E"))
 if(r.length===0)return 0
 B.l.ej(r,new A.aPE())
-g=B.l.ga_(r)
-for(s=r.length,q=0,p=0;p<r.length;r.length===s||(0,A.B)(r),++p){o=r[p]
-n=o.e
-m=A.dA(n.toLowerCase(),"cl","")
-l=A.kv(B.n.fi(A.dA(m,"ml","")))
-if(l==null)l=0
-if(A.Qi(n.toLowerCase(),"ml",0))l/=10
-n=this.a.r.e
-k=(e-(o.b.a+9e5))/36e5
-if(k>0){j=k/0.75
-if(j>1)j=1
-q+=l*10*(o.f/100)*0.8/(n*f)*j}}i=(e-(g.b.a+9e5))/36e5
-h=q-(i>0?i*0.15:0)
-return h>0?h:0},
+q=B.l.ga_(r).b.a-6e4
+for(h=e*f,p=0;q<s;){q+=6e4
+for(g=r.length,o=0,n=0;n<r.length;r.length===g||(0,A.B)(r),++n){m=r[n]
+l=(q-m.b.a)/6e4
+if(l>15&&l<=60){k=m.e
+j=A.dA(k.toLowerCase(),"cl","")
+i=A.kv(B.n.fi(A.dA(j,"ml","")))
+if(i==null)i=0
+o+=(A.Qi(k.toLowerCase(),"ml",0)?i/10:i)*10*(m.f/100)*0.8/h/45}}p+=o
+if(p>0){p-=0.0025
+if(p<0)p=0}}return p},
 aj2(){var s,r,q,p,o,n,m,l,k,j=this,i=null,h=new A.bO(Date.now(),0,!1),g=A.b([],t.ij)
 for(s=0.6,r=-8;r<=40;++r){q=j.W3(h.j3(6e7*(r*15)))
 if(q>s)s=q
@@ -111637,8 +111636,8 @@ s=A.lt(new A.fd(n,s),new A.aPC(),s.h("o.E"),t.Rn)
 s=A.V(s,A.l(s).h("o.E"))
 return A.bK(s,B.aR,B.h6,B.S,0,B.a8)}}
 A.aPD.prototype={
-$1(a){var s=a.b.a,r=this.a,q=s<=r
-return r-s<864e5&&q},
+$1(a){var s=a.b.a,r=this.a
+return r-s<864e5&&s<=r},
 $S:10}
 A.aPE.prototype={
 $2(a,b){return a.b.bh(0,b.b)},
