@@ -79,7 +79,7 @@ class _AuthScreenState extends State<AuthScreen> {
           showDialog(
             context: context,
             builder: (c) => AlertDialog(
-              title: Text(L10n.s('auth.check_email_title') ?? "Vérification requise"),
+              title: Text(L10n.s('auth.check_email_title')),
               content: Text(L10n.s('auth.check_email')),
               actions: [
                 TextButton(
@@ -137,7 +137,7 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     } catch (e) {
-      print("Erreur Auth: $e");
+      debugPrint("Erreur Auth: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(L10n.s('auth.server_error')), backgroundColor: Colors.redAccent),
