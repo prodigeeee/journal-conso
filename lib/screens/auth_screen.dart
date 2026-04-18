@@ -81,8 +81,30 @@ class _AuthScreenState extends State<AuthScreen> {
               content: Text(L10n.s('auth.check_email')),
               actions: [
                 TextButton(
+                  onPressed: () async {
+                    try {
+                      await Supabase.instance.client.auth.resend(
+                        type: OtpType.signup,
+                        email: _emailController.text.trim(),
+                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Email de confirmation renvoyé !")),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Erreur : $e"), backgroundColor: Colors.redAccent),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text("RENVOYER L'EMAIL", style: TextStyle(fontSize: 12)),
+                ),
+                TextButton(
                   onPressed: () => Navigator.pop(c),
-                  child: const Text("OK"),
+                  child: const Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
