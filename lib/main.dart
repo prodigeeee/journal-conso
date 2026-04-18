@@ -2341,49 +2341,43 @@ class _StatsScreenState extends State<StatsScreen> {
     double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
     double totalAbsorbedBAC = 0.0;
     
-    // 1. Filtrer et localiser les consos des dernières 24h
+    // On travaille exclusivement en local pour la comparaison avec DateTime.now()
+    final DateTime targetLocal = targetTime.isUtc ? targetTime.toLocal() : targetTime;
+
     final relevantConsos = widget.consumptions.where((c) {
-      final cDate = c.date.toLocal();
-      return targetTime.difference(cDate).inHours < 24 && cDate.isBefore(targetTime);
+      final cDateLocal = c.date.isUtc ? c.date.toLocal() : c.date;
+      return targetLocal.difference(cDateLocal).inHours < 24 && cDateLocal.isBefore(targetLocal);
     }).toList();
 
     if (relevantConsos.isEmpty) return 0.0;
 
-    // 2. Trier par date pour trouver la première boisson
     relevantConsos.sort((a, b) => a.date.compareTo(b.date));
-    final DateTime firstDrinkTime = relevantConsos.first.date.toLocal();
+    final DateTime firstDrinkTime = relevantConsos.first.date.isUtc 
+        ? relevantConsos.first.date.toLocal() 
+        : relevantConsos.first.date;
 
     for (var c in relevantConsos) {
-      final cDate = c.date.toLocal();
+      final cDateLocal = c.date.isUtc ? c.date.toLocal() : c.date;
       
-      // Nettoyage robuste du volume (ex: "33 cl" -> 33.0)
       double vol = 0;
       String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
       vol = double.tryParse(vStr) ?? 0;
-      
-      // Si c'était des ml, on convertit en cl pour la formule (qui attend des cl si on multiplie par 10 pour avoir des ml pur)
-      if (c.volume.toLowerCase().contains('ml')) {
-        vol = vol / 10.0;
-      }
+      if (c.volume.toLowerCase().contains('ml')) vol = vol / 10.0;
 
       double deg = c.degree;
-      // Grammes d'alcool = Volume(ml) * Degré * Densité(0.8)
       double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
       double drinkMaxBAC = alcoholGrams / (widget.activeUser.weight * r);
 
-      // Temps depuis la boisson (+15 min de latence avant début absorption)
-      final diffFromDrinkInHours = targetTime.difference(cDate.add(const Duration(minutes: 15))).inMinutes / 60.0;
+      final diffFromDrinkInHours = targetLocal.difference(cDateLocal.add(const Duration(minutes: 15))).inMinutes / 60.0;
       
       if (diffFromDrinkInHours > 0) {
-        // Absorption progressive (pic à 45 mins = 0.75h)
         double absorptionFactor = (diffFromDrinkInHours * 60) / 45.0;
         if (absorptionFactor > 1.0) absorptionFactor = 1.0;
         totalAbsorbedBAC += (drinkMaxBAC * absorptionFactor);
       }
     }
 
-    // 3. Élimination GLOBALE depuis la première boisson (+15 min latence)
-    final totalDiffInHours = targetTime.difference(firstDrinkTime.add(const Duration(minutes: 15))).inMinutes / 60.0;
+    final totalDiffInHours = targetLocal.difference(firstDrinkTime.add(const Duration(minutes: 15))).inMinutes / 60.0;
     double globalElimination = 0.0;
     if (totalDiffInHours > 0) {
       globalElimination = totalDiffInHours * 0.15; 
@@ -2398,15 +2392,17 @@ class _StatsScreenState extends State<StatsScreen> {
   Widget _buildBACCurve() {
     final now = DateTime.now();
     List<FlSpot> spots = [];
-    double maxBAC = 0.5;
+    double maxBAC = 0.6;
 
-    // On génère des points toutes les 15 minutes sur 12 heures (-1h à +11h)
-    for (int i = -4; i <= 44; i++) {
-      DateTime t = now.add(Duration(minutes: i * 15));
+    // On génère 12 heures de courbe (-2h à +10h par rapport à maintenant)
+    for (int i = -8; i <= 40; i++) {
+      final t = now.add(Duration(minutes: i * 15));
       double val = _calculateBACAt(t);
       if (val > maxBAC) maxBAC = val;
       spots.add(FlSpot(i.toDouble(), val));
     }
+
+    double threshold = widget.isYoungDriver ? 0.2 : 0.5;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2415,7 +2411,7 @@ class _StatsScreenState extends State<StatsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
              Text(
-              "ÉVOLUTION (12H)",
+              "ÉVOLUTION PRÉVISIONNELLE (12H)",
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
@@ -2423,32 +2419,54 @@ class _StatsScreenState extends State<StatsScreen> {
                 letterSpacing: 1.2,
               ),
             ),
-            if (spots.any((s) => s.y > 0.01))
-               Icon(Icons.auto_graph, size: 12, color: widget.accentColor.withValues(alpha: 0.5)),
+            Icon(Icons.show_chart, size: 12, color: widget.accentColor.withValues(alpha: 0.5)),
           ],
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 20),
         SizedBox(
-          height: 100,
+          height: 140,
           child: LineChart(
             LineChartData(
-              gridData: const FlGridData(show: false),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: 0.2,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: (value == threshold) ? Colors.red.withValues(alpha: 0.3) : (widget.isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                  strokeWidth: (value == threshold) ? 1.5 : 0.5,
+                  dashArray: (value == threshold) ? [5, 5] : null,
+                ),
+              ),
               titlesData: FlTitlesData(
                 show: true,
-                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 0.2,
+                    reservedSize: 30,
+                    getTitlesWidget: (v, m) => Text(
+                      v.toStringAsFixed(1),
+                      style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 8),
+                    ),
+                  ),
+                ),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    interval: 12, // Toutes les 3 heures
+                    interval: 8, // Toutes les 2 heures (8 * 15 min)
                     getTitlesWidget: (v, m) {
                       DateTime t = now.add(Duration(minutes: v.toInt() * 15));
                       return Padding(
-                        padding: const EdgeInsets.only(top: 5),
+                        padding: const EdgeInsets.only(top: 8),
                         child: Text(
                           DateFormat('HH:mm').format(t),
-                          style: TextStyle(color: widget.isDarkMode ? Colors.white30 : Colors.black26, fontSize: 8),
+                          style: TextStyle(
+                            color: v.toInt() == 0 ? widget.accentColor : (widget.isDarkMode ? Colors.white30 : Colors.black26), 
+                            fontSize: 8,
+                            fontWeight: v.toInt() == 0 ? FontWeight.bold : FontWeight.normal,
+                          ),
                         ),
                       );
                     },
@@ -2457,14 +2475,23 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               borderData: FlBorderData(show: false),
               minY: 0,
-              maxY: maxBAC * 1.2,
+              maxY: (maxBAC * 1.1).clamp(0.6, 3.0),
               lineBarsData: [
                 LineChartBarData(
                   spots: spots,
                   isCurved: true,
                   barWidth: 3,
                   color: widget.accentColor,
-                  dotData: const FlDotData(show: false),
+                  dotData: FlDotData(
+                    show: true,
+                    checkToShowDot: (spot, barData) => spot.x == 0, // Point sur "Maintenant"
+                    getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                      radius: 4,
+                      color: Colors.white,
+                      strokeWidth: 2,
+                      strokeColor: widget.accentColor,
+                    ),
+                  ),
                   belowBarData: BarAreaData(
                     show: true,
                     gradient: LinearGradient(
@@ -2477,18 +2504,16 @@ class _StatsScreenState extends State<StatsScreen> {
                     ),
                   ),
                 ),
-                // Ligne de seuil
-                LineChartBarData(
-                  spots: [
-                    FlSpot(-4, widget.isYoungDriver ? 0.2 : 0.5),
-                    FlSpot(44, widget.isYoungDriver ? 0.2 : 0.5),
-                  ],
-                  dashArray: [5, 5],
-                  barWidth: 1,
-                  color: Colors.red.withValues(alpha: 0.3),
-                  dotData: const FlDotData(show: false),
-                ),
               ],
+              lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (spot) => widget.isDarkMode ? const Color(0xFF2C3440) : Colors.white,
+                  getTooltipItems: (items) => items.map((i) => LineTooltipItem(
+                    "${i.y.toStringAsFixed(2)} g/L",
+                    TextStyle(color: widget.accentColor, fontWeight: FontWeight.bold, fontSize: 12),
+                  )).toList(),
+                ),
+              ),
             ),
           ),
         ),
