@@ -3,6 +3,56 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
 import 'dart:convert';
 import 'l10n_service.dart';
+import '../models/models.dart';
+
+double calculateBACAt(String gender, int weight, List<Consumption> consumptions, DateTime targetTime) {
+  double r = gender == 'Homme' ? 0.7 : 0.6;
+  double activeWeight = weight > 30 ? weight.toDouble() : 70.0;
+  
+  final int targetMs = targetTime.millisecondsSinceEpoch;
+  final relevantConsos = consumptions.where((c) {
+    final int cMs = c.date.millisecondsSinceEpoch;
+    return (targetMs - cMs) < (24 * 3600 * 1000) && cMs <= targetMs;
+  }).toList();
+
+  if (relevantConsos.isEmpty) return 0.0;
+
+  relevantConsos.sort((a, b) => a.date.compareTo(b.date));
+  
+  double currentBAC = 0.0;
+  const double eliminationPerHour = 0.15;
+  int currentStepMs = relevantConsos.first.date.millisecondsSinceEpoch;
+  
+  for (int i = 0; i < relevantConsos.length; i++) {
+      var c = relevantConsos[i];
+      final int cMs = c.date.millisecondsSinceEpoch;
+      
+      double diffHoursBeforeDrink = (cMs - currentStepMs) / 3600000.0;
+      if (diffHoursBeforeDrink > 0) {
+          currentBAC -= diffHoursBeforeDrink * eliminationPerHour;
+          if (currentBAC < 0) currentBAC = 0.0;
+      }
+      currentStepMs = cMs;
+
+      double vol = 0;
+      String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
+      vol = double.tryParse(vStr) ?? 0;
+      if (c.volume.toLowerCase().contains('ml')) vol = vol / 10.0; 
+      double deg = c.degree;
+      double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
+      double drinkMaxBAC = alcoholGrams / (activeWeight * r);
+      
+      currentBAC += drinkMaxBAC;
+  }
+
+  double timeSinceLastEvent = (targetMs - currentStepMs) / 3600000.0;
+  if (timeSinceLastEvent > 0) {
+    currentBAC -= timeSinceLastEvent * eliminationPerHour;
+    if (currentBAC < 0) currentBAC = 0.0;
+  }
+
+  return currentBAC > 0 ? currentBAC : 0.0;
+}
 
 String cleanDisplay(String? text) {
   if (text == null) return '';

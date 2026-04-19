@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
 import 'dart:developer' as dev;
@@ -8,9 +7,11 @@ class L10n {
 
   static Future<void> load() async {
     try {
-      final String yamlString = await rootBundle.loadString('assets/lang/fr.yaml');
+      final String yamlString = await rootBundle.loadString(
+        'assets/lang/fr.yaml',
+      );
       final dynamic yamlMap = loadYaml(yamlString);
-      
+
       if (yamlMap is YamlMap) {
         _localizedValues = _yamlToMap(yamlMap);
         dev.log("✅ L10n: Loaded ${_localizedValues.length} top-level keys");
@@ -30,7 +31,9 @@ class L10n {
       if (value is YamlMap) {
         map[key.toString()] = _yamlToMap(value);
       } else if (value is YamlList) {
-        map[key.toString()] = value.map((e) => e is YamlMap ? _yamlToMap(e) : e).toList();
+        map[key.toString()] = value
+            .map((e) => e is YamlMap ? _yamlToMap(e) : e)
+            .toList();
       } else {
         map[key.toString()] = value;
       }

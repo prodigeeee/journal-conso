@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
+import 'dart:math' as math;
 import 'dart:io' as io;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -176,6 +178,23 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  void _generateSecurePassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&*';
+    final random = math.Random();
+    String pass = List.generate(16, (index) => chars[random.nextInt(chars.length)]).join();
+    setState(() {
+      _passwordController.text = pass;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Mot de passe sécurisé généré : $pass"),
+        action: SnackBarAction(label: "COPIER", onPressed: () {
+          Clipboard.setData(ClipboardData(text: pass));
+        }),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,7 +251,29 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 30),
                   _buildTextField(_emailController, L10n.s('auth.email_label'), Icons.email_outlined, false),
                   const SizedBox(height: 15),
-                  _buildTextField(_passwordController, L10n.s('auth.password_label'), Icons.lock_outline, true),
+                  _buildTextField(
+                    _passwordController, 
+                    L10n.s('auth.password_label'), 
+                    Icons.lock_outline, 
+                    true,
+                    suffix: _isSignUp ? IconButton(
+                      icon: const Icon(Icons.auto_fix_high, size: 20),
+                      onPressed: _generateSecurePassword,
+                      tooltip: "Suggérer un mot de passe sûr",
+                      color: widget.accentColor,
+                    ) : null,
+                  ),
+                  if (_isSignUp)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, left: 12),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Minimum 6 caractères (Supabase)",
+                          style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white38 : Colors.black38),
+                        ),
+                      ),
+                    ),
                   
                   if (_isSignUp) ...[
                     const SizedBox(height: 15),
@@ -363,7 +404,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, bool isPassword, {bool isNumber = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, bool isPassword, {bool isNumber = false, Widget? suffix}) {
     return Container(
       decoration: BoxDecoration(
         color: widget.isDarkMode ? Colors.black26 : Colors.white.withValues(alpha: 0.5),
@@ -378,6 +419,7 @@ class _AuthScreenState extends State<AuthScreen> {
           labelText: label,
           labelStyle: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
           prefixIcon: Icon(icon, color: widget.accentColor, size: 20),
+          suffixIcon: suffix,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),

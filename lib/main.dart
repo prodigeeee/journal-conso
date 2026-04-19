@@ -470,6 +470,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
+      await SupabaseService.syncContexts(_contexts, user.id);
       if (!silent) {
         _showAuraSnackBar(L10n.s('sync.success', args: {
           'profiles': _profiles.length.toString(),
@@ -523,12 +524,38 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       final List<UserProfile> cloudProfiles = data['profiles'] != null ? List<UserProfile>.from(data['profiles']) : [];
       final List<Consumption> cloudConsos = data['consumptions'] != null ? List<Consumption>.from(data['consumptions']) : [];
       
-      if (cloudProfiles.isNotEmpty) {
+      if (cloudProfiles.isNotEmpty || cloudConsos.isNotEmpty || (data['contexts'] != null && (data['contexts'] as Map).isNotEmpty)) {
         setState(() {
-          _profiles = cloudProfiles;
-          _allConsumptions = cloudConsos;
+          // Fusion des Profils
+          for (var cp in cloudProfiles) {
+            final idx = _profiles.indexWhere((p) => p.id == cp.id);
+            if (idx != -1) {
+              _profiles[idx] = cp;
+            } else {
+              _profiles.add(cp);
+            }
+          }
+
+          // Fusion des Consommations
+          for (var cc in cloudConsos) {
+            final idx = _allConsumptions.indexWhere((c) => c.id == cc.id);
+            if (idx != -1) {
+              _allConsumptions[idx] = cc;
+            } else {
+              _allConsumptions.add(cc);
+            }
+          }
+
+          // Fusion des Contextes
+          if (data['contexts'] != null) {
+            final Map<String, String> cloudCtx = Map<String, String>.from(data['contexts']);
+            cloudCtx.forEach((key, value) {
+              _contexts[key] = value;
+            });
+          }
+
           if (!_profiles.any((p) => p.id == _activeUserId)) {
-            _activeUserId = _profiles.first.id;
+            _activeUserId = _profiles.isNotEmpty ? _profiles.first.id : '1';
           }
         });
         await StorageService.saveAll(
@@ -1164,16 +1191,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       activeUser: activeUser,
                       onDateSelected: (date) =>
                           setState(() => _currentJournalDate = date),
-                      onAddOrUpdate: (c) {
-                        final i = _allConsumptions.indexWhere(
-                          (item) => item.id == c.id,
-                        );
-                        if (i != -1) {
-                          _allConsumptions[i] = c;
-                        } else {
-                          _allConsumptions.add(c);
+                      onAddOrUpdate: (c) async {
+                        setState(() {
+                          final i = _allConsumptions.indexWhere(
+                            (item) => item.id == c.id,
+                          );
+                          if (i != -1) {
+                            _allConsumptions[i] = c;
+                          } else {
+                            _allConsumptions.add(c);
+                          }
+                        });
+                        await _saveAll();
+                        
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user != null) {
+                          try {
+                            await SupabaseService.syncConsumptions([c], user.id);
+                          } catch (e) {
+                            debugPrint("Erreur synchro conso : $e");
+                          }
                         }
-                        _saveAll();
                       },
                       onDelete: (id) async {
                         setState(() => _allConsumptions.removeWhere((c) => c.id == id));
@@ -1183,7 +1221,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                         }
                         _saveAll();
                       },
-                      onUpdateContext: (key, val) {
+                      onUpdateContext: (key, val) async {
                         setState(() {
                           if (val.trim().isEmpty) {
                             _contexts.remove(key);
@@ -1191,7 +1229,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                             _contexts[key] = val;
                           }
                         });
-                        _saveAll();
+                        await _saveAll();
+
+                        // Synchro immédiate si connecté (évite les pertes au restart/pull)
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user != null) {
+                          try {
+                            if (val.trim().isEmpty) {
+                              await SupabaseService.deleteContext(key, user.id);
+                            } else {
+                              await SupabaseService.syncSingleContext(key, val, user.id);
+                            }
+                          } catch (e) {
+                            debugPrint("Erreur synchro contexte : $e");
+                          }
+                        }
                       },
                       onPrint: (m) =>
                           _printProfile(activeUser, specificMonth: m),
@@ -1272,6 +1324,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       floatingActionButton: _selectedIndex == 0
           ? LiquidGlassFAB(
               accentColor: widget.accentColor,
+              currentBac: calculateBACAt(activeUser.gender, activeUser.weight, userConsos, DateTime.now()),
+              threshold: widget.isYoungDriver ? 0.2 : 0.5,
               onPressed: () {
                 final now = DateTime.now();
                 String moment = 'Soir';
@@ -1315,6 +1369,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                     isDarkMode: widget.isDarkMode,
                     accentColor: widget.accentColor,
                     unitMl: widget.unitMl,
+                    contexts: _contexts,
+                    onUpdateContext: (key, val) {
+                      setState(() {
+                        if (val.trim().isEmpty) {
+                          _contexts.remove(key);
+                        } else {
+                          _contexts[key] = val;
+                        }
+                      });
+                      _saveAll();
+                    },
                   ),
                 );
               },
@@ -1737,7 +1802,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 280,
+                  height: 450,
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) => setState(
@@ -1815,14 +1880,44 @@ class _HomeScreenState extends State<HomeScreen> {
     final daysInMonth = DateTime(monthDate.year, monthDate.month + 1, 0).day;
     final firstDay = DateTime(monthDate.year, monthDate.month, 1).weekday - 1;
 
-    return GridView.builder(
-      shrinkWrap: true,
+    final List<String> weekDays = [
+      L10n.s('pdf.days.mon')[0],
+      L10n.s('pdf.days.tue')[0],
+      L10n.s('pdf.days.wed')[0],
+      L10n.s('pdf.days.thu')[0],
+      L10n.s('pdf.days.fri')[0],
+      L10n.s('pdf.days.sat')[0],
+      L10n.s('pdf.days.sun')[0],
+    ];
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8, top: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: weekDays.map((d) => Expanded(
+              child: Text(
+                d,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: widget.accentColor.withValues(alpha: 0.5),
+                ),
+              ),
+            )).toList(),
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 42,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
+        childAspectRatio: 1.1,
       ),
       itemBuilder: (context, index) {
         final dayNum = index - firstDay + 1;
@@ -1931,8 +2026,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
       },
-    );
-  }
+    ),
+  ],
+);
+}
 
   Widget _buildMonthlySummary() {
     var monthConsos = widget.consumptions
@@ -2176,12 +2273,21 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), bottomLeft: Radius.circular(14)),
               onTap: () {
                 final now = DateTime.now();
-                // On garde la DATE de la conso d'origine (pour rester sur le même jour logique)
-                // mais on prend l'HEURE actuelle.
+                
+                // Déterminer la date logique de la conso d'origine
+                DateTime logicalDate = c.date.hour < 6 
+                    ? c.date.subtract(const Duration(days: 1))
+                    : c.date;
+                    
+                // Si la nouvelle heure est après minuit (pour la nuit), on l'affecte au jour suivant physiquement
+                DateTime targetPhysicalDate = now.hour < 6 
+                    ? logicalDate.add(const Duration(days: 1))
+                    : logicalDate;
+
                 final newDate = DateTime(
-                  c.date.year,
-                  c.date.month,
-                  c.date.day,
+                  targetPhysicalDate.year,
+                  targetPhysicalDate.month,
+                  targetPhysicalDate.day,
                   now.hour,
                   now.minute,
                 );
@@ -2300,6 +2406,8 @@ class _HomeScreenState extends State<HomeScreen> {
         existingConso: existingConso,
         onSave: (conso) => widget.onAddOrUpdate(conso),
         unitMl: widget.unitMl,
+        contexts: widget.contexts,
+        onUpdateContext: widget.onUpdateContext,
       ),
     );
   }
@@ -2338,64 +2446,12 @@ class _StatsScreenState extends State<StatsScreen> {
   String _period = 'Semaine';
 
   double _calculateBACAt(DateTime targetTime) {
-    double r = widget.activeUser.gender == 'Homme' ? 0.7 : 0.6;
-    double weight = widget.activeUser.weight > 30 ? widget.activeUser.weight.toDouble() : 70.0;
-    
-    // 1. Filtrer les consos des dernières 24h
-    final int targetMs = targetTime.millisecondsSinceEpoch;
-    final relevantConsos = widget.consumptions.where((c) {
-      final int cMs = c.date.millisecondsSinceEpoch;
-      return (targetMs - cMs) < (24 * 3600 * 1000) && cMs <= targetMs;
-    }).toList();
-
-    if (relevantConsos.isEmpty) return 0.0;
-
-    // 2. Trier par ordre chronologique
-    relevantConsos.sort((a, b) => a.date.compareTo(b.date));
-    
-    // 3. Simulation minute par minute (Modèle dynamique)
-    // On commence 1 minute avant le premier verre
-    int currentStepMs = relevantConsos.first.date.millisecondsSinceEpoch - 60000;
-    double currentBAC = 0.0;
-    const double eliminationPerMinute = 0.15 / 60.0;
-
-    // On avance par pas de 1 minute jusqu'à targetTime
-    while (currentStepMs < targetMs) {
-      currentStepMs += 60000; // +1 minute
-      
-      // A. Calcul de l'absorption pour TOUS les verres à cette minute précise
-      double minuteAbsorption = 0.0;
-      for (var c in relevantConsos) {
-        final int cMs = c.date.millisecondsSinceEpoch;
-        final double minutesSinceDrink = (currentStepMs - cMs) / 60000.0;
-        
-        // Un verre commence à être absorbé après 15 min de latence
-        // L'absorption est totale après 45 min supplémentaires (total 60 min)
-        if (minutesSinceDrink > 15 && minutesSinceDrink <= 60) {
-          double vol = 0;
-          String vStr = c.volume.toLowerCase().replaceAll('cl', '').replaceAll('ml', '').trim();
-          vol = double.tryParse(vStr) ?? 0;
-          if (c.volume.toLowerCase().contains('ml')) vol = vol / 10.0;
-
-          double deg = c.degree;
-          double alcoholGrams = (vol * 10) * (deg / 100) * 0.8;
-          double drinkMaxBAC = alcoholGrams / (weight * r);
-          
-          // Absorption linéaire sur 45 min (1/45ème du total chaque minute)
-          minuteAbsorption += (drinkMaxBAC / 45.0);
-        }
-      }
-      
-      currentBAC += minuteAbsorption;
-
-      // B. Élimination (uniquement si BAC > 0)
-      if (currentBAC > 0) {
-        currentBAC -= eliminationPerMinute;
-        if (currentBAC < 0) currentBAC = 0.0;
-      }
-    }
-
-    return currentBAC;
+    return calculateBACAt(
+      widget.activeUser.gender,
+      widget.activeUser.weight,
+      widget.consumptions,
+      targetTime,
+    );
   }
 
   double _calculateCurrentBAC() {
@@ -4995,6 +5051,9 @@ class _SaisieSheet extends StatefulWidget {
   final bool isDarkMode;
   final Color accentColor;
   final bool unitMl;
+  final Map<String, String> contexts;
+  final Function(String, String) onUpdateContext;
+
   const _SaisieSheet({
     required this.moment,
     required this.date,
@@ -5004,6 +5063,8 @@ class _SaisieSheet extends StatefulWidget {
     required this.isDarkMode,
     required this.accentColor,
     required this.unitMl,
+    required this.contexts,
+    required this.onUpdateContext,
   });
 
   static TimeOfDay getDefaultTimeForMoment(String moment) {
@@ -5030,6 +5091,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   late String _v;
   late double _d;
   late TimeOfDay _time;
+  late TextEditingController _contextCtrl;
 
   @override
   void initState() {
@@ -5043,6 +5105,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     } else {
       _time = TimeOfDay.now();
     }
+
+    String logicalKeyDate = DateFormat('yyyyMMdd').format(widget.date);
+    String contextKey = "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
+    _contextCtrl = TextEditingController(text: widget.contexts[contextKey] ?? '');
+  }
+
+  @override
+  void dispose() {
+    _contextCtrl.dispose();
+    super.dispose();
   }
 
   String _getMomentFromTime(TimeOfDay time) {
@@ -5263,6 +5335,27 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   ),
                 ),
                 
+                const SizedBox(height: 20),
+                
+                // Champ Contexte
+                Container(
+                  decoration: BoxDecoration(
+                    color: widget.isDarkMode ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: TextField(
+                    controller: _contextCtrl,
+                    style: TextStyle(fontSize: 13, color: widget.isDarkMode ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
+                      hintText: L10n.s('journal.add_context'),
+                      hintStyle: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26),
+                      prefixIcon: Icon(Icons.edit_note, color: widget.accentColor, size: 24),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                    ),
+                  ),
+                ),
+                
                 const SizedBox(height: 35),
                 
                 // Bouton Enregistrer Premium
@@ -5308,6 +5401,12 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         degree: _d,
                         userId: widget.activeUserId,
                       ));
+
+                      // Sauvegarde du contexte
+                      String logicalKeyDate = DateFormat('yyyyMMdd').format(widget.date);
+                      String contextKey = "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
+                      widget.onUpdateContext(contextKey, _contextCtrl.text);
+
                       Navigator.pop(context);
                     },
                     child: Text(

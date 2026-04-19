@@ -151,13 +151,14 @@ Widget glassModule({
 class WavePainter extends CustomPainter {
   final Color color;
   final double progress;
-  WavePainter({required this.color, required this.progress});
+  final double heightLevel;
+  WavePainter({required this.color, required this.progress, this.heightLevel = 0.6});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
     final path = Path();
-    double y = size.height * (0.6 + sin(progress * 2 * pi) * 0.05);
+    double y = size.height * (heightLevel + sin(progress * 2 * pi) * 0.05);
     path.moveTo(0, y);
     for (double x = 0; x <= size.width; x++) {
       double sine = sin((progress * 2 * pi) + (x * 0.15));
@@ -176,7 +177,16 @@ class WavePainter extends CustomPainter {
 class LiquidGlassFAB extends StatefulWidget {
   final Color accentColor;
   final VoidCallback onPressed;
-  const LiquidGlassFAB({super.key, required this.accentColor, required this.onPressed});
+  final double currentBac;
+  final double threshold;
+  
+  const LiquidGlassFAB({
+    super.key, 
+    required this.accentColor, 
+    required this.onPressed,
+    this.currentBac = 0.0,
+    this.threshold = 0.5,
+  });
   @override
   State<LiquidGlassFAB> createState() => _LiquidGlassFABState();
 }
@@ -201,18 +211,33 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
 
   @override
   Widget build(BuildContext context) {
+    Color dynamicColor = widget.accentColor;
+    if (widget.currentBac > 0.01) {
+      double ratio = (widget.currentBac / widget.threshold).clamp(0.0, 1.5) / 1.5;
+      if (ratio < 0.3) {
+         dynamicColor = Color.lerp(widget.accentColor, Colors.orange, ratio / 0.3) ?? widget.accentColor;
+      } else if (ratio < 0.8) {
+         dynamicColor = Color.lerp(Colors.orange, Colors.redAccent, (ratio - 0.3) / 0.5) ?? Colors.orange;
+      } else {
+         dynamicColor = Colors.red;
+      }
+    }
+    
+    double fillRatio = (widget.currentBac / (widget.threshold * 1.5)).clamp(0.0, 1.0);
+    double heightLevel = 0.85 - (fillRatio * 0.7);
+
     return GestureDetector(
       onTap: widget.onPressed,
       child: Container(
-        width: 65,
-        height: 65,
+        width: 85,
+        height: 85,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.4),
-              blurRadius: 20,
-              spreadRadius: 2,
+              color: dynamicColor.withValues(alpha: 0.4),
+              blurRadius: 25,
+              spreadRadius: 4,
             ),
           ],
         ),
@@ -220,15 +245,16 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Container(color: widget.accentColor.withValues(alpha: 0.2)),
+              Container(color: dynamicColor.withValues(alpha: 0.2)),
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
                   return CustomPaint(
-                    size: const Size(65, 65),
+                    size: const Size(85, 85),
                     painter: WavePainter(
-                      color: widget.accentColor,
+                      color: dynamicColor,
                       progress: _controller.value,
+                      heightLevel: heightLevel,
                     ),
                   );
                 },
@@ -247,7 +273,13 @@ class _LiquidGlassFABState extends State<LiquidGlassFAB>
                   ),
                 ),
               ),
-              const Icon(Icons.add, color: Colors.white, size: 35),
+              const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.local_bar, color: Colors.white, size: 28),
+                  Icon(Icons.add, color: Colors.white, size: 22),
+                ],
+              ),
             ],
           ),
         ),

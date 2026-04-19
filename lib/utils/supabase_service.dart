@@ -44,6 +44,31 @@ class SupabaseService {
     }
   }
 
+  // -- SYNCHRONISATION DES CONTEXTES --
+  static Future<void> syncContexts(Map<String, String> contexts, String ownerId) async {
+    final data = contexts.entries.map((e) => {
+      'id': e.key,
+      'owner_id': ownerId,
+      'content': e.value,
+    }).toList();
+
+    if (data.isNotEmpty) {
+      await _supabase.from('moments_contexts').upsert(data);
+    }
+  }
+
+  static Future<void> syncSingleContext(String key, String content, String ownerId) async {
+    await _supabase.from('moments_contexts').upsert({
+      'id': key,
+      'owner_id': ownerId,
+      'content': content,
+    });
+  }
+
+  static Future<void> deleteContext(String key, String ownerId) async {
+    await _supabase.from('moments_contexts').delete().match({'id': key, 'owner_id': ownerId});
+  }
+
   // -- SUPPRESSIONS --
   static Future<void> deleteProfile(String profileId, String ownerId) async {
     await _supabase.from('profiles').delete().match({'id': profileId, 'owner_id': ownerId});
@@ -58,12 +83,14 @@ class SupabaseService {
   static Future<void> deleteAllUserData(String ownerId) async {
     await _supabase.from('profiles').delete().eq('owner_id', ownerId);
     await _supabase.from('consumptions').delete().eq('owner_id', ownerId);
+    await _supabase.from('moments_contexts').delete().eq('owner_id', ownerId);
   }
 
   // -- RÉCUPÉRATION FILTRÉE --
   static Future<Map<String, dynamic>> fetchAllData(String ownerId) async {
     final profileData = await _supabase.from('profiles').select().eq('owner_id', ownerId);
     final consumptionData = await _supabase.from('consumptions').select().eq('owner_id', ownerId);
+    final contextData = await _supabase.from('moments_contexts').select().eq('owner_id', ownerId);
 
     final profiles = (profileData as List).map((json) {
       return UserProfile(
@@ -89,9 +116,12 @@ class SupabaseService {
       );
     }).toList().cast<Consumption>();
 
+    final contexts = { for (var item in (contextData as List)) item['id'].toString() : item['content']?.toString() ?? '' };
+
     return {
       'profiles': profiles,
       'consumptions': consumptions,
+      'contexts': contexts,
     };
   }
 }
