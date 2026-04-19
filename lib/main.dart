@@ -390,13 +390,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     };
     final jsonStr = jsonEncode(data);
     
+    final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonStr);
-      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'alcohol_tracker_full_backup.json');
+      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'backup_full_$dateStr.json');
       await Share.shareXFiles([xfile], text: 'Sauvegarde complète Alcohol Tracker');
     } else {
       final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/alcohol_tracker_full_backup.json');
+      final file = File('${directory.path}/backup_full_$dateStr.json');
       await file.writeAsString(jsonStr);
       await Share.shareXFiles([XFile(file.path)], text: 'Sauvegarde complète Alcohol Tracker');
     }
@@ -593,13 +594,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     };
     final String jsonString = jsonEncode(data);
 
+    final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonString);
-      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'export_${p.name}.json');
+      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'export_${p.name}_$dateStr.json');
       await Share.shareXFiles([xfile], text: 'Export du profil ${p.name}');
     } else {
       final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/export_${p.name}.json');
+      final file = File('${directory.path}/export_${p.name}_$dateStr.json');
       await file.writeAsString(jsonString);
       await Share.shareXFiles([XFile(file.path)], text: 'Export du profil ${p.name}');
     }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 
 class StorageService {
@@ -37,7 +38,8 @@ class StorageService {
     if (!kIsWeb) {
       try {
         final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/alcohol_tracker_local_backup.json');
+        final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final file = File('${directory.path}/local_backup_$dateStr.json');
         final fullData = {
           'profiles': profiles.map((e) => e.toJson()).toList(),
           'momentsContexts': contexts,
