@@ -586,6 +586,7 @@
             }
 
             function filterProfiles() {
+                if (!window.allAccountsData) return;
                 const query = document.getElementById('search-input').value.toLowerCase();
                 const filteredAccounts = {};
                 
@@ -599,7 +600,7 @@
                     if (matches) filteredAccounts[ownerId] = profiles;
                 });
                 
-                renderAccounts(filteredAccounts, window.currentConsos);
+                renderAccounts(filteredAccounts, window.currentConsos || []);
             }
 
             function renderAccounts(accounts, consos) {
