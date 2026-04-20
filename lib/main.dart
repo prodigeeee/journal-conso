@@ -3787,8 +3787,16 @@ class _OptionsScreenState extends State<OptionsScreen> {
       imageQuality: 70,
     );
     if (image != null) {
-      final bytes = await image.readAsBytes();
-      setState(() => p.imagePath = base64Encode(bytes));
+      String? cloudPath;
+      if (Supabase.instance.client.auth.currentUser != null) {
+          // Si on est connecté au Cloud, on upload
+          cloudPath = await SupabaseService.uploadProfileImage(image);
+      }
+      
+      setState(() {
+          // On utilise le lien Cloud si dispo, sinon le chemin local (fallback)
+          p.imagePath = cloudPath ?? image.path;
+      });
       widget.onProfilesChanged();
     }
   }
