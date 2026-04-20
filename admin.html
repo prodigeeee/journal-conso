@@ -138,15 +138,20 @@
         }
         #toast.active { transform: translateY(0); }
 
-        /* LOGIN */
-        #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .login-card { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        /* USER CARDS */
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .user-card { padding: 20px; border: 1px solid var(--glass-border); transition: 0.3s; }
+        .user-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(234, 146, 22, 0.1); }
+        .user-card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .user-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--glass-strong); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--glass-border); }
+        .user-info h4 { font-size: 0.95rem; font-weight: 800; margin-bottom: 2px; }
+        .user-info p { font-size: 0.7rem; color: var(--text-muted); }
+        .user-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .u-stat-item { text-align: center; }
+        .u-stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; }
+        .u-stat-val { font-size: 1rem; font-weight: 900; color: var(--accent); }
 
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .badge-ip { font-family: monospace; color: var(--accent); background: rgba(234, 146, 22, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
-    </style>
+        /* EDITOR UI */
 </head>
 <body>
     <div class="aura-bg"></div>
@@ -179,7 +184,8 @@
 
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="analytics">Analytics</button>
-                <button class="tab-btn" data-tab="editor">Édition intégrale du site</button>
+                <button class="tab-btn" data-tab="app">Comptes & App</button>
+                <button class="tab-btn" data-tab="editor">Contenu du site</button>
             </div>
 
             <!-- ANALYTICS TAB -->
@@ -207,6 +213,25 @@
                         <thead><tr><th>Heure</th><th>Page</th><th>Device</th><th>IP</th></tr></thead>
                         <tbody id="visits-table-body"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- APP TAB -->
+            <div id="tab-app" style="display: none;">
+                <div class="grid-stats">
+                    <div class="glass-panel stat-card"><div class="stat-label">Comptes Cloud</div><div class="stat-value" id="stat-app-users">0</div></div>
+                    <div class="glass-panel stat-card"><div class="stat-label">Profils Totaux</div><div class="stat-value" id="stat-app-profiles">0</div></div>
+                    <div class="glass-panel stat-card"><div class="stat-label">Consommations</div><div class="stat-value" id="stat-app-consos">0</div></div>
+                    <div class="glass-panel stat-card"><div class="stat-label">Moyenne / Profil</div><div class="stat-value" id="stat-app-avg">0</div></div>
+                </div>
+
+                <div class="panel-header">
+                    <h3>Utilisateurs enregistrés</h3>
+                    <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Visualisation des profils synchronisés sur Supabase.</p>
+                </div>
+
+                <div id="users-container" class="user-grid">
+                    <!-- Users injected here -->
                 </div>
             </div>
 
@@ -325,8 +350,10 @@
                     btn.classList.add('active');
                     const tab = btn.dataset.tab;
                     document.getElementById('tab-analytics').style.display = tab === 'analytics' ? 'block' : 'none';
+                    document.getElementById('tab-app').style.display = tab === 'app' ? 'block' : 'none';
                     document.getElementById('tab-editor').style.display = tab === 'editor' ? 'block' : 'none';
                     if (tab === 'editor') loadCMS();
+                    if (tab === 'app') loadAppData();
                 };
             });
 
@@ -372,10 +399,6 @@
                                 return e.event_data?.session_id || e.id; 
                             })
                         );
-                        // Version plus simple : visiteurs uniques ayant généré au moins un event non-heartbeat
-                        const visitorsWithEvent = visits.filter(v => 
-                            events.some(e => e.event_name !== 'heartbeat' && (e.created_at.substring(0,16) === v.created_at.substring(0,16)))
-                        ).length;
 
                         // Calcul simplifié : % de clics sur les boutons clés
                         const mainActions = events.filter(e => e.event_name.startsWith('click_') || e.event_name.startsWith('simulator_')).length;
@@ -423,8 +446,99 @@
                     
                     if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
                     
+                    // On charge aussi les stats globales app
+                    loadAppDataStats();
+
                 } catch(e) { console.error(e); }
             }
+
+            async function loadAppDataStats() {
+                try {
+                    const { data: profiles } = await supabase.from('profiles').select('owner_id');
+                    const { data: consos } = await supabase.from('consumptions').select('id');
+                    
+                    if (profiles) {
+                        const owners = new Set(profiles.map(p => p.owner_id));
+                        document.getElementById('stat-app-users').innerText = owners.size;
+                        document.getElementById('stat-app-profiles').innerText = profiles.length;
+                    }
+                    if (consos) {
+                        document.getElementById('stat-app-consos').innerText = consos.length;
+                        if (profiles && profiles.length > 0) {
+                            document.getElementById('stat-app-avg').innerText = Math.round(consos.length / profiles.length);
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            async function loadAppData() {
+                const container = document.getElementById('users-container');
+                container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Chargement des profils Supabase...</div>';
+                
+                try {
+                    const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+                    const { data: consos } = await supabase.from('consumptions').select('profile_id');
+                    
+                    if (!profiles || profiles.length === 0) {
+                        container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Aucun profil trouvé dans le Cloud.</div>';
+                        return;
+                    }
+
+                    const consoCounts = {};
+                    if (consos) {
+                        consos.forEach(c => {
+                            consoCounts[c.profile_id] = (consoCounts[c.profile_id] || 0) + 1;
+                        });
+                    }
+
+                    container.innerHTML = profiles.map(p => {
+                        const nConsos = consoCounts[p.id] || 0;
+                        const date = new Date(p.created_at).toLocaleDateString('fr-FR');
+                        const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
+                        
+                        return `
+                        <div class="glass-panel user-card">
+                            <div class="user-card-header">
+                                <div class="user-avatar">${avatarEmoji}</div>
+                                <div class="user-info">
+                                    <h4>${p.name || 'Anonyme'}</h4>
+                                    <p>ID: ${p.id.substring(0,8)}... • ${p.age} ans</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.7rem; color:var(--text-muted);">Inscrit le ${date}</div>
+                            <div class="user-stats">
+                                <div class="u-stat-item">
+                                    <div class="u-stat-label">Conso</div>
+                                    <div class="u-stat-val">${nConsos}</div>
+                                </div>
+                                <div class="u-stat-item">
+                                    <div class="u-stat-label">Poids</div>
+                                    <div class="u-stat-val">${p.weight}kg</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:15px; display:flex; gap:10px;">
+                                <button class="save-unit-btn" style="position:static; opacity:1; flex:1; height:35px; background:rgba(255,255,255,0.05); color:white; font-size:0.7rem; font-weight:700;" onclick="viewUserConsos('${p.id}')">Détails</button>
+                                <button class="save-unit-btn" style="position:static; opacity:0.3; width:35px; height:35px; background:var(--danger); color:white;" onclick="deleteProfile('${p.id}')">🗑</button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+
+                } catch(e) { 
+                    console.error(e);
+                    container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--danger)">Erreur lors du chargement des données.</div>';
+                }
+            }
+
+            window.deleteProfile = async (id) => {
+                if (!confirm("Supprimer ce profil du Cloud ?")) return;
+                try {
+                    const { error } = await supabase.from('profiles').delete().eq('id', id);
+                    if (error) throw error;
+                    showToast();
+                    loadAppData();
+                } catch(e) { alert(e.message); }
+            };
 
             async function loadCMS() {
                 const container = document.getElementById('cms-container');
