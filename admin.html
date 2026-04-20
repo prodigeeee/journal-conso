@@ -152,6 +152,25 @@
         .u-stat-val { font-size: 1rem; font-weight: 900; color: var(--accent); }
 
         /* EDITOR UI */
+        .cms-section { margin-bottom: 40px; }
+        .cms-item { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .cms-label { width: 150px; font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase; }
+        .cms-input { flex: 1; background: none; border: none; color: white; font-size: 0.9rem; padding: 5px; outline: none; }
+        .cms-input:focus { background: rgba(255,255,255,0.03); }
+
+        /* Tables & IP badge */
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .badge-ip { font-family: monospace; color: var(--accent); background: rgba(234, 146, 22, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+        
+        /* Buttons */
+        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(234,146,22,0.3); }
+
+        #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-card { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+
+    </style>
 </head>
 <body>
     <div class="aura-bg"></div>
