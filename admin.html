@@ -301,6 +301,13 @@
             const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             let vChart = null;
             
+            window.viewFullImage = (url) => {
+                const modal = document.getElementById('modal-overlay');
+                const body = document.getElementById('modal-body');
+                modal.style.display = 'flex';
+                body.innerHTML = `<div style="text-align:center"><img src="${url}" style="max-width:100%; border-radius:15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);"></div>`;
+            };
+
             window.viewUserConsos = async (id) => {
                 const modal = document.getElementById('modal-overlay');
                 const body = document.getElementById('modal-body');
@@ -616,7 +623,7 @@
                                     return `
                                     <div class="glass-panel user-card">
                                         <div class="user-card-header">
-                                            <div class="user-avatar">
+                                            <div class="user-avatar" style="${hasPhoto ? 'cursor:pointer' : ''}" onclick="${hasPhoto ? `viewFullImage('${p.image_path}')` : ''}">
                                                 ${hasPhoto ? `<img src="${p.image_path}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : avatarEmoji}
                                             </div>
                                             <div class="user-info">
