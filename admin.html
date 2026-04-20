@@ -274,8 +274,14 @@
         window.addEventListener('load', () => {
             const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            
+            if (typeof supabase === 'undefined') return;
+            const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             let vChart = null;
+            
+            window.viewUserConsos = (id) => {
+                alert("Détails pour le profil " + id + " (Fonctionnalité en cours de développement)");
+            };
 
             const CMS_CONFIG = [
                 {
@@ -385,10 +391,10 @@
             document.getElementById('btn-login').onclick = async () => {
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
                 if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
             };
-            document.getElementById('btn-logout').onclick = () => { supabase.auth.signOut(); window.location.reload(); };
+            document.getElementById('btn-logout').onclick = () => { sb.auth.signOut(); window.location.reload(); };
 
             function showDashboard() {
                 document.getElementById('login-screen').style.display = 'none';
@@ -398,9 +404,9 @@
 
             async function loadData() {
                 try {
-                    const { data: visits } = await supabase.from('site_visits').select('*').order('created_at', { ascending: false });
-                    const { data: events } = await supabase.from('site_events').select('*');
-                    const { data: msgs } = await supabase.from('contact_messages').select('*').order('created_at', { ascending: false });
+                    const { data: visits } = await sb.from('site_visits').select('*').order('created_at', { ascending: false });
+                    const { data: events } = await sb.from('site_events').select('*');
+                    const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
 
                     if (visits && events) {
                         // 1. STATS DE BASE
@@ -473,8 +479,8 @@
 
             async function loadAppDataStats() {
                 try {
-                    const { data: profiles } = await supabase.from('profiles').select('owner_id');
-                    const { data: consos } = await supabase.from('consumptions').select('id');
+                    const { data: profiles } = await sb.from('profiles').select('owner_id');
+                    const { data: consos } = await sb.from('consumptions').select('id');
                     
                     if (profiles) {
                         const owners = new Set(profiles.map(p => p.owner_id));
@@ -495,8 +501,8 @@
                 container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Chargement des profils Supabase...</div>';
                 
                 try {
-                    const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-                    const { data: consos } = await supabase.from('consumptions').select('profile_id');
+                    const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                    const { data: consos } = await sb.from('consumptions').select('profile_id');
                     
                     if (!profiles || profiles.length === 0) {
                         container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Aucun profil trouvé dans le Cloud.</div>';
@@ -552,7 +558,7 @@
             window.deleteProfile = async (id) => {
                 if (!confirm("Supprimer ce profil du Cloud ?")) return;
                 try {
-                    const { error } = await supabase.from('profiles').delete().eq('id', id);
+                    const { error } = await sb.from('profiles').delete().eq('id', id);
                     if (error) throw error;
                     showToast();
                     loadAppData();
@@ -564,7 +570,7 @@
                 container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Synchronisation avec Supabase...</div>';
                 
                 try {
-                    const { data } = await supabase.from('site_content').select('*');
+                    const { data } = await sb.from('site_content').select('*');
                     const values = {};
                     if (data) data.forEach(item => values[item.key] = item.value);
 
@@ -600,7 +606,7 @@
                 btn.style.opacity = "0.3"; btn.disabled = true;
 
                 try {
-                    const { error } = await supabase.from('site_content').upsert({ key, value: val }, { onConflict: 'key' });
+                    const { error } = await sb.from('site_content').upsert({ key, value: val }, { onConflict: 'key' });
                     if (error) throw error;
                     showToast();
                 } catch(e) { alert("Erreur: " + e.message); }
@@ -623,7 +629,7 @@
             }
 
             async function checkSession() {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session } } = await sb.auth.getSession();
                 if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
             }
             checkSession();
