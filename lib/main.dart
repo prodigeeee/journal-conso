@@ -4188,7 +4188,14 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 color: widget.isDarkMode ? Colors.white38 : Colors.black45,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+            Center(
+              child: Text(
+                "v1.1.11+15-CLOUD",
+                style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
