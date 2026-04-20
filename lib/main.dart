@@ -3810,6 +3810,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SnackBar(content: Text("❌ Erreur : ${result['error']}"), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
             );
           }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("💡 Mode local : la photo ne sera pas visible dans l'admin.")),
+        );
       }
       
       setState(() {
