@@ -73,6 +73,7 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text.trim(),
           data: {
             'display_name': _nameController.text,
+            'email': _emailController.text.trim(),
             'age': int.tryParse(_ageController.text) ?? 35,
             'weight': int.tryParse(_weightController.text) ?? 70,
             'gender': _gender,

@@ -38,6 +38,7 @@ class SupabaseService {
       await _supabase.from('profiles').upsert({
         'id': p.id,
         'owner_id': ownerId,
+        'email': _supabase.auth.currentUser?.email, // On ajoute l'email de l'auth
         'name': p.name,
         'gender': p.gender,
         'age': p.age,
