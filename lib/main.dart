@@ -1262,7 +1262,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                     OptionsScreen(
                       key: ValueKey('opt_${_profiles.length}_$_activeUserId'),
                       profiles: _profiles,
-                      onProfilesChanged: _saveAll,
+                      onProfilesChanged: () async {
+                        await _saveAll();
+                        _pushToCloud(silent: true);
+                      },
                       onReset: () {
                         setState(() {
                           _allConsumptions.clear();
@@ -4191,7 +4194,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             const SizedBox(height: 30),
             Center(
               child: Text(
-                "v1.1.11+15-CLOUD",
+                "v1.1.11+17-CLOUD",
                 style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ),
