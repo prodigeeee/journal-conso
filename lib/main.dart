@@ -527,6 +527,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       
       if (cloudProfiles.isNotEmpty || cloudConsos.isNotEmpty || (data['contexts'] != null && (data['contexts'] as Map).isNotEmpty)) {
         setState(() {
+          // Si on récupère des profils du cloud, on supprime le profil par défaut local
+          if (cloudProfiles.isNotEmpty) {
+            _profiles.removeWhere((p) => p.id == '1' || p.id == 'moi_default');
+          }
+
           // Fusion des Profils
           for (var cp in cloudProfiles) {
             final idx = _profiles.indexWhere((p) => p.id == cp.id);
@@ -4803,7 +4808,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "Version 1.1.9+13",
+            "v1.1.11+17-CLOUD",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
