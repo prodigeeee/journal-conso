@@ -35,6 +35,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _weightController = TextEditingController(text: "70");
   String _gender = L10n.s('auth.man');
   String? _imagePath;
+  XFile? _pickedFile;
   
   bool _isSignUp = false;
   bool _isLoading = false;
@@ -44,7 +45,10 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
     if (image != null) {
-      setState(() => _imagePath = image.path);
+      setState(() {
+          _pickedFile = image;
+          _imagePath = image.path;
+      });
     }
   }
 
@@ -63,9 +67,9 @@ class _AuthScreenState extends State<AuthScreen> {
       if (_isSignUp) {
         String? finalImagePath = _imagePath;
         
-        // Si une image locale a été choisie, on l'upload sur Supabase Storage
-        if (_imagePath != null && !kIsWeb && !(_imagePath!.startsWith('http'))) {
-            finalImagePath = await SupabaseService.uploadProfileImage(_imagePath!);
+        // Si une image locale a été choisie, on l'upload sur Supabase Storage (Fonctionne Web & Mobile)
+        if (_pickedFile != null && !(_imagePath!.startsWith('http'))) {
+            finalImagePath = await SupabaseService.uploadProfileImage(_pickedFile!);
         }
 
         final res = await Supabase.instance.client.auth.signUp(
