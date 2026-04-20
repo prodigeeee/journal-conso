@@ -568,7 +568,15 @@
                         if (!accounts[p.owner_id]) accounts[p.owner_id] = [];
                         accounts[p.owner_id].push(p);
                     });
+                    document.getElementById('stat-auth').innerText = Object.keys(accounts).length;
+                    window.allAccountsData = accounts; 
+                    renderAccounts(accounts, consos);
 
+                } catch (e) {
+                    console.error(e);
+                    container.innerHTML = `<div class="error">Erreur de chargement : ${e.message}</div>`;
+                }
+            }
 
             function filterProfiles() {
                 const query = document.getElementById('search-input').value.toLowerCase();
