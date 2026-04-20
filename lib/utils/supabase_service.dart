@@ -8,22 +8,22 @@ class SupabaseService {
   static final _supabase = Supabase.instance.client;
   static const String _profilesBucket = 'profile_images';
 
-  static Future<String?> uploadProfileImage(XFile imageFile) async {
+  static Future<Map<String, String?>> uploadProfileImage(XFile imageFile) async {
     try {
       final bytes = await imageFile.readAsBytes();
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(999)}.jpg';
+      final ext = imageFile.name.contains('.') ? imageFile.name.split('.').last.toLowerCase() : 'jpg';
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(999)}.$ext';
       
       await _supabase.storage.from(_profilesBucket).uploadBinary(
         fileName,
         bytes,
-        fileOptions: const FileOptions(cacheControl: '3600', contentType: 'image/jpeg', upsert: false),
+        fileOptions: FileOptions(cacheControl: '3600', contentType: 'image/$ext', upsert: false),
       );
 
       final String publicUrl = _supabase.storage.from(_profilesBucket).getPublicUrl(fileName);
-      return publicUrl;
+      return {'url': publicUrl, 'error': null};
     } catch (e) {
-      debugPrint("Erreur upload image: $e");
-      return null;
+      return {'url': null, 'error': e.toString()};
     }
   }
 

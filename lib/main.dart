@@ -3796,7 +3796,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
             const SnackBar(content: Text("🚀 Envoi de la photo sur le Cloud...")),
           );
           
-          cloudPath = await SupabaseService.uploadProfileImage(image);
+          final result = await SupabaseService.uploadProfileImage(image);
+          cloudPath = result['url'];
           
           setState(() => _isUploading = false);
 
@@ -3806,7 +3807,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("❌ Échec de l'envoi au serveur. Vérifiez la console."), backgroundColor: Colors.red),
+              SnackBar(content: Text("❌ Erreur : ${result['error']}"), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
             );
           }
       }

@@ -69,7 +69,8 @@ class _AuthScreenState extends State<AuthScreen> {
         
         // Si une image locale a été choisie, on l'upload sur Supabase Storage (Fonctionne Web & Mobile)
         if (_pickedFile != null && !(_imagePath!.startsWith('http'))) {
-            finalImagePath = await SupabaseService.uploadProfileImage(_pickedFile!);
+            final result = await SupabaseService.uploadProfileImage(_pickedFile!);
+            finalImagePath = result['url'];
         }
 
         final res = await Supabase.instance.client.auth.signUp(
