@@ -10,16 +10,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --accent: #EA9216;
-            --accent-glow: rgba(234, 146, 22, 0.4);
-            --bg-dark: #050608;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-strong: rgba(255, 255, 255, 0.06);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.5);
-            --danger: #ff4757;
-            --success: #2ed573;
+            --accent: #d841e2;
+            --accent-pink: #ff007f;
+            --accent-cyan: #00f2ff;
+            --bg-dark: #0a0a0c;
+            --bg-card: #121215;
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --text-main: #e0e0e0;
+            --text-muted: #707075;
+            --danger: #ff3344;
+            --success: #00ffaa;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -207,100 +207,59 @@
 
     <div class="container">
         <!-- LOGIN SCREEN -->
-        <div id="login-screen">
-            <div class="glass-panel login-card">
-                <img src="assets/images/logo.png" style="width: 50px; margin-bottom: 20px;">
-                <h2 style="margin-bottom: 30px; font-weight:900;">ADMIN PANEL</h2>
-                <div style="text-align: left; margin-bottom: 15px;">
-                    <label style="font-size: 0.6rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; display: block;">E-MAIL</label>
-                    <input type="email" id="email" value="christophek@hotmail.com" style="width:100%; padding:12px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white;">
-                </div>
-                <div style="text-align: left; margin-bottom: 25px;">
-                    <label style="font-size: 0.6rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; display: block;">MOT DE PASSE</label>
-                    <input type="password" id="password" style="width:100%; padding:12px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white;">
-                </div>
-                <button id="btn-login" class="btn-primary">ACCÉDER</button>
+        <div id="login-screen" style="display:flex; align-items:center; justify-content:center; min-height:80vh;">
+            <div class="glass-panel" style="max-width: 400px; width:100%; padding: 40px; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 20px;">🛡️</div>
+                <h2 style="margin-bottom: 30px; letter-spacing: 2px;">SECURE ACCESS</h2>
+                <input type="email" id="email" placeholder="ADMIN EMAIL" style="width:100%; padding:12px; margin-bottom:15px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); color:white; border-radius:8px; outline:none;">
+                <input type="password" id="password" placeholder="PASSWORD" style="width:100%; padding:12px; margin-bottom:25px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); color:white; border-radius:8px; outline:none;">
+                <button id="btn-login" class="btn-action" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; text-transform:uppercase; letter-spacing:2px; font-weight:900;">Authorize</button>
             </div>
         </div>
 
         <!-- DASHBOARD -->
-        <div id="dashboard">
-            <div class="header">
-                <h1>Back-office • <span style="color:var(--accent)">Journal Conso</span></h1>
-                <a class="logout-btn" id="btn-logout">Déconnexion</a>
-            </div>
-
-            <div class="tabs-nav">
-                <button class="tab-btn active" data-tab="analytics">Analytics</button>
-                <button class="tab-btn" data-tab="app">Comptes & App</button>
-                <button class="tab-btn" data-tab="editor">Contenu du site</button>
+        <div id="dashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-top:20px;">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 900; letter-spacing: 1px;">JOURNAL <span style="color:var(--accent)">CONSO</span> <span style="font-size: 0.7rem; opacity: 0.3; font-weight: 400;">ADMIN v2.0</span></h1>
+                </div>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div class="tabs-container">
+                        <button class="tab-btn active" data-tab="analytics">Overview</button>
+                        <button class="tab-btn" data-tab="app">Identities</button>
+                        <button class="tab-btn" data-tab="editor">Content</button>
+                    </div>
+                    <button id="btn-logout" class="btn-action" style="border-radius: 50px; background: rgba(255,71,87,0.1); color: var(--danger);">Logout</button>
+                </div>
             </div>
 
             <!-- ANALYTICS TAB -->
             <div id="tab-analytics">
-                <div class="grid-stats">
-                    <div class="glass-panel stat-card"><div class="stat-label">Visites</div><div class="stat-value" id="stat-total-visits">0</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Uniques</div><div class="stat-value" id="stat-unique-visits">0</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Engagement</div><div class="stat-value" id="stat-interactions">0%</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Messages</div><div class="stat-value" id="stat-messages">0</div></div>
+                <div class="stats-row">
+                    <div class="glass-panel stat-card"><h3>Database</h3><div class="value" id="stat-db">0</div><div class="desc">PROFILES</div></div>
+                    <div class="glass-panel stat-card"><h3>Stored</h3><div class="value" id="stat-storage">--</div><div class="desc">IMAGES</div></div>
+                    <div class="glass-panel stat-card"><h3>Visits</h3><div class="value" id="stat-total-visits">0</div><div class="desc">TOTAL SESSIONS</div></div>
+                    <div class="glass-panel stat-card"><h3>Active</h3><div class="value" style="color:var(--success)" id="stat-active-users">0</div><div class="desc">USERS LIVE</div></div>
                 </div>
 
-                <div class="main-grid">
-                    <div class="glass-panel" style="padding: 25px; height: 350px;"><canvas id="visitsChart"></canvas></div>
-                    <div class="sidebar-panel">
-                        <div class="glass-panel stat-card" style="text-align: center;">
-                            <div class="stat-label">Live</div>
-                            <div style="font-size: 2.5rem; font-weight: 900;" id="stat-active-users">0</div>
-                        </div>
+                <div class="analytics-grid">
+                    <div class="glass-panel chart-card"><canvas id="visitsChart"></canvas></div>
+                    <div class="glass-panel chart-card" style="padding:20px;">
+                        <h3 style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:15px;">Recent Access</h3>
+                        <div id="recent-access-list" style="font-size:0.75rem;"></div>
                     </div>
                 </div>
-
-                <div class="glass-panel" style="padding: 20px; overflow-x: auto;">
-                    <div class="panel-header"><h3>Dernières visites</h3></div>
-                    <table>
-                        <thead><tr><th>Heure</th><th>Page</th><th>Device</th><th>IP</th></tr></thead>
-                        <tbody id="visits-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
             <!-- APP TAB -->
             <div id="tab-app" style="display: none;">
-                <div class="stats-row">
-                    <div class="glass-panel stat-card">
-                        <h3>Base de données</h3>
-                        <div class="value" id="stat-db">0</div>
-                        <div class="desc">Profils synchronisés</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <h3>Utilisateurs Auth</h3>
-                        <div class="value" id="stat-auth">--</div>
-                        <div class="desc">Comptes créés (approx)</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <h3>Stockage</h3>
-                        <div class="value" id="stat-storage">--</div>
-                        <div class="desc">Images dans le bucket</div>
-                    </div>
-                    <div class="glass-panel stat-card">
-                        <h3>Activité</h3>
-                        <div class="value" id="stat-conso">0</div>
-                        <div class="desc">Consommations totales</div>
-                    </div>
-                </div>
-
                 <div style="margin-bottom:30px; display:flex; gap:15px; align-items:center">
-                    <div class="glass-panel" style="flex:1; padding:10px 20px; display:flex; align-items:center; gap:10px;">
-                        <span style="opacity:0.5">🔍</span>
-                        <input type="text" id="search-input" placeholder="Rechercher un utilisateur, un e-mail ou un ID..." 
-                               style="background:none; border:none; color:white; width:100%; font-size:0.9rem; outline:none;"
+                    <div class="glass-panel" style="flex:1; padding:12px 25px; display:flex; align-items:center; gap:10px;">
+                        <span style="opacity:0.3">🔍</span>
+                        <input type="text" id="search-input" placeholder="SEARCH IDENTITIES..." 
+                               style="background:none; border:none; color:white; width:100%; font-size:0.8rem; outline:none; text-transform:uppercase; letter-spacing:1px;"
                                oninput="filterProfiles()">
                     </div>
                 </div>
-
-                <div id="app-data-container">
-                    <!-- Users injected here -->
-                </div>
+                <div id="app-data-container"></div>
             </div>
 
             <!-- EDITOR TAB -->
@@ -621,66 +580,75 @@
                     <div class="account-group" id="account-${ownerId}">
                         <div class="account-header">
                             <div>
-                                <div class="account-id">ID: ${ownerId}...</div>
-                                <div style="color:var(--accent); font-weight:900; font-size:1.1rem; margin-top:5px;">
-                                    ${accountEmail}
-                                </div>
+                                <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">User Datastore</div>
+                                <div style="color:var(--accent-cyan); font-weight:800; font-size:1.2rem;">${accountEmail}</div>
+                                <div style="font-size:0.5rem; opacity:0.3;">UID: ${ownerId}</div>
                             </div>
-                            <div class="account-actions">
-                                <button class="btn-action" onclick="resetPassword('${accountEmail}')">Réinit. Pass</button>
-                                <button class="btn-action" onclick="wipeAccount('${ownerId}')" style="color:#ff4d4d">WIPE DATA</button>
-                                <div class="account-badge">${userProfiles.length} PROFIL(S)</div>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-action" onclick="resetPassword('${accountEmail}')">Reset Pass</button>
+                                <button class="btn-action" onclick="wipeAccount('${ownerId}')" style="color:var(--danger)">Wipe Account</button>
                             </div>
                         </div>
-                        <div class="user-grid">
-                            ${userProfiles.map(p => {
-                                const nConsos = consoCounts[p.id] || 0;
-                                const date = new Date(p.created_at).toLocaleDateString('fr-FR');
-                                const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
-                                
-                                let photoUrl = null;
-                                let debugPath = p.image_path || 'Aucun';
-                                if (p.image_path) {
-                                    if (p.image_path.startsWith('http')) {
-                                        photoUrl = p.image_path;
-                                    } else if (p.image_path.includes('.') && !p.image_path.startsWith('/')) {
-                                        photoUrl = `https://aswxkjibvcadnwujzwcm.supabase.co/storage/v1/object/public/profile_images/${p.image_path}`;
+                        
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Identity</th>
+                                    <th>Age/Sex</th>
+                                    <th>Activity</th>
+                                    <th>Registration</th>
+                                    <th>Last Path</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${userProfiles.map(p => {
+                                    const nConsos = consoCounts[p.id] || 0;
+                                    const date = new Date(p.created_at).toLocaleDateString('fr-FR');
+                                    const riskClass = nConsos > 50 ? 'high' : (nConsos > 10 ? 'medium' : 'low');
+                                    const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
+                                    
+                                    let photoUrl = null;
+                                    if (p.image_path) {
+                                        if (p.image_path.startsWith('http')) photoUrl = p.image_path;
+                                        else if (p.image_path.includes('.')) photoUrl = `https://aswxkjibvcadnwujzwcm.supabase.co/storage/v1/object/public/profile_images/${p.image_path}`;
                                     }
-                                }
-                                const hasPhoto = !!photoUrl;
-                                
-                                return `
-                                <div class="glass-panel user-card">
-                                    <div class="user-card-header">
-                                        <div class="user-avatar" style="${hasPhoto ? 'cursor:pointer' : ''}" onclick="${hasPhoto ? `viewFullImage('${photoUrl}')` : ''}">
-                                            ${hasPhoto ? `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='${avatarEmoji}'">` : avatarEmoji}
-                                        </div>
-                                        <div class="user-info">
-                                            <h4>${p.name || 'Anonyme'}</h4>
-                                            <p>ID: ${p.id.substring(0, 8)}... • ${p.age || '?'} ans</p>
-                                        </div>
-                                    </div>
-                                    <div style="font-size:0.5rem; color:rgba(255,255,255,0.2); margin-top:-10px; margin-bottom:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                        Path: ${debugPath}
-                                    </div>
-                                    <p style="font-size:0.7rem; opacity:0.6; margin-bottom:15px;">Inscrit le ${date}</p>
-                                    <div class="user-stats">
-                                        <div class="u-stat-item">
-                                            <div class="u-stat-label">CONSO</div>
-                                            <div class="u-stat-val">${nConsos}</div>
-                                        </div>
-                                        <div class="u-stat-item">
-                                            <div class="u-stat-label">POIDS</div>
-                                            <div class="u-stat-val">${p.weight || '?'}kg</div>
-                                        </div>
-                                    </div>
-                                    <div style="display:flex; gap:10px; margin-top:20px;">
-                                        <button class="btn-action" style="flex:1" onclick="viewHistory('${p.id}', '${p.name}')">Détails</button>
-                                        <button class="btn-action" style="background:rgba(255,77,77,0.1); color:#ff4d4d" onclick="deleteProfile('${p.id}')">🗑️</button>
-                                    </div>
-                                </div>`;
-                            }).join('')}
-                        </div>
+                                    
+                                    return `
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex; align-items:center; gap:12px;">
+                                                <div class="user-row-avatar">
+                                                    ${photoUrl ? `<img src="${photoUrl}" onerror="this.style.display='none'; this.parentElement.innerText='${avatarEmoji}'">` : avatarEmoji}
+                                                </div>
+                                                <div>
+                                                    <div style="font-weight:700; color:white;">${p.name || 'Anonymous'}</div>
+                                                    <div style="font-size:0.6rem; opacity:0.5;">ID: ${p.id.substring(0,8)}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:600;">${p.age || '?'} yrs</div>
+                                            <div style="font-size:0.6rem; opacity:0.5;">${p.gender || '?'} • ${p.weight}kg</div>
+                                        </td>
+                                        <td>
+                                            <div class="stat-badge ${riskClass}">${nConsos} EVENTS</div>
+                                            <div class="level-bar"><div class="level-fill" style="width:${Math.min(100, nConsos)}%; background:${riskClass==='high'?'var(--accent-pink)':(riskClass==='medium'?'var(--accent)':'var(--success)')}"></div></div>
+                                        </td>
+                                        <td style="font-size:0.75rem; opacity:0.7;">${date}</td>
+                                        <td style="font-size:0.6rem; color:var(--text-muted); max-width:120px; overflow:hidden; text-overflow:ellipsis;">
+                                            ${p.image_path || '-'}
+                                        </td>
+                                        <td>
+                                            <div style="display:flex; gap:8px;">
+                                                <button class="btn-action" style="padding:4px 8px" onclick="viewHistory('${p.id}', '${p.name}')">DETAILS</button>
+                                                <button class="btn-action" style="padding:4px 8px; color:var(--danger)" onclick="deleteProfile('${p.id}')">🗑</button>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
                     </div>`;
                 });
 
@@ -746,17 +714,50 @@
 
             function renderChart(visits) {
                 const ctx = document.getElementById('visitsChart'); if (!ctx || !window.Chart) return;
-                const days = {}; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days[d.toISOString().split('T')[0]] = 0; }
+                const days = {}; for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days[d.toISOString().split('T')[0]] = 0; }
                 visits.forEach(v => { const dd = v.created_at.split('T')[0]; if (days[dd] !== undefined) days[dd]++; });
+                
                 if (vChart) vChart.destroy();
+                
+                const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(216, 65, 226, 0.4)');
+                gradient.addColorStop(1, 'rgba(216, 65, 226, 0.0)');
+
                 vChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                        datasets: [{ data: Object.values(days), borderColor: '#EA9216', borderWidth: 2.5, tension: 0.4, fill: true, backgroundColor: 'rgba(234, 146, 22, 0.04)', pointRadius: 3 }]
+                        datasets: [{ 
+                            data: Object.values(days), 
+                            borderColor: '#d841e2', 
+                            borderWidth: 3, 
+                            tension: 0.4, 
+                            fill: true, 
+                            backgroundColor: gradient, 
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#fff'
+                        }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { 
+                            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555' } }, 
+                            x: { grid: { display: false }, ticks: { color: '#555' } } 
+                        } 
+                    }
                 });
+
+                // Recent access list
+                document.getElementById('recent-access-list').innerHTML = visits.slice(0, 10).map(v => `
+                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                        <span style="opacity:0.6">${new Date(v.created_at).toLocaleTimeString()}</span>
+                        <span style="color:var(--accent-cyan); font-weight:700;">${v.ip_address || 'ANON'}</span>
+                        <span style="opacity:0.4">${v.device_type === 'mobile' ? '📱' : '💻'}</span>
+                    </div>
+                `).join('');
             }
 
             async function checkSession() {
