@@ -3779,6 +3779,8 @@ class OptionsScreen extends StatefulWidget {
 
 class _OptionsScreenState extends State<OptionsScreen> {
   final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
+
   Future<void> _pickImage(UserProfile p) async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -3789,12 +3791,27 @@ class _OptionsScreenState extends State<OptionsScreen> {
     if (image != null) {
       String? cloudPath;
       if (Supabase.instance.client.auth.currentUser != null) {
-          // Si on est connecté au Cloud, on upload
+          setState(() => _isUploading = true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("🚀 Envoi de la photo sur le Cloud...")),
+          );
+          
           cloudPath = await SupabaseService.uploadProfileImage(image);
+          
+          setState(() => _isUploading = false);
+
+          if (cloudPath != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("✅ Photo sauvegardée sur le serveur !"), backgroundColor: Colors.green),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("❌ Échec de l'envoi au serveur. Vérifiez la console."), backgroundColor: Colors.red),
+            );
+          }
       }
       
       setState(() {
-          // On utilise le lien Cloud si dispo, sinon le chemin local (fallback)
           p.imagePath = cloudPath ?? image.path;
       });
       widget.onProfilesChanged();
