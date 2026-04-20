@@ -151,6 +151,12 @@
         .u-stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; }
         .u-stat-val { font-size: 1rem; font-weight: 900; color: var(--accent); }
 
+        /* ACCOUNT GROUPS */
+        .account-group { margin-bottom: 40px; padding: 25px; background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px dashed rgba(255,255,255,0.05); }
+        .account-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .account-badge { background: var(--glass-strong); padding: 5px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; color: var(--accent); border: 1px solid var(--glass-border); text-transform: uppercase; }
+        .account-id { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); }
+
         /* EDITOR UI */
         .cms-section { margin-bottom: 40px; }
         .cms-item { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
@@ -498,7 +504,7 @@
 
             async function loadAppData() {
                 const container = document.getElementById('users-container');
-                container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Chargement des profils Supabase...</div>';
+                container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Organisation des données cloud...</div>';
                 
                 try {
                     const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
@@ -509,6 +515,13 @@
                         return;
                     }
 
+                    // Regroupement par Owner ID (Compte)
+                    const accounts = {};
+                    profiles.forEach(p => {
+                        if (!accounts[p.owner_id]) accounts[p.owner_id] = [];
+                        accounts[p.owner_id].push(p);
+                    });
+
                     const consoCounts = {};
                     if (consos) {
                         consos.forEach(c => {
@@ -516,38 +529,53 @@
                         });
                     }
 
-                    container.innerHTML = profiles.map(p => {
-                        const nConsos = consoCounts[p.id] || 0;
-                        const date = new Date(p.created_at).toLocaleDateString('fr-FR');
-                        const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
-                        
-                        return `
-                        <div class="glass-panel user-card">
-                            <div class="user-card-header">
-                                <div class="user-avatar">${avatarEmoji}</div>
-                                <div class="user-info">
-                                    <h4>${p.name || 'Anonyme'}</h4>
-                                    <p>ID: ${p.id.substring(0,8)}... • ${p.age} ans</p>
-                                </div>
+                    let html = '';
+                    Object.entries(accounts).forEach(([ownerId, userProfiles]) => {
+                        html += `
+                        <div class="account-group">
+                            <div class="account-header">
+                                <div class="account-id">ACCOUNT ID: ${ownerId.substring(0,18)}...</div>
+                                <div class="account-badge">${userProfiles.length} PROFIL(S)</div>
                             </div>
-                            <div style="font-size: 0.7rem; color:var(--text-muted);">Inscrit le ${date}</div>
-                            <div class="user-stats">
-                                <div class="u-stat-item">
-                                    <div class="u-stat-label">Conso</div>
-                                    <div class="u-stat-val">${nConsos}</div>
-                                </div>
-                                <div class="u-stat-item">
-                                    <div class="u-stat-label">Poids</div>
-                                    <div class="u-stat-val">${p.weight}kg</div>
-                                </div>
+                            <div class="user-grid">
+                                ${userProfiles.map(p => {
+                                    const nConsos = consoCounts[p.id] || 0;
+                                    const date = new Date(p.created_at).toLocaleDateString('fr-FR');
+                                    const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
+                                    
+                                    return `
+                                    <div class="glass-panel user-card">
+                                        <div class="user-card-header">
+                                            <div class="user-avatar">${avatarEmoji}</div>
+                                            <div class="user-info">
+                                                <h4>${p.name || 'Anonyme'}</h4>
+                                                <p>ID: ${p.id.substring(0,8)}... • ${p.age} ans</p>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color:var(--text-muted);">Inscrit le ${date}</div>
+                                        <div class="user-stats">
+                                            <div class="u-stat-item">
+                                                <div class="u-stat-label">Conso</div>
+                                                <div class="u-stat-val">${nConsos}</div>
+                                            </div>
+                                            <div class="u-stat-item">
+                                                <div class="u-stat-label">Poids</div>
+                                                <div class="u-stat-val">${p.weight}kg</div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:15px; display:flex; gap:10px;">
+                                            <button class="save-unit-btn" style="position:static; opacity:1; flex:1; height:35px; background:rgba(255,255,255,0.05); color:white; font-size:0.7rem; font-weight:700;" onclick="viewUserConsos('${p.id}')">Détails</button>
+                                            <button class="save-unit-btn" style="position:static; opacity:0.3; width:35px; height:35px; background:var(--danger); color:white;" onclick="deleteProfile('${p.id}')">🗑</button>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
                             </div>
-                            <div style="margin-top:15px; display:flex; gap:10px;">
-                                <button class="save-unit-btn" style="position:static; opacity:1; flex:1; height:35px; background:rgba(255,255,255,0.05); color:white; font-size:0.7rem; font-weight:700;" onclick="viewUserConsos('${p.id}')">Détails</button>
-                                <button class="save-unit-btn" style="position:static; opacity:0.3; width:35px; height:35px; background:var(--danger); color:white;" onclick="deleteProfile('${p.id}')">🗑</button>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
+                        </div>`;
+                    });
+
+                    container.innerHTML = html;
+                    // On enlève le flex-grid car les conteneurs occupent toute la largeur
+                    container.classList.remove('user-grid');
 
                 } catch(e) { 
                     console.error(e);
