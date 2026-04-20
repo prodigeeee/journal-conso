@@ -138,6 +138,13 @@
         }
         #toast.active { transform: translateY(0); }
 
+        /* STATS CARDS */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { padding: 25px; text-align: left; }
+        .stat-card h3 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 900; color: var(--accent); }
+        .stat-card .desc { font-size: 0.65rem; color: var(--text-muted); margin-top: 5px; }
+
         /* USER CARDS */
         .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .user-card { padding: 20px; border: 1px solid var(--glass-border); transition: 0.3s; }
@@ -259,19 +266,39 @@
 
             <!-- APP TAB -->
             <div id="tab-app" style="display: none;">
-                <div class="grid-stats">
-                    <div class="glass-panel stat-card"><div class="stat-label">Comptes Cloud</div><div class="stat-value" id="stat-app-users">0</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Profils Totaux</div><div class="stat-value" id="stat-app-profiles">0</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Consommations</div><div class="stat-value" id="stat-app-consos">0</div></div>
-                    <div class="glass-panel stat-card"><div class="stat-label">Moyenne / Profil</div><div class="stat-value" id="stat-app-avg">0</div></div>
+                <div class="stats-row">
+                    <div class="glass-panel stat-card">
+                        <h3>Base de données</h3>
+                        <div class="value" id="stat-db">0</div>
+                        <div class="desc">Profils synchronisés</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Utilisateurs Auth</h3>
+                        <div class="value" id="stat-auth">--</div>
+                        <div class="desc">Comptes créés (approx)</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Stockage</h3>
+                        <div class="value" id="stat-storage">--</div>
+                        <div class="desc">Images dans le bucket</div>
+                    </div>
+                    <div class="glass-panel stat-card">
+                        <h3>Activité</h3>
+                        <div class="value" id="stat-conso">0</div>
+                        <div class="desc">Consommations totales</div>
+                    </div>
                 </div>
 
-                <div class="panel-header">
-                    <h3>Utilisateurs enregistrés</h3>
-                    <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Visualisation des profils synchronisés sur Supabase.</p>
+                <div style="margin-bottom:30px; display:flex; gap:15px; align-items:center">
+                    <div class="glass-panel" style="flex:1; padding:10px 20px; display:flex; align-items:center; gap:10px;">
+                        <span style="opacity:0.5">🔍</span>
+                        <input type="text" id="search-input" placeholder="Rechercher un utilisateur, un e-mail ou un ID..." 
+                               style="background:none; border:none; color:white; width:100%; font-size:0.9rem; outline:none;"
+                               oninput="filterProfiles()">
+                    </div>
                 </div>
 
-                <div id="users-container" class="user-grid">
+                <div id="app-data-container">
                     <!-- Users injected here -->
                 </div>
             </div>
@@ -347,7 +374,6 @@
             window.wipeAccount = async (ownerId) => {
                 if (!confirm("ATTENTION : Supprimer TOUTES les données de ce compte (Profils, Consommations, Contextes) ? Cette action est irréversible.")) return;
                 try {
-                    // Suppression en cascade (si RLS le permet)
                     const p1 = sb.from('profiles').delete().eq('owner_id', ownerId);
                     const p2 = sb.from('consumptions').delete().eq('owner_id', ownerId);
                     const p3 = sb.from('moments_contexts').delete().eq('owner_id', ownerId);
@@ -442,7 +468,6 @@
                 }
             ];
 
-            // TABS
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.onclick = () => {
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -461,7 +486,6 @@
                 t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 3000);
             }
 
-            // LOGIN
             document.getElementById('btn-login').onclick = async () => {
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
@@ -483,41 +507,21 @@
                     const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
 
                     if (visits && events) {
-                        // 1. STATS DE BASE
                         document.getElementById('stat-total-visits').innerText = visits.length;
-                        
-                        // Uniques basés sur session_id (nouvelles data) ou ip/userAgent (old data)
                         const uniqueSessions = new Set(visits.map(v => v.session_id || v.ip_address || v.user_agent));
                         document.getElementById('stat-unique-visits').innerText = uniqueSessions.size;
-
-                        // 2. ENGAGEMENT RÉEL (% de visiteurs ayant fait une action manuelle)
-                        const activeSessionIds = new Set(events
-                            .filter(e => e.event_name !== 'heartbeat')
-                            .map(e => {
-                                // On essaie de retrouver le session_id dans les events (si dispo)
-                                return e.event_data?.session_id || e.id; 
-                            })
-                        );
-
-                        // Calcul simplifié : % de clics sur les boutons clés
                         const mainActions = events.filter(e => e.event_name.startsWith('click_') || e.event_name.startsWith('simulator_')).length;
                         const engagementRate = visits.length > 0 ? Math.round((mainActions / visits.length) * 100) : 0;
                         document.getElementById('stat-interactions').innerText = engagementRate + '%';
-
-                        // 3. TABLEAU DES VISITES AVEC INFOS PRÉCISES
                         document.getElementById('visits-table-body').innerHTML = visits.slice(0, 20).map(v => {
                             const time = new Date(v.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
                             const date = new Date(v.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit'});
-                            
-                            // Détection simplifiée OS
                             let os = "Inconnu";
                             if (v.user_agent.includes("iPhone")) os = "iOS";
                             else if (v.user_agent.includes("Android")) os = "Android";
                             else if (v.user_agent.includes("Windows")) os = "Windows";
                             else if (v.user_agent.includes("Macintosh")) os = "macOS";
-
                             const referrer = (v.referrer && v.referrer !== 'direct') ? v.referrer.split('/')[2] : 'Direct';
-
                             return `
                                 <tr>
                                     <td>
@@ -535,143 +539,135 @@
                                     </td>
                                 </tr>`;
                         }).join('');
-
                         renderChart(visits);
-                        
-                        // 4. LIVE & ACTIONS RÉCENTES
                         const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 180000).toISOString()).length;
                         document.getElementById('stat-active-users').innerText = active;
                     }
-                    
                     if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
-                    
-                    // On charge aussi les stats globales app
-                    loadAppDataStats();
-
                 } catch(e) { console.error(e); }
             }
 
-            async function loadAppDataStats() {
-                try {
-                    const { data: profiles } = await sb.from('profiles').select('owner_id');
-                    const { data: consos } = await sb.from('consumptions').select('id');
-                    
-                    if (profiles) {
-                        const owners = new Set(profiles.map(p => p.owner_id));
-                        document.getElementById('stat-app-users').innerText = owners.size;
-                        document.getElementById('stat-app-profiles').innerText = profiles.length;
-                    }
-                    if (consos) {
-                        document.getElementById('stat-app-consos').innerText = consos.length;
-                        if (profiles && profiles.length > 0) {
-                            document.getElementById('stat-app-avg').innerText = Math.round(consos.length / profiles.length);
-                        }
-                    }
-                } catch(e) {}
-            }
-
             async function loadAppData() {
-                const container = document.getElementById('users-container');
-                container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Organisation des données cloud...</div>';
-                
-                try {
-                    const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                    const { data: consos } = await sb.from('consumptions').select('profile_id');
-                    
-                    if (!profiles || profiles.length === 0) {
-                        container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Aucun profil trouvé dans le Cloud.</div>';
-                        return;
-                    }
+                const container = document.getElementById('app-data-container');
+                container.innerHTML = '<div style="padding: 50px; text-align: center; opacity: 0.5;">Analyse des données en cours...</div>';
 
-                    // Regroupement par Owner ID (Compte)
+                try {
+                    const { data: profiles, error: pError } = await sb.from('profiles').select('*');
+                    const { data: consos, error: cError } = await sb.from('consumptions').select('*');
+                    
+                    if (pError || cError) throw (pError || cError);
+
+                    document.getElementById('stat-db').innerText = profiles.length;
+                    document.getElementById('stat-conso').innerText = consos.length;
+                    
+                    const { data: storageData } = await sb.storage.from('profile_images').list('', { limit: 100 });
+                    document.getElementById('stat-storage').innerText = (storageData || []).length;
+
                     const accounts = {};
                     profiles.forEach(p => {
                         if (!accounts[p.owner_id]) accounts[p.owner_id] = [];
                         accounts[p.owner_id].push(p);
                     });
 
-                    const consoCounts = {};
-                    if (consos) {
-                        consos.forEach(c => {
-                            consoCounts[c.profile_id] = (consoCounts[c.profile_id] || 0) + 1;
-                        });
-                    }
 
-                    let html = '';
-                    Object.entries(accounts).forEach(([ownerId, userProfiles]) => {
-                        const email = userProfiles[0].email || 'E-mail non renseigné';
-                        html += `
-                        <div class="account-group">
-                            <div class="account-header">
-                                <div>
-                                    <div class="account-id">ID: ${ownerId.substring(0,18)}...</div>
-                                    <div style="font-weight: 800; font-size: 0.9rem; color: var(--accent); margin-top: 4px;">${email}</div>
-                                </div>
-                                <div class="account-actions">
-                                    <button class="btn-action" onclick="resetPassword('${email}')">Réinit. Pass</button>
-                                    <button class="btn-action danger" onclick="wipeAccount('${ownerId}')">WIPE DATA</button>
-                                    <div class="account-badge">${userProfiles.length} PROFIL(S)</div>
-                                </div>
-                            </div>
-                            <div class="user-grid">
-                                ${userProfiles.map(p => {
-                                    const nConsos = consoCounts[p.id] || 0;
-                                    const date = new Date(p.created_at).toLocaleDateString('fr-FR');
-                                    const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
-                                    let photoUrl = null;
-                                    if (p.image_path) {
-                                        if (p.image_path.startsWith('http')) {
-                                            photoUrl = p.image_path;
-                                        } else if (p.image_path.includes('.') && !p.image_path.startsWith('/')) {
-                                            // C'est probablement un nom de fichier dans le bucket
-                                            photoUrl = `https://aswxkjibvcadnwujzwcm.supabase.co/storage/v1/object/public/profile_images/${p.image_path}`;
-                                        }
-                                    }
-                                    const hasPhoto = !!photoUrl;
-                                    if (hasPhoto) console.log("Chargement photo pour " + p.name + " : " + photoUrl);
-                                    
-                                    return `
-                                    <div class="glass-panel user-card">
-                                        <div class="user-card-header">
-                                            <div class="user-avatar" style="${hasPhoto ? 'cursor:pointer' : ''}" onclick="${hasPhoto ? `viewFullImage('${photoUrl}')` : ''}">
-                                                ${hasPhoto ? `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='${avatarEmoji}'">` : avatarEmoji}
-                                            </div>
-                                            <div class="user-info">
-                                                <h4>${p.name || 'Anonyme'}</h4>
-                                                <p>ID: ${p.id.substring(0,8)}... • ${p.age} ans</p>
-                                            </div>
-                                        </div>
-                                        <div style="font-size: 0.7rem; color:var(--text-muted);">Inscrit le ${date}</div>
-                                        <div class="user-stats">
-                                            <div class="u-stat-item">
-                                                <div class="u-stat-label">Conso</div>
-                                                <div class="u-stat-val">${nConsos}</div>
-                                            </div>
-                                            <div class="u-stat-item">
-                                                <div class="u-stat-label">Poids</div>
-                                                <div class="u-stat-val">${p.weight}kg</div>
-                                            </div>
-                                        </div>
-                                        <div style="margin-top:15px; display:flex; gap:10px;">
-                                            <button class="save-unit-btn" style="position:static; opacity:1; flex:1; height:35px; background:rgba(255,255,255,0.05); color:white; font-size:0.7rem; font-weight:700;" onclick="viewUserConsos('${p.id}')">Détails</button>
-                                            <button class="save-unit-btn" style="position:static; opacity:0.3; width:35px; height:35px; background:var(--danger); color:white;" onclick="deleteProfile('${p.id}')">🗑</button>
-                                        </div>
-                                    </div>`;
-                                }).join('')}
-                            </div>
-                        </div>`;
-                    });
-
-                    container.innerHTML = html;
-                    // On enlève le flex-grid car les conteneurs occupent toute la largeur
-                    container.classList.remove('user-grid');
-
-                } catch(e) { 
-                    console.error(e);
-                    container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--danger)">Erreur lors du chargement des données.</div>';
-                }
+            function filterProfiles() {
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const filteredAccounts = {};
+                
+                Object.entries(window.allAccountsData).forEach(([ownerId, profiles]) => {
+                    const matches = profiles.some(p => 
+                        (p.name || '').toLowerCase().includes(query) || 
+                        (p.email || '').toLowerCase().includes(query) ||
+                        ownerId.toLowerCase().includes(query) ||
+                        (p.id || '').toLowerCase().includes(query)
+                    );
+                    if (matches) filteredAccounts[ownerId] = profiles;
+                });
+                
+                renderAccounts(filteredAccounts, window.currentConsos);
             }
 
+            function renderAccounts(accounts, consos) {
+                const container = document.getElementById('app-data-container');
+                window.currentConsos = consos;
+                const consoCounts = {};
+                consos.forEach(c => {
+                    consoCounts[c.profile_id] = (consoCounts[c.profile_id] || 0) + 1;
+                });
+
+                let html = '';
+                Object.entries(accounts).forEach(([ownerId, userProfiles]) => {
+                    const accountEmail = userProfiles[0].email || 'E-mail non renseigné';
+                    
+                    html += `
+                    <div class="account-group" id="account-${ownerId}">
+                        <div class="account-header">
+                            <div>
+                                <div class="account-id">ID: ${ownerId}...</div>
+                                <div style="color:var(--accent); font-weight:900; font-size:1.1rem; margin-top:5px;">
+                                    ${accountEmail}
+                                </div>
+                            </div>
+                            <div class="account-actions">
+                                <button class="btn-action" onclick="resetPassword('${accountEmail}')">Réinit. Pass</button>
+                                <button class="btn-action" onclick="wipeAccount('${ownerId}')" style="color:#ff4d4d">WIPE DATA</button>
+                                <div class="account-badge">${userProfiles.length} PROFIL(S)</div>
+                            </div>
+                        </div>
+                        <div class="user-grid">
+                            ${userProfiles.map(p => {
+                                const nConsos = consoCounts[p.id] || 0;
+                                const date = new Date(p.created_at).toLocaleDateString('fr-FR');
+                                const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
+                                
+                                let photoUrl = null;
+                                let debugPath = p.image_path || 'Aucun';
+                                if (p.image_path) {
+                                    if (p.image_path.startsWith('http')) {
+                                        photoUrl = p.image_path;
+                                    } else if (p.image_path.includes('.') && !p.image_path.startsWith('/')) {
+                                        photoUrl = `https://aswxkjibvcadnwujzwcm.supabase.co/storage/v1/object/public/profile_images/${p.image_path}`;
+                                    }
+                                }
+                                const hasPhoto = !!photoUrl;
+                                
+                                return `
+                                <div class="glass-panel user-card">
+                                    <div class="user-card-header">
+                                        <div class="user-avatar" style="${hasPhoto ? 'cursor:pointer' : ''}" onclick="${hasPhoto ? `viewFullImage('${photoUrl}')` : ''}">
+                                            ${hasPhoto ? `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerText='${avatarEmoji}'">` : avatarEmoji}
+                                        </div>
+                                        <div class="user-info">
+                                            <h4>${p.name || 'Anonyme'}</h4>
+                                            <p>ID: ${p.id.substring(0, 8)}... • ${p.age || '?'} ans</p>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:0.5rem; color:rgba(255,255,255,0.2); margin-top:-10px; margin-bottom:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        Path: ${debugPath}
+                                    </div>
+                                    <p style="font-size:0.7rem; opacity:0.6; margin-bottom:15px;">Inscrit le ${date}</p>
+                                    <div class="user-stats">
+                                        <div class="u-stat-item">
+                                            <div class="u-stat-label">CONSO</div>
+                                            <div class="u-stat-val">${nConsos}</div>
+                                        </div>
+                                        <div class="u-stat-item">
+                                            <div class="u-stat-label">POIDS</div>
+                                            <div class="u-stat-val">${p.weight || '?'}kg</div>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; gap:10px; margin-top:20px;">
+                                        <button class="btn-action" style="flex:1" onclick="viewHistory('${p.id}', '${p.name}')">Détails</button>
+                                        <button class="btn-action" style="background:rgba(255,77,77,0.1); color:#ff4d4d" onclick="deleteProfile('${p.id}')">🗑️</button>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+                });
+
+                container.innerHTML = html || '<div style="padding:40px; text-align:center; opacity:0.5">Aucun résultat correspondant.</div>';
+            }
             window.deleteProfile = async (id) => {
                 if (!confirm("Supprimer ce profil du Cloud ?")) return;
                 try {
@@ -680,7 +676,7 @@
                     showToast();
                     loadAppData();
                 } catch(e) { alert(e.message); }
-            };
+            }
 
             async function loadCMS() {
                 const container = document.getElementById('cms-container');
