@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/glass_widgets.dart';
 import '../utils/l10n_service.dart';
+import '../utils/supabase_service.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthSuccess;
@@ -60,6 +61,13 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _isLoading = true);
     try {
       if (_isSignUp) {
+        String? finalImagePath = _imagePath;
+        
+        // Si une image locale a été choisie, on l'upload sur Supabase Storage
+        if (_imagePath != null && !kIsWeb && !(_imagePath!.startsWith('http'))) {
+            finalImagePath = await SupabaseService.uploadProfileImage(_imagePath!);
+        }
+
         final res = await Supabase.instance.client.auth.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -68,7 +76,7 @@ class _AuthScreenState extends State<AuthScreen> {
             'age': int.tryParse(_ageController.text) ?? 35,
             'weight': int.tryParse(_weightController.text) ?? 70,
             'gender': _gender,
-            'image_path': _imagePath,
+            'image_path': finalImagePath,
           },
         );
         // Si la session est créée immédiatement (auto-confirm)

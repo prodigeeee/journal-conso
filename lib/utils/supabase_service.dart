@@ -1,8 +1,33 @@
+import 'dart:io' as io;
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 
 class SupabaseService {
   static final _supabase = Supabase.instance.client;
+  static const String _profilesBucket = 'profile_images';
+
+  static Future<String?> uploadProfileImage(String localPath) async {
+    try {
+      final file = io.File(localPath);
+      if (!await file.exists()) return null;
+
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(999)}.jpg';
+      
+      await _supabase.storage.from(_profilesBucket).upload(
+        fileName,
+        file,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+      );
+
+      final String publicUrl = _supabase.storage.from(_profilesBucket).getPublicUrl(fileName);
+      return publicUrl;
+    } catch (e) {
+      debugPrint("Erreur upload image: $e");
+      return null;
+    }
+  }
 
   // -- SYNCHRONISATION DES PROFILS --
   static Future<void> syncProfiles(List<UserProfile> profiles, String ownerId) async {

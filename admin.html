@@ -542,11 +542,14 @@
                                     const nConsos = consoCounts[p.id] || 0;
                                     const date = new Date(p.created_at).toLocaleDateString('fr-FR');
                                     const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
+                                    const hasPhoto = p.image_path && p.image_path.startsWith('http');
                                     
                                     return `
                                     <div class="glass-panel user-card">
                                         <div class="user-card-header">
-                                            <div class="user-avatar">${avatarEmoji}</div>
+                                            <div class="user-avatar">
+                                                ${hasPhoto ? `<img src="${p.image_path}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : avatarEmoji}
+                                            </div>
                                             <div class="user-info">
                                                 <h4>${p.name || 'Anonyme'}</h4>
                                                 <p>ID: ${p.id.substring(0,8)}... • ${p.age} ans</p>
