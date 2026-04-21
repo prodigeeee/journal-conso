@@ -1,130 +1,199 @@
 nav:
-  overview: "Aperçu"
-  webapp: "Web App"
-  contact: "Contact"
-  login: "Se connecter"
-  launch: "Lancer l'App"
-  download: "Télécharger"
-
+  overview: Aperçu
+  webapp: Web App
+  contact: Contact
+  login: Se connecter
+  launch: Lancer l'App
+  download: Télécharger
 hero:
-  badge: "V2 • 1.2.0 • Refonte Totale"
-  title_start: "Prenez le contrôle"
-  title_highlight: "élégance."
-  description: "Une application de suivi de consommation premium, conçue pour vous accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu."
-  btn_apk: "Installer l'APK"
-  btn_features: "Fonctionnalités"
-
+  badge: V2 • 1.2.0 • Refonte Totale
+  title_start: Prenez le contrôle
+  title_highlight: élégance.
+  description: Une application de suivi de consommation premium, conçue pour vous
+    accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu.
+  btn_apk: Installer l'APK
+  btn_features: Fonctionnalités
+  android_soon: Appli Android (Bientôt)
 mockup:
-  profile: "PROFIL"
-  bac_title: "VOTRE ALCOOLÉMIE (TEMPS RÉEL)"
-  units: "unités"
-  safety_ok: "Sécurité OK"
-  reflex_btn: "TEST DE RÉFLEXES"
-  reflex_desc: "Vérifiez votre réactivité maintenant"
-  disclaimer: "Estimation théorique uniquement. Ne remplace pas un éthylotest."
-
+  profile: PROFIL
+  bac_title: VOTRE ALCOOLÉMIE (TEMPS RÉEL)
+  units: unités
+  safety_ok: Sécurité OK
+  reflex_btn: TEST DE RÉFLEXES
+  reflex_desc: Vérifiez votre réactivité maintenant
+  disclaimer: Estimation théorique uniquement. Ne remplace pas un éthylotest.
 features:
-  title: "L'intelligence"
-  title_highlight: "discrète."
-  subtitle: "Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel."
-  card1_title: "SUIVI COMPLET"
-  card1_desc: "Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume."
-  card2_title: "STATS AVANCÉES"
-  card2_desc: "Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil."
-  card3_title: "OBJECTIFS SANTÉ"
-  card3_desc: "Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès."
-  card4_title: "CONFIDENTIALITÉ"
-  card4_desc: "Vos données sont stockées localement et ne sont jamais partagées sans votre accord."
-
+  title: 'Vos données, '
+  title_highlight: votre contrôle.
+  subtitle: Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique
+    qui force le respect mutuel.
+  card1_title: SUIVI COMPLET
+  card1_desc: Enregistrez chaque consommation simplement, incluant le type d'alcool
+    et le volume.
+  card2_title: STATS AVANCÉES
+  card2_desc: Visualisez vos tendances, vos jours verts et votre consommation moyenne
+    en un clin d'œil.
+  card3_title: OBJECTIFS SANTÉ
+  card3_desc: Fixez-vous des limites basées sur les recommandations de l'OMS et suivez
+    vos progrès.
+  card4_title: CONFIDENTIALITÉ
+  card4_desc: Vos données sont stockées localement et ne sont jamais partagées sans
+    votre accord.
 analysis:
-  badge: "ANALYSE & DONNÉES"
-  title_start: "Comprenez votre"
-  title_highlight: "consommation."
-  description: "Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies."
-  item1: "Estimation de l'alcoolémie (Widmark + Pic)"
-  item2: "Calcul du temps de retour au seuil légal"
-  item3: "Répartition globale par type de boisson"
-  item4: "Historique complet des consommations"
-  trend_title: "TENDANCE MENSUELLE"
-  trend_date: "DU 15 MARS AU 14 AVRIL"
-  bac_label: "ALCOOLÉMIE ESTIMÉE"
-  safety_label: "SÉCURITÉ OK"
-  ready_label: "Prêt à conduire"
-
+  badge: ANALYSE & DONNÉES
+  title_start: Comprenez votre
+  title_highlight: consommation.
+  description: Basé sur la formule de Widmark, Journal Conso vous donne une estimation
+    indicative de votre alcoolémie au fil de vos saisies.
+  item1: Estimation de l'alcoolémie (Widmark + Pic)
+  item2: Calcul du temps de retour au seuil légal
+  item3: Répartition globale par type de boisson
+  item4: Historique complet des consommations
+  trend_title: TENDANCE MENSUELLE
+  trend_date: DU 15 MARS AU 14 AVRIL
+  bac_label: ALCOOLÉMIE ESTIMÉE
+  safety_label: SÉCURITÉ OK
+  ready_label: Prêt à conduire
 gallery:
-  title: "L'application en"
-  title_highlight: "images"
-  subtitle: "Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal."
-  alt1: "Vue Journal"
-  alt2: "Vue Calendrier"
-  alt3: "Vue Réglages"
-  alt4: "Vue Alcoolémie"
-  alt5: "Vue Statistiques"
-
+  title: L'application en
+  title_highlight: images
+  subtitle: Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation
+    et de lecture optimal.
+  alt1: Vue Journal
+  alt2: Vue Calendrier
+  alt3: Vue Réglages
+  alt4: Vue Alcoolémie
+  alt5: Vue Statistiques
 multi:
-  badge: "DISPONIBLE PARTOUT"
-  title_start: "Un seul compte."
-  title_highlight: "Tous vos appareils."
-  description: "Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil."
-  android: "Android App"
-  ios: "iOS (Web App)"
-  desktop: "Desktop Browser"
-  btn_launch: "Lancer la Web App"
-
+  badge: DISPONIBLE PARTOUT
+  title_start: Un seul compte.
+  title_highlight: Tous vos appareils.
+  description: Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur,
+    accédez à votre journal en un clin d'œil.
+  android: Android App
+  ios: iOS (Web App)
+  desktop: Desktop Browser
+  btn_launch: Lancer la Web App
 contact:
-  title: "Un souci, une idée ?"
-  subtitle: "On discute ? Envoyez-nous un message, nous répondons en moins de 24h."
-  label_name: "Votre Nom"
-  placeholder_name: "Ex: Chris"
-  label_email: "Votre Email"
-  placeholder_email: "nom@exemple.com"
-  label_subject: "Sujet"
-  placeholder_subject: "Bug, Suggestion, Partenariat..."
-  label_message: "Votre Message"
-  placeholder_message: "Dites-nous tout..."
-  btn_send: "Envoyer le message"
-  success_title: "Message envoyé !"
-  success_desc: "Merci pour votre retour. Chris vous répondra très prochainement."
-  btn_reload: "Envoyer un autre message"
-
+  title: Un souci, une idée ?
+  subtitle: On discute ? Envoyez-nous un message, nous répondons en moins de 24h.
+  label_name: Votre Nom
+  placeholder_name: 'Ex: Chris'
+  label_email: Votre Email
+  placeholder_email: nom@exemple.com
+  label_subject: Sujet
+  placeholder_subject: Bug, Suggestion, Partenariat...
+  label_message: Votre Message
+  placeholder_message: Dites-nous tout...
+  btn_send: Envoyer le message
+  success_title: Message envoyé !
+  success_desc: Merci pour votre retour. Chris vous répondra très prochainement.
+  btn_reload: Envoyer un autre message
 footer:
-  nav_title: "Navigation"
-  home: "Accueil"
-  apk: "Télécharger l'APK"
-  legal_title: "Légal"
-  privacy: "Confidentialité"
-  mentions: "Mentions légales"
-  contact: "Contact"
-  warning_title: "Avertissement"
-  warning_text: "Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire."
-  description: "Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone."
-  trust_badge: "Données 100% sécurisées"
-  copy: "© 2026 ChrisK • Journal Conso. Tous droits réservés."
-
+  nav_title: Navigation
+  home: Accueil
+  apk: Télécharger l'APK
+  legal_title: Légal
+  privacy: Confidentialité
+  mentions: Mentions légales
+  contact: Contact
+  warning_title: Avertissement
+  warning_text: Journal Conso n'est pas un dispositif médical. Les estimations sont
+    indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire.
+  description: Votre compagnon de route pour une consommation responsable. 100% privé,
+    100% local sur votre téléphone.
+  trust_badge: Données 100% sécurisées
+  copy: © 2026 ChrisK • Journal Conso. Tous droits réservés.
 spirit:
-  badge: "L'ESPRIT DU PROJET"
-  title_start: "Une application faite"
-  title_highlight: "avec passion."
-  desc1: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design."
-  desc2: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est entièrement gratuite et sans publicité."
-  disclaimer: "Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée."
-  btn: "Soutenir le projet via PayPal"
-
+  badge: L'ESPRIT DU PROJET
+  title_start: Une application faite
+  title_highlight: avec passion.
+  desc1: 'Journal Conso est née d''un besoin personnel : j''ai créé cet outil pour
+    moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation
+    sans compromis sur le design.'
+  desc2: Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer
+    gratuitement pour tous. L'application est entièrement gratuite et sans publicité.
+  disclaimer: Si vous appréciez l'application et souhaitez soutenir les frais de développement
+    ou de maintien des serveurs cloud, votre contribution est grandement appréciée.
+  btn: Soutenir le projet via PayPal
 legal_policy:
-  title: "Mentions Légales"
-  editor_title: "ÉDITEUR"
-  editor_text: "Journal Conso est un projet indépendant créé par ChrisK."
-  hosting_title: "HÉBERGEMENT DES DONNÉES"
-  hosting_text: "Les données sont hébergées par Supabase Inc. sur des serveurs sécurisés situés au sein de l'Union Européenne (AWS Frankfurt), garantissant une conformité totale avec le RGPD."
-  rights_title: "VOS DROITS"
-  rights_text: "Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données. Cette suppression est effectuée instantanément sur simple demande via les réglages de l'application."
-
+  title: Mentions Légales
+  editor_title: ÉDITEUR
+  editor_text: Journal Conso est un projet indépendant créé par ChrisK.
+  hosting_title: HÉBERGEMENT DES DONNÉES
+  hosting_text: Les données sont hébergées par Supabase Inc. sur des serveurs sécurisés
+    situés au sein de l'Union Européenne (AWS Frankfurt), garantissant une conformité
+    totale avec le RGPD.
+  rights_title: VOS DROITS
+  rights_text: Vous disposez d'un droit d'accès, de rectification et de suppression
+    totale de vos données. Cette suppression est effectuée instantanément sur simple
+    demande via les réglages de l'application.
 privacy_policy:
-  title: "Politique de Confidentialité"
-  commitment_title: "NOTRE ENGAGEMENT"
-  commitment_text: "Votre vie privée est notre priorité absolue. Contrairement à de nombreuses applications, Journal Conso ne vend, ne loue et ne partage aucune de vos données personnelles."
-  usage_title: "UTILISATION DES DONNÉES"
-  usage_text: "Vos données (profil, âge, poids, consommations) sont synchronisées uniquement pour vous permettre de retrouver votre journal sur tous vos appareils. Elles ne sont jamais utilisées pour du ciblage publicitaire ou d'autres fins commerciales."
-  confidentiality_title: "CONFIDENTIALITÉ"
-  confidentiality_text: "Vos informations de santé restent strictement personnelles. Nous n'utilisons aucun traceur tiers et n'exploitons pas vos habitudes de consommation."
-  btn_close: "Fermer"
+  title: Politique de Confidentialité
+  commitment_title: NOTRE ENGAGEMENT
+  commitment_text: Votre vie privée est notre priorité absolue. Contrairement à de
+    nombreuses applications, Journal Conso ne vend, ne loue et ne partage aucune de
+    vos données personnelles.
+  usage_title: UTILISATION DES DONNÉES
+  usage_text: Vos données (profil, âge, poids, consommations) sont synchronisées uniquement
+    pour vous permettre de retrouver votre journal sur tous vos appareils. Elles ne
+    sont jamais utilisées pour du ciblage publicitaire ou d'autres fins commerciales.
+  confidentiality_title: CONFIDENTIALITÉ
+  confidentiality_text: Vos informations de santé restent strictement personnelles.
+    Nous n'utilisons aucun traceur tiers et n'exploitons pas vos habitudes de consommation.
+  btn_close: Fermer
+spirit_desc2: 'Aujourd’hui, l’application est gratuite et sans publicité.
+
+  Si elle vous aide, elle remplit déjà son rôle.'
+spirit_disclaimer: Et si vous souhaitez soutenir le projet, vous pouvez le faire librement.
+nav_link_download: Télécharger gratuitement
+feature4_desc: Vos données restent sauvegardées et accessibles partout.
+feature3_desc: Fixez-vous des limites et suivez vos progrès.
+feature2_desc: Visualisez vos tendances, vos jours verts et votre consommation moyenne
+  en un clin d'œil.
+feature1_desc: Enregistrez chaque verre en quelques secondes, incluant le type d'alcool
+  et le volume.
+feature_desc: 'Suivez votre consommation, visualisez vos habitudes et identifiez vos
+  excès en un coup d’œil.
+
+  <br>
+
+  Des outils simples et utiles pour comprendre votre consommation, sans complexité.
+
+  <br>
+
+  Tout est pensé pour vous accompagner au quotidien.'
+hero_desc: 'Suivez et comprenez votre consommation d’alcool simplement.
+
+  <br>
+
+  Aujourd’hui, difficile de vraiment savoir où l’on en est.
+
+  Cette application vous aide à y voir clair, simplement.
+
+  <br>
+
+  Suivez votre consommation, comprenez vos habitudes, et gardez le contrôle — sans
+  pression, sans jugement.
+
+  <br>
+
+  Gratuite, sans publicité, pensée pour vous.'
+spirit_desc1: 'Journal Conso est né d’un besoin personnel :
+
+  mieux comprendre ma consommation, simplement.
+
+  <br>
+
+  Rapidement, tout est devenu plus clair.
+
+  Alors je l’ai ouverte à d’autres.
+
+  '
+contact_desc: On discute ? Envoyez-moi un message, j'essaierai d'y répondre le plus
+  rapidement possible.
+multi_desc: Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur,
+  accédez à votre journal en un clin d'œil.
+hero_btn_app: Installer l'application
+analysis_title: Comprenez votre <br><span class="highlight">consommation.</span>
+feature_title: Vos données, <br><span class="highlight">votre contrôle.</span>
