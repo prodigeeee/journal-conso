@@ -4199,7 +4199,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             const SizedBox(height: 30),
             Center(
               child: Text(
-                "v1.1.11+17-CLOUD",
+                "v1.2.0+18-CLOUD",
                 style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ),
@@ -4808,7 +4808,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 20),
         Center(
           child: Text(
-            "v1.1.11+17-CLOUD",
+            "v1.2.0+18-CLOUD",
             style: TextStyle(
               fontSize: 10,
               color: widget.isDarkMode ? Colors.white24 : Colors.black26,
