@@ -89,16 +89,17 @@ def update_html():
         html_content = f.read()
 
     update_count = 0
-    # On trie les cles par longueur decroissante pour eviter les collisions de sous-cles
-    sorted_keys = sorted(flat_translations.keys(), key=len, reverse=True)
-    
-    for key in sorted_keys:
-        value = flat_translations[key]
-        placeholder = f"{{{{ {key} }}}}"
-        if placeholder in html_content:
-            html_content = html_content.replace(placeholder, str(value))
+    # Utilisation d'un regex pour trouver tous les {{ key }} de manière flexible (espaces, retours à la ligne)
+    def replace_placeholder(match):
+        nonlocal update_count
+        key = match.group(1).strip()
+        if key in flat_translations:
             update_count += 1
-            # print(f"OK : {key}")
+            return str(flat_translations[key])
+        return match.group(0) # On ne touche pas si la clé n'existe pas
+
+    # Regex qui match {{ any_whitespace key any_whitespace }} y compris sur plusieurs lignes
+    html_content = re.sub(r'\{\{\s*([\w.]+)\s*\}\}', replace_placeholder, html_content, flags=re.MULTILINE)
 
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
