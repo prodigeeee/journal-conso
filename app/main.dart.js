@@ -112670,7 +112670,7 @@ o=A.b([c,B.cN,new A.Io(new A.aMu(f,d),b,new A.aMv(f),new A.aMw(),B.QG,!0,e),s,B.
 c=p.b.gdJ().c
 if((c==null?e:c.r)!=null){c=f.a.f
 B.l.S(o,A.b([B.cN,A.es(B.bo.aq(0.3),A.jG(!1,B.aX,e,e,!0,e,e,e,!0,e,B.a5B,e,e,e,e,new A.aMy(f),!1,e,e,e,e,e,B.bce,e,e),c,e,!1)],q))}o.push(B.dx)
-o.push(A.dE(A.X("v1.1.11+17-CLOUD",e,e,e,e,A.ah(e,e,f.a.f?B.cX:B.d7,e,e,e,e,e,e,e,e,10,e,e,B.W,e,e,!0,e,e,e,e,e,e,e,e),e,e,e),e,e))
+o.push(A.dE(A.X("v1.2.0+18-CLOUD",e,e,e,e,A.ah(e,e,f.a.f?B.cX:B.d7,e,e,e,e,e,e,e,e,10,e,e,B.W,e,e,!0,e,e,e,e,e,e,e,e),e,e,e),e,e))
 o.push(B.b65)
 return A.Gs(o,e,B.dI)},
 akT(){var s=null,r=this.c
@@ -112769,7 +112769,7 @@ p=A.TQ(o,o,B.a1e,o,o,o,o,o,o,B.B,o,o,o,o,new A.d2(A.c1(15),B.a4),o,o,o,o,o)
 q=A.cR(new A.F4(!0,new A.aMe(a),o,o,o,p,B.N,o,!1,o,!0,o,new A.a3u(q,B.a5q,p,o,o),o),55,1/0)
 p=A.P("settings.donation_notice",o)
 p=A.X(p,o,o,o,o,A.ah(o,o,n.a.f?B.eu:B.xR,o,o,o,o,o,o,o,o,11,B.fS,o,o,o,o,!0,o,o,o,o,o,o,o,o),B.cj,o,o)
-return A.bq(o,A.bK(A.b([m,s,B.dx,r,B.dQ,q,B.fk,p,B.dQ,A.dE(A.X("v1.1.11+17-CLOUD",o,o,o,o,A.ah(o,o,n.a.f?B.cX:B.d7,o,o,o,o,o,o,o,o,10,o,o,B.W,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),o,o),B.po],t.p),B.U,B.P,B.bA,0,B.a7),B.N,o,o,new A.bj(l,o,o,B.dB,o,o,B.ak),o,o,o,o,B.fO,o,o,o)},
+return A.bq(o,A.bK(A.b([m,s,B.dx,r,B.dQ,q,B.fk,p,B.dQ,A.dE(A.X("v1.2.0+18-CLOUD",o,o,o,o,A.ah(o,o,n.a.f?B.cX:B.d7,o,o,o,o,o,o,o,o,10,o,o,B.W,o,o,!0,o,o,o,o,o,o,o,o),o,o,o),o,o),B.po],t.p),B.U,B.P,B.bA,0,B.a7),B.N,o,o,new A.bj(l,o,o,B.dB,o,o,B.ak),o,o,o,o,B.fO,o,o,o)},
 $S:137}
 A.aMe.prototype={
 $0(){var s=0,r=A.x(t.H),q=this,p

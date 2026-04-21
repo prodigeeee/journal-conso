@@ -7,7 +7,7 @@ nav:
   download: "Télécharger"
 
 hero:
-  badge: "V2 • Refonte Totale"
+  badge: "V2 • 1.2.0 • Refonte Totale"
   title_start: "Prenez le contrôle"
   title_highlight: "élégance."
   description: "Une application de suivi de consommation premium, conçue pour vous accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu."
@@ -100,6 +100,15 @@ footer:
   description: "Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone."
   trust_badge: "Données 100% sécurisées"
   copy: "© 2026 ChrisK • Journal Conso. Tous droits réservés."
+
+spirit:
+  badge: "L'ESPRIT DU PROJET"
+  title_start: "Une application faite"
+  title_highlight: "avec passion."
+  desc1: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design."
+  desc2: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est entièrement gratuite et sans publicité."
+  disclaimer: "Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée."
+  btn: "Soutenir le projet via PayPal"
 
 legal_policy:
   title: "Mentions Légales"
