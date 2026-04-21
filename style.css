@@ -488,16 +488,19 @@ h1 {
 
 /* Beautiful Pink/Orange Gradient Button */
 .gradient-btn {
-    background: linear-gradient(90deg, var(--accent), #E94E77);
+    background: linear-gradient(90deg, var(--accent), #E94E77) !important;
     border-radius: 20px;
-    padding: 18px 24px;
-    display: flex;
+    padding: 16px 28px;
+    display: inline-flex !important;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
     box-shadow: 0 10px 30px rgba(233, 78, 119, 0.3);
-    text-decoration: none;
+    text-decoration: none !important;
     color: #fff !important;
     transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    width: fit-content;
 }
 
 .gradient-btn:hover {
