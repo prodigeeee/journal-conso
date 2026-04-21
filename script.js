@@ -94,6 +94,35 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Support du "Swipe" pour mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const carouselTrack = document.getElementById('carousel-3d-track');
+        if (carouselTrack) {
+            carouselTrack.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            carouselTrack.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+        }
+
+        function handleSwipe() {
+            const swipeDistance = touchEndX - touchStartX;
+            if (swipeDistance > 50) {
+                // Swipe vers la droite -> Précédent
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                updateCarousel();
+            } else if (swipeDistance < -50) {
+                // Swipe vers la gauche -> Suivant
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateCarousel();
+            }
+        }
+
         // Initialisation
         updateCarousel();
     }
