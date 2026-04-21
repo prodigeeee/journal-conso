@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // Ajout pour le support Web
+import 'package:flutter/foundation.dart'
+    show kIsWeb; // Ajout pour le support Web
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'widgets/sobriety_test_sheet.dart';
@@ -33,16 +34,25 @@ typedef File = io.File;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Chargement des langues
   await L10n.load();
 
   // On lance l'uninitialisation en arrière-plan
   Supabase.initialize(
+<<<<<<< Updated upstream
     url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
   ).then((_) => debugPrint("✅ Supabase initialisé"))
    .catchError((e) => debugPrint("⚠️ Erreur Supabase : $e"));
+=======
+        url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
+        anonKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
+      )
+      .then((_) => print("✅ Supabase initialisé"))
+      .catchError((e) => print("⚠️ Erreur Supabase : $e"));
+>>>>>>> Stashed changes
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initializeDateFormatting('fr_FR', null); // On réactive les dates
@@ -51,13 +61,12 @@ void main() async {
 
 // --- MODÈLES ET UTILITAIRES DÉPLACÉS ---
 
-
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }
 
 class AlcoholTrackerApp extends StatefulWidget {
@@ -280,7 +289,8 @@ class MainNavigationScreen extends StatefulWidget {
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> with WidgetsBindingObserver {
+class _MainNavigationScreenState extends State<MainNavigationScreen>
+    with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
   List<Consumption> _allConsumptions = [];
@@ -300,7 +310,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         ? now.subtract(const Duration(days: 1))
         : now;
     _initApp();
-    
+
     // Timer de synchro auto toutes les 30 min (plus économe)
     _syncTimer = Timer.periodic(const Duration(minutes: 30), (_) => _pushToCloud(silent: true));
   }
@@ -317,9 +327,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     if (state == AppLifecycleState.resumed) {
       // On resynchronise quand l'utilisateur revient sur l'app
       _pullFromCloud();
+<<<<<<< Updated upstream
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       // Sauvegarde vers le cloud uniquement quand l'app passe en arrière-plan
       _pushToCloud(silent: true);
+=======
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // On sauvegarde tout avant de quitter
+      _saveAll();
+>>>>>>> Stashed changes
     }
   }
 
@@ -342,7 +359,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
     setState(() {
       _profiles = data['profiles'];
-      
+
       // Si on n'a pas de profil local mais qu'on a des infos d'inscription
       if (_profiles.isEmpty && user != null && user.userMetadata != null) {
         final meta = user.userMetadata!;
@@ -354,10 +371,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
             age: (meta['age'] as num?)?.toInt() ?? 35,
             weight: (meta['weight'] as num?)?.toInt() ?? 70,
             imagePath: meta['image_path'],
-          )
+          ),
         ];
       } else if (_profiles.isEmpty) {
-        _profiles = [UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35)];
+        _profiles = [
+          UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35),
+        ];
       }
 
       _activeUserId = data['activeUserId'];
@@ -379,6 +398,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       consumptions: _allConsumptions,
       activeUserId: _activeUserId,
     );
+<<<<<<< Updated upstream
+=======
+
+    // Synchronisation vers Supabase avec l'UID réel
+    SupabaseService.syncProfiles(_profiles, user.id);
+    SupabaseService.syncConsumptions(_allConsumptions, user.id);
+
+    setState(() {});
+>>>>>>> Stashed changes
   }
 
   Future<void> _exportFullProject() async {
@@ -389,30 +417,44 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       'activeUserId': _activeUserId,
     };
     final jsonStr = jsonEncode(data);
+<<<<<<< Updated upstream
     
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonStr);
       final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'backup_full_$dateStr.json');
       await Share.shareXFiles([xfile], text: 'Sauvegarde complète Alcohol Tracker');
+=======
+
+    if (kIsWeb) {
+      final bytes = utf8.encode(jsonStr);
+      final xfile = XFile.fromData(
+        bytes,
+        mimeType: 'application/json',
+        name: 'alcohol_tracker_full_backup.json',
+      );
+      await Share.shareXFiles([
+        xfile,
+      ], text: 'Sauvegarde complète Alcohol Tracker');
+>>>>>>> Stashed changes
     } else {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/backup_full_$dateStr.json');
       await file.writeAsString(jsonStr);
-      await Share.shareXFiles([XFile(file.path)], text: 'Sauvegarde complète Alcohol Tracker');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Sauvegarde complète Alcohol Tracker');
     }
   }
 
   Future<void> _deleteProfile(String id) async {
     if (_profiles.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.s('common.error_last_profile')),
-        ),
+        SnackBar(content: Text(L10n.s('common.error_last_profile'))),
       );
       return;
     }
-    
+
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       // Suppression immédiate sur le cloud
@@ -427,7 +469,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     });
     _saveAll();
   }
-  
+
   void _showAuraSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -443,15 +485,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
-                color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.2),
+                color: (isError ? Colors.red : widget.accentColor).withValues(
+                  alpha: 0.2,
+                ),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: (isError ? Colors.red : widget.accentColor).withValues(
+                    alpha: 0.3,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                   Icon(isError ? Icons.error_outline : Icons.cloud_done_rounded, color: isError ? Colors.redAccent : widget.accentColor),
-                   const SizedBox(width: 12),
-                   Expanded(child: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                  Icon(
+                    isError ? Icons.error_outline : Icons.cloud_done_rounded,
+                    color: isError ? Colors.redAccent : widget.accentColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -464,13 +523,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   Future<void> _pushToCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
+<<<<<<< Updated upstream
       if (!silent) _showAuraSnackBar("Veuillez vous connecter pour sauvegarder", isError: true);
+=======
+      _showAuraSnackBar(
+        "Veuillez vous connecter pour sauvegarder",
+        isError: true,
+      );
+>>>>>>> Stashed changes
       return;
     }
     if (!silent) _showAuraSnackBar("Sauvegarde vers le Cloud...");
     try {
       await SupabaseService.syncProfiles(_profiles, user.id);
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
+<<<<<<< Updated upstream
       await SupabaseService.syncContexts(_contexts, user.id);
       if (!silent) {
         _showAuraSnackBar(L10n.s('sync.success', args: {
@@ -480,6 +547,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       }
     } catch (e) {
       if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+=======
+      _showAuraSnackBar(
+        L10n.s(
+          'sync.success',
+          args: {
+            'profiles': _profiles.length.toString(),
+            'consos': _allConsumptions.length.toString(),
+          },
+        ),
+      );
+    } catch (e) {
+      _showAuraSnackBar(
+        L10n.s('sync.error', args: {'message': e.toString()}),
+        isError: true,
+      );
+>>>>>>> Stashed changes
     }
   }
 
@@ -516,16 +599,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   Future<void> _pullFromCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
+<<<<<<< Updated upstream
       if (!silent) _showAuraSnackBar("Veuillez vous connecter pour synchroniser", isError: true);
+=======
+      _showAuraSnackBar(
+        "Veuillez vous connecter pour synchroniser",
+        isError: true,
+      );
+>>>>>>> Stashed changes
       return;
     }
     if (!silent) _showAuraSnackBar("Récupération de vos données...");
     try {
       final data = await SupabaseService.fetchAllData(user.id);
+<<<<<<< Updated upstream
       final List<UserProfile> cloudProfiles = data['profiles'] != null ? List<UserProfile>.from(data['profiles']) : [];
       final List<Consumption> cloudConsos = data['consumptions'] != null ? List<Consumption>.from(data['consumptions']) : [];
       
       if (cloudProfiles.isNotEmpty || cloudConsos.isNotEmpty || (data['contexts'] != null && (data['contexts'] as Map).isNotEmpty)) {
+=======
+      final List<UserProfile> cloudProfiles = data['profiles'] != null
+          ? List<UserProfile>.from(data['profiles'])
+          : [];
+      final List<Consumption> cloudConsos = data['consumptions'] != null
+          ? List<Consumption>.from(data['consumptions'])
+          : [];
+
+      if (cloudProfiles.isNotEmpty) {
+>>>>>>> Stashed changes
         setState(() {
           // Si on récupère des profils du cloud, on supprime le profil par défaut local
           if (cloudProfiles.isNotEmpty) {
@@ -570,6 +671,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           consumptions: _allConsumptions,
           activeUserId: _activeUserId,
         );
+<<<<<<< Updated upstream
         if (!silent) {
           _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
             'profiles': cloudProfiles.length.toString(),
@@ -588,6 +690,33 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       if (!silent) {
         _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
       }
+=======
+        _showAuraSnackBar(
+          L10n.s(
+            'sync.fetch_success',
+            args: {
+              'profiles': cloudProfiles.length.toString(),
+              'consos': cloudConsos.length.toString(),
+            },
+          ),
+        );
+      } else {
+        _showAuraSnackBar(
+          L10n.s(
+            'sync.no_data',
+            args: {
+              'profiles': cloudProfiles.length.toString(),
+              'consos': cloudConsos.length.toString(),
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      _showAuraSnackBar(
+        L10n.s('sync.error', args: {'message': e.toString()}),
+        isError: true,
+      );
+>>>>>>> Stashed changes
     }
   }
 
@@ -602,13 +731,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonString);
+<<<<<<< Updated upstream
       final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'export_${p.name}_$dateStr.json');
+=======
+      final xfile = XFile.fromData(
+        bytes,
+        mimeType: 'application/json',
+        name: 'export_${p.name}.json',
+      );
+>>>>>>> Stashed changes
       await Share.shareXFiles([xfile], text: 'Export du profil ${p.name}');
     } else {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/export_${p.name}_$dateStr.json');
       await file.writeAsString(jsonString);
-      await Share.shareXFiles([XFile(file.path)], text: 'Export du profil ${p.name}');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Export du profil ${p.name}');
     }
   }
 
@@ -663,18 +802,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         content = await file.readAsString();
       }
       final data = jsonDecode(content);
-      
+
       setState(() {
         // Recherche souple des profils
-        final profilesData = data['profiles'] ?? data['Profiles'] ?? data['userProfiles'];
+        final profilesData =
+            data['profiles'] ?? data['Profiles'] ?? data['userProfiles'];
         if (profilesData != null) {
           _profiles = (profilesData as List)
               .map((i) => UserProfile.fromJson(i))
               .toList();
         }
-        
+
         // Recherche souple des consommations
-        final consosData = data['consumptions'] ?? data['Consumptions'] ?? data['history'] ?? data['consumoires'];
+        final consosData =
+            data['consumptions'] ??
+            data['Consumptions'] ??
+            data['history'] ??
+            data['consumoires'];
         if (consosData != null) {
           _allConsumptions = (consosData as List)
               .map((i) => Consumption.fromJson(i))
@@ -682,22 +826,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         } else {
           _allConsumptions = [];
         }
-        
-        _contexts = Map<String, String>.from(data['momentsContexts'] ?? data['contexts'] ?? {});
-        
+
+        _contexts = Map<String, String>.from(
+          data['momentsContexts'] ?? data['contexts'] ?? {},
+        );
+
         if (_profiles.isNotEmpty) {
           _activeUserId = _profiles.first.id;
         }
       });
-      
+
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(L10n.s('sync.restoration_success', args: {
-              'profiles': _profiles.length.toString(),
-              'consos': _allConsumptions.length.toString(),
-            })),
+            content: Text(
+              L10n.s(
+                'sync.restoration_success',
+                args: {
+                  'profiles': _profiles.length.toString(),
+                  'consos': _allConsumptions.length.toString(),
+                },
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -718,24 +869,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         content = await file.readAsString();
       }
       final data = jsonDecode(content);
-      
+
       setState(() {
-        dynamic profilesData = data['profiles'] ?? data['profile'] ?? data['Profiles'] ?? data['userProfiles'] ?? data['users'];
-        
+        dynamic profilesData =
+            data['profiles'] ??
+            data['profile'] ??
+            data['Profiles'] ??
+            data['userProfiles'] ??
+            data['users'];
+
         if (profilesData == null) {
           try {
-            profilesData = data.values.firstWhere((v) => v is List && v.isNotEmpty && v.first['name'] != null);
-          } catch (_) { profilesData = null; }
+            profilesData = data.values.firstWhere(
+              (v) => v is List && v.isNotEmpty && v.first['name'] != null,
+            );
+          } catch (_) {
+            profilesData = null;
+          }
         }
 
         if (profilesData == null) throw L10n.s('settings.unknown_format');
         if (profilesData is Map) profilesData = [profilesData];
-        if ((profilesData as List).isEmpty) throw L10n.s('settings.no_profile_found');
+        if ((profilesData as List).isEmpty) {
+          throw L10n.s('settings.no_profile_found');
+        }
 
         final newP = UserProfile.fromJson(profilesData[0]);
         newP.id = DateTime.now().millisecondsSinceEpoch.toString();
         _profiles.add(newP);
-        
+
         final importedConsos = (data['consumptions'] as List).map((i) {
           final c = Consumption.fromJson(i);
           c.userId = newP.id;
@@ -744,22 +906,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         _allConsumptions.addAll(importedConsos);
         _activeUserId = newP.id;
       });
-      
+
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(L10n.s('settings.import_success')), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(L10n.s('settings.import_success')),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(L10n.s('settings.import_failed', args: {'error': e.toString()})), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              L10n.s('settings.import_failed', args: {'error': e.toString()}),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
-
 
   Future<void> _printProfile(UserProfile p, {DateTime? specificMonth}) async {
     final pdf = pw.Document();
@@ -828,7 +997,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                       ],
                     ),
                     pw.Text(
-                      L10n.s('pdf.summary', args: {'b': '$totalB', 'v': '$totalV', 's': '$totalS'}),
+                      L10n.s(
+                        'pdf.summary',
+                        args: {'b': '$totalB', 'v': '$totalV', 's': '$totalS'},
+                      ),
                       style: pw.TextStyle(
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
@@ -846,14 +1018,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                     pw.TableRow(
                       children:
                           [
-                            L10n.s('pdf.days.mon'),
-                            L10n.s('pdf.days.tue'),
-                            L10n.s('pdf.days.wed'),
-                            L10n.s('pdf.days.thu'),
-                            L10n.s('pdf.days.fri'),
-                            L10n.s('pdf.days.sat'),
-                            L10n.s('pdf.days.sun'),
-                          ]
+                                L10n.s('pdf.days.mon'),
+                                L10n.s('pdf.days.tue'),
+                                L10n.s('pdf.days.wed'),
+                                L10n.s('pdf.days.thu'),
+                                L10n.s('pdf.days.fri'),
+                                L10n.s('pdf.days.sat'),
+                                L10n.s('pdf.days.sun'),
+                              ]
                               .map(
                                 (d) => pw.Container(
                                   alignment: pw.Alignment.center,
@@ -1004,8 +1176,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           ),
           Container(
             color: widget.isDarkMode
-                ? Colors.transparent 
-                : Colors.black.withValues(alpha: 0.15), // Voile léger pour protéger les yeux en Light Mode
+                ? Colors.transparent
+                : Colors.black.withValues(
+                    alpha: 0.15,
+                  ), // Voile léger pour protéger les yeux en Light Mode
           ),
           Positioned(
             top: 0,
@@ -1019,7 +1193,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                   end: Alignment.bottomCenter,
                   colors: widget.isDarkMode
                       ? [Colors.black87, Colors.transparent]
-                      : [Colors.white.withValues(alpha: 0.9), Colors.transparent],
+                      : [
+                          Colors.white.withValues(alpha: 0.9),
+                          Colors.transparent,
+                        ],
                 ),
               ),
             ),
@@ -1031,158 +1208,277 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
               constraints: const BoxConstraints(maxWidth: 600),
               child: Column(
                 children: [
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 5,
-                  ),
-                  child: glassModule(
-                    isDarkMode: widget.isDarkMode,
-                    showHalo: false,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Color(activeUser.colorValue),
-                          radius: 16,
-                          backgroundImage: getProfileImage(activeUser.imagePath),
-                          child: (activeUser.imagePath == null || activeUser.imagePath!.isEmpty)
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 16,
-                                  color: Colors.white,
-                                )
-                              : null,
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 5,
+                      ),
+                      child: glassModule(
+                        isDarkMode: widget.isDarkMode,
+                        showHalo: false,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "PROFIL",
-                                style: TextStyle(
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.bold,
-                                  color: widget.isDarkMode
-                                      ? Colors.white38
-                                      : Colors.black87,
-                                  letterSpacing: 0.5,
-                                ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Color(activeUser.colorValue),
+                              radius: 16,
+                              backgroundImage: getProfileImage(
+                                activeUser.imagePath,
                               ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                              child:
+                                  (activeUser.imagePath == null ||
+                                      activeUser.imagePath!.isEmpty)
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    activeUser.name,
+                                    "PROFIL",
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 7,
                                       fontWeight: FontWeight.bold,
                                       color: widget.isDarkMode
-                                          ? Colors.white
+                                          ? Colors.white38
                                           : Colors.black87,
+                                      letterSpacing: 0.5,
                                     ),
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        activeUser.name,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: widget.isDarkMode
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                            Text(
+                              DateFormat(
+                                'EEEE d MMMM',
+                                'fr_FR',
+                              ).format(DateTime.now()),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: widget.isDarkMode
+                                    ? Colors.white54
+                                    : Colors.black45,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            PopupMenuButton<String>(
+                              tooltip: "Changer de profil",
+                              offset: const Offset(0, 40),
+                              color: widget.isDarkMode
+                                  ? const Color(0xFF1A1F26)
+                                  : Colors.white,
+                              icon: Icon(
+                                Icons.swap_horiz_rounded,
+                                color: widget.accentColor,
+                                size: 20,
+                              ),
+                              onSelected: (id) {
+                                setState(() => _activeUserId = id);
+                                _saveAll();
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: BorderSide(
+                                  color: widget.isDarkMode
+                                      ? Colors.white10
+                                      : Colors.black12,
+                                ),
+                              ),
+                              itemBuilder: (context) => _profiles
+                                  .map(
+                                    (p) => PopupMenuItem(
+                                      value: p.id,
+                                      child: Container(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                            120,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Color(
+                                                p.colorValue,
+                                              ),
+                                              radius: 12,
+                                              backgroundImage: getProfileImage(
+                                                p.imagePath,
+                                              ),
+                                              child:
+                                                  (p.imagePath == null ||
+                                                      p.imagePath!.isEmpty)
+                                                  ? const Icon(
+                                                      Icons.person,
+                                                      size: 14,
+                                                      color: Colors.white,
+                                                    )
+                                                  : null,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              p.name,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight:
+                                                    p.id == _activeUserId
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                                color: p.id == _activeUserId
+                                                    ? widget.accentColor
+                                                    : null,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            if (p.id == _activeUserId)
+                                              const Icon(
+                                                Icons.check_circle,
+                                                size: 18,
+                                                color: Colors.green,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
                         ),
-                        Text(
-                          DateFormat('EEEE d MMMM', 'fr_FR').format(DateTime.now()),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: widget.isDarkMode
-                                ? Colors.white54
-                                : Colors.black45,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        PopupMenuButton<String>(
-                          tooltip: "Changer de profil",
-                          offset: const Offset(0, 40),
-                          color: widget.isDarkMode
-                              ? const Color(0xFF1A1F26)
-                              : Colors.white,
-                          icon: Icon(
-                            Icons.swap_horiz_rounded,
-                            color: widget.accentColor,
-                            size: 20,
-                          ),
-                          onSelected: (id) {
-                            setState(() => _activeUserId = id);
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (index) =>
+                          setState(() => _selectedIndex = index),
+                      children: [
+                        HomeScreen(
+                          consumptions: userConsos,
+                          activeUserId: _activeUserId,
+                          contexts: _contexts,
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          activeUser: activeUser,
+                          onDateSelected: (date) =>
+                              setState(() => _currentJournalDate = date),
+                          onAddOrUpdate: (c) {
+                            final i = _allConsumptions.indexWhere(
+                              (item) => item.id == c.id,
+                            );
+                            if (i != -1) {
+                              _allConsumptions[i] = c;
+                            } else {
+                              _allConsumptions.add(c);
+                            }
                             _saveAll();
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: BorderSide(
-                              color: widget.isDarkMode
-                                  ? Colors.white10
-                                  : Colors.black12,
-                            ),
+                          onDelete: (id) async {
+                            setState(
+                              () => _allConsumptions.removeWhere(
+                                (c) => c.id == id,
+                              ),
+                            );
+                            final user =
+                                Supabase.instance.client.auth.currentUser;
+                            if (user != null) {
+                              await SupabaseService.deleteConsumption(
+                                id,
+                                user.id,
+                              );
+                            }
+                            _saveAll();
+                          },
+                          onUpdateContext: (key, val) {
+                            setState(() {
+                              if (val.trim().isEmpty) {
+                                _contexts.remove(key);
+                              } else {
+                                _contexts[key] = val;
+                              }
+                            });
+                            _saveAll();
+                          },
+                          onPrint: (m) =>
+                              _printProfile(activeUser, specificMonth: m),
+                          unitMl: widget.unitMl,
+                        ),
+                        StatsScreen(
+                          consumptions: userConsos,
+                          contexts: _contexts,
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          activeUser: activeUser,
+                          isYoungDriver: widget.isYoungDriver,
+                        ),
+                        OptionsScreen(
+                          key: ValueKey(
+                            'opt_${_profiles.length}_$_activeUserId',
                           ),
-                          itemBuilder: (context) => _profiles
-                              .map(
-                                (p) => PopupMenuItem(
-                                  value: p.id,
-                                  child: Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 120,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Color(p.colorValue),
-                                          radius: 12,
-                                          backgroundImage: getProfileImage(p.imagePath),
-                                          child: (p.imagePath == null || p.imagePath!.isEmpty)
-                                              ? const Icon(
-                                                  Icons.person,
-                                                  size: 14,
-                                                  color: Colors.white,
-                                                )
-                                              : null,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          p.name,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: p.id == _activeUserId
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: p.id == _activeUserId
-                                                ? widget.accentColor
-                                                : null,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        if (p.id == _activeUserId)
-                                          const Icon(
-                                            Icons.check_circle,
-                                            size: 18,
-                                            color: Colors.green,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          profiles: _profiles,
+                          onProfilesChanged: _saveAll,
+                          onReset: () {
+                            setState(() {
+                              _allConsumptions.clear();
+                              _contexts.clear();
+                            });
+                            _saveAll();
+                          },
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          onThemeChanged: widget.onThemeChanged,
+                          onDeleteProfile: _deleteProfile,
+                          onExportProfile: _exportProfile,
+                          onImportProfile: _importToProfile,
+                          onPrintProfile: _printProfile,
+                          onImportFullProject: _importFullProject,
+                          onImportAsNew: _importAsNewProfile,
+                          onExportFullProject: _exportFullProject,
+                          isYoungDriver: widget.isYoungDriver,
+                          onYoungDriverChanged: widget.onYoungDriverChanged,
+                          unitMl: widget.unitMl,
+                          onUnitMlChanged: widget.onUnitMlChanged,
+                          onSyncCloud: _pullFromCloud,
+                          onPushCloud: _pushToCloud,
+                          onLogout: () async {
+                            await Supabase.instance.client.auth.signOut();
+                          },
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
+<<<<<<< Updated upstream
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -1308,9 +1604,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                 ),
               ),
             ],
+=======
+            ),
+>>>>>>> Stashed changes
           ),
-        ),
-      ),
 
           Positioned(
             top: 0,
@@ -1323,7 +1620,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.black.withValues(alpha: 0.9), Colors.transparent],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.9),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -1502,8 +1802,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(20), // Réduit de 24 à 20
                       decoration: BoxDecoration(
-                        color: widget.isDarkMode 
-                            ? Colors.white.withValues(alpha: 0.08) // Beaucoup plus transparent
+                        color: widget.isDarkMode
+                            ? Colors.white.withValues(
+                                alpha: 0.08,
+                              ) // Beaucoup plus transparent
                             : Colors.black.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
@@ -1511,21 +1813,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 1,
                         ),
                       ),
-                      child: Material( // Nécessaire pour les InkWells/Buttons
+                      child: Material(
+                        // Nécessaire pour les InkWells/Buttons
                         color: Colors.transparent,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.nightlife, color: widget.accentColor, size: 24),
+                                Icon(
+                                  Icons.nightlife,
+                                  color: widget.accentColor,
+                                  size: 24,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     L10n.s('home.party_goal_title'),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: widget.isDarkMode ? Colors.white : Colors.black87,
+                                      color: widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87,
                                       fontSize: 18,
                                     ),
                                   ),
@@ -1536,7 +1845,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               L10n.s('home.party_goal_desc'),
                               style: TextStyle(
-                                color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                                color: widget.isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black54,
                                 fontSize: 13,
                               ),
                             ),
@@ -1545,9 +1856,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle, size: 40),
-                                  color: selectedVal > 1 ? widget.accentColor : Colors.white24,
-                                  onPressed: selectedVal > 1 ? () => setStateSB(() => selectedVal--) : null,
+                                  icon: const Icon(
+                                    Icons.remove_circle,
+                                    size: 40,
+                                  ),
+                                  color: selectedVal > 1
+                                      ? widget.accentColor
+                                      : Colors.white24,
+                                  onPressed: selectedVal > 1
+                                      ? () => setStateSB(() => selectedVal--)
+                                      : null,
                                 ),
                                 const SizedBox(width: 20),
                                 Text(
@@ -1555,14 +1873,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontSize: 42,
                                     fontWeight: FontWeight.w900,
-                                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                                    color: widget.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                 ),
                                 const SizedBox(width: 20),
                                 IconButton(
                                   icon: const Icon(Icons.add_circle, size: 40),
-                                  color: selectedVal < 20 ? widget.accentColor : Colors.white24,
-                                  onPressed: selectedVal < 20 ? () => setStateSB(() => selectedVal++) : null,
+                                  color: selectedVal < 20
+                                      ? widget.accentColor
+                                      : Colors.white24,
+                                  onPressed: selectedVal < 20
+                                      ? () => setStateSB(() => selectedVal++)
+                                      : null,
                                 ),
                               ],
                             ),
@@ -1574,23 +1898,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onPressed: () => Navigator.pop(c),
                                   child: Text(
                                     L10n.s('common.cancel'),
-                                    style: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54),
+                                    style: TextStyle(
+                                      color: widget.isDarkMode
+                                          ? Colors.white54
+                                          : Colors.black54,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 ElevatedButton(
                                   onPressed: () {
-                                    widget.onUpdateContext(partyKey, selectedVal.toString());
+                                    widget.onUpdateContext(
+                                      partyKey,
+                                      selectedVal.toString(),
+                                    );
                                     Navigator.pop(c);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: widget.accentColor,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                     elevation: 0,
                                   ),
-                                  child: Text(L10n.s('home.activate_limit'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  child: Text(
+                                    L10n.s('home.activate_limit'),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1602,7 +1943,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             );
-          }
+          },
         );
       },
     );
@@ -1612,12 +1953,14 @@ class _HomeScreenState extends State<HomeScreen> {
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
     String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
     int? currentGoal;
-    
+
     if (widget.contexts.containsKey(partyKey)) {
       currentGoal = int.tryParse(widget.contexts[partyKey]!);
     }
-    
-    int currentDrinks = widget.consumptions.where((c) => DateFormat('yyyyMMdd').format(c.date) == logicalKeyDate).length;
+
+    int currentDrinks = widget.consumptions
+        .where((c) => DateFormat('yyyyMMdd').format(c.date) == logicalKeyDate)
+        .length;
 
     if (currentGoal == null) {
       return GestureDetector(
@@ -1633,7 +1976,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: widget.accentColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.nightlife, color: widget.accentColor, size: 20),
+                child: Icon(
+                  Icons.nightlife,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -1645,14 +1992,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                        color: widget.isDarkMode
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                     ),
                     Text(
                       L10n.s('home.fix_limit'),
                       style: TextStyle(
                         fontSize: 10,
-                        color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                        color: widget.isDarkMode
+                            ? Colors.white54
+                            : Colors.black54,
                       ),
                     ),
                   ],
@@ -1673,8 +2024,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       return GestureDetector(
-         onTap: _showSetPartyGoalDialog,
-         child: glassModule(
+        onTap: _showSetPartyGoalDialog,
+        child: glassModule(
           isDarkMode: widget.isDarkMode,
           borderColor: progressColor.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -1692,14 +2043,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                            color: widget.isDarkMode
+                                ? Colors.white70
+                                : Colors.black87,
                           ),
                         ),
                         Text(
-                          L10n.s('home.drinks_count', args: {
-                            'current': currentDrinks.toString(),
-                            'goal': currentGoal.toString(),
-                          }),
+                          L10n.s(
+                            'home.drinks_count',
+                            args: {
+                              'current': currentDrinks.toString(),
+                              'goal': currentGoal.toString(),
+                            },
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -1714,8 +2070,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 8,
-                        backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
-                        valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                        backgroundColor: widget.isDarkMode
+                            ? Colors.white10
+                            : Colors.black12,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progressColor,
+                        ),
                       ),
                     ),
                     if (progress >= 1.0)
@@ -1723,7 +2083,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           L10n.s('home.objective_reached'),
-                          style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],
@@ -1956,85 +2320,85 @@ class _HomeScreenState extends State<HomeScreen> {
             opacity: isFuture ? 0.25 : 1.0,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSel
-                  ? widget.accentColor
-                  : (hasC
-                        ? widget.accentColor.withValues(alpha: 0.4)
-                        : (widget.isDarkMode
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.03))),
-              border: Border.all(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
                 color: isSel
-                    ? Colors.white.withValues(alpha: 0.5)
-                    : Colors.transparent,
-                width: 1.5,
+                    ? widget.accentColor
+                    : (hasC
+                          ? widget.accentColor.withValues(alpha: 0.4)
+                          : (widget.isDarkMode
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.03))),
+                border: Border.all(
+                  color: isSel
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : Colors.transparent,
+                  width: 1.5,
+                ),
+                boxShadow: isSel
+                    ? [
+                        BoxShadow(
+                          color: widget.accentColor.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : [],
               ),
-              boxShadow: isSel
-                  ? [
-                      BoxShadow(
-                        color: widget.accentColor.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                        spreadRadius: 1,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  children: [
+                    if (isSel)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 1.5,
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
                       ),
-                    ]
-                  : [],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                children: [
-                  if (isSel)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 1.5,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  if (isSel)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withValues(alpha: 0.25),
-                              Colors.white.withValues(alpha: 0.05),
-                              Colors.transparent,
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.4, 0.41, 1.0],
+                    if (isSel)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.25),
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.transparent,
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.4, 0.41, 1.0],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  Center(
-                    child: Text(
-                      dayNum.toString(),
-                      style: TextStyle(
-                        fontSize: isSel ? 13 : 10,
-                        color: (isSel || hasC)
-                            ? Colors.white
-                            : (widget.isDarkMode
-                                  ? Colors.white38
-                                  : Colors.black38),
-                        fontWeight: (isSel || hasC)
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                    Center(
+                      child: Text(
+                        dayNum.toString(),
+                        style: TextStyle(
+                          fontSize: isSel ? 13 : 10,
+                          color: (isSel || hasC)
+                              ? Colors.white
+                              : (widget.isDarkMode
+                                    ? Colors.white38
+                                    : Colors.black38),
+                          fontWeight: (isSel || hasC)
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
       },
     ),
   ],
@@ -2051,9 +2415,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
     if (monthConsos.isEmpty) return const SizedBox.shrink();
 
-    int totalB = monthConsos.where((c) => c.type == L10n.s('common.beer')).length;
-    int totalV = monthConsos.where((c) => c.type == L10n.s('common.wine')).length;
-    int totalS = monthConsos.where((c) => c.type == L10n.s('common.spirits')).length;
+    int totalB = monthConsos
+        .where((c) => c.type == L10n.s('common.beer'))
+        .length;
+    int totalV = monthConsos
+        .where((c) => c.type == L10n.s('common.wine'))
+        .length;
+    int totalS = monthConsos
+        .where((c) => c.type == L10n.s('common.spirits'))
+        .length;
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
@@ -2110,7 +2480,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _verticalDivider() {
     return VerticalDivider(
-      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(alpha: 0.1),
+      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(
+        alpha: 0.1,
+      ),
       thickness: 1,
       width: 1,
       indent: 4,
@@ -2230,7 +2602,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             (momentContext != null &&
                                     momentContext.trim().isNotEmpty)
                                 ? cleanDisplay(momentContext)
-                                  : L10n.s('journal.add_context'),
+                                : L10n.s('journal.add_context'),
                             style: TextStyle(
                               color:
                                   (momentContext != null &&
@@ -2372,9 +2744,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             color: widget.isDarkMode ? Colors.white : Colors.black87,
           ),
-          decoration: InputDecoration(
-            hintText: L10n.s('journal.context_hint'),
-          ),
+          decoration: InputDecoration(hintText: L10n.s('journal.context_hint')),
         ),
         actions: [
           TextButton(
@@ -2453,6 +2823,7 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+<<<<<<< Updated upstream
   String _period = 'Semaine';
 
   double _calculateBACAt(DateTime targetTime) {
@@ -2463,6 +2834,10 @@ class _StatsScreenState extends State<StatsScreen> {
       targetTime,
     );
   }
+=======
+  String _period =
+      'Semaine'; // will be updated below to use localized keys or stay as is for logic
+>>>>>>> Stashed changes
 
   double _calculateCurrentBAC() {
     return _calculateBACAt(DateTime.now());
@@ -2470,6 +2845,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildBACCurve() {
     final now = DateTime.now();
+<<<<<<< Updated upstream
     List<FlSpot> spots = [];
     double maxBAC = 0.6;
 
@@ -2479,6 +2855,34 @@ class _StatsScreenState extends State<StatsScreen> {
       double val = _calculateBACAt(t);
       if (val > maxBAC) maxBAC = val;
       spots.add(FlSpot(i.toDouble(), val));
+=======
+    double total = 0.0;
+    final recentConsos = widget.consumptions
+        .where(
+          (c) => now.difference(c.date).inHours < 12 && c.date.isBefore(now),
+        )
+        .toList();
+    for (var c in recentConsos) {
+      double vol = 0;
+      String vStr = c.volume.toLowerCase();
+      if (vStr.contains('ml')) {
+        vol =
+            (double.tryParse(vStr.replaceAll('ml', '')) ?? 0) /
+            10.0; // Conversion ml -> cl pour le calcul
+      } else {
+        vol = double.tryParse(vStr.replaceAll('cl', '')) ?? 0;
+      }
+      double grammes = (vol * 10 * c.degree * 0.8) / 100;
+      double hoursSinceDrink = now.difference(c.date).inMinutes / 60.0;
+      double eliminationHours = (hoursSinceDrink - 0.75).clamp(
+        0.0,
+        double.infinity,
+      );
+      double bac =
+          (grammes / (widget.activeUser.weight * r)) -
+          (0.15 * eliminationHours);
+      if (bac > 0) total += bac;
+>>>>>>> Stashed changes
     }
 
     double threshold = widget.isYoungDriver ? 0.2 : 0.5;
@@ -2606,10 +3010,18 @@ class _StatsScreenState extends State<StatsScreen> {
     double threshold = widget.isYoungDriver ? 0.2 : 0.5;
     bool isDanger = currentBac >= threshold;
     String countdownText = currentBac > threshold
-        ? L10n.s('stats.countdown_format', args: {
-            'h': ((currentBac - threshold) / 0.15).floor().toString(),
-            'm': (((currentBac - threshold) / 0.15 - ((currentBac - threshold) / 0.15).floor()) * 60).round().toString(),
-          })
+        ? L10n.s(
+            'stats.countdown_format',
+            args: {
+              'h': ((currentBac - threshold) / 0.15).floor().toString(),
+              'm':
+                  (((currentBac - threshold) / 0.15 -
+                              ((currentBac - threshold) / 0.15).floor()) *
+                          60)
+                      .round()
+                      .toString(),
+            },
+          )
         : L10n.s('stats.ready_to_drive');
     final now = DateTime.now();
     final countedDrinks = widget.consumptions
@@ -2651,29 +3063,37 @@ class _StatsScreenState extends State<StatsScreen> {
 
     int countTotalGoals = 0;
     int countSuccessGoals = 0;
-    
-    widget.contexts.keys.where((k) => k.startsWith("${widget.activeUser.id}_") && k.endsWith("_partyGoal")).forEach((k) {
-      var parts = k.split('_');
-      if (parts.length >= 3) {
-        String dateStr = parts[1];
-        if (dateStr.length == 8) {
-          int year = int.tryParse(dateStr.substring(0,4)) ?? 0;
-          int month = int.tryParse(dateStr.substring(4,6)) ?? 0;
-          int day = int.tryParse(dateStr.substring(6,8)) ?? 0;
-          if (year > 0) {
-            DateTime d = DateTime(year, month, day);
-            if (!d.isBefore(startDate)) {
-              countTotalGoals++;
-              int goal = int.tryParse(widget.contexts[k]!) ?? 0;
-              int drinksCount = widget.consumptions.where((c) {
-                return c.date.year == d.year && c.date.month == d.month && c.date.day == d.day;
-              }).length;
-              if (drinksCount <= goal) countSuccessGoals++;
+
+    widget.contexts.keys
+        .where(
+          (k) =>
+              k.startsWith("${widget.activeUser.id}_") &&
+              k.endsWith("_partyGoal"),
+        )
+        .forEach((k) {
+          var parts = k.split('_');
+          if (parts.length >= 3) {
+            String dateStr = parts[1];
+            if (dateStr.length == 8) {
+              int year = int.tryParse(dateStr.substring(0, 4)) ?? 0;
+              int month = int.tryParse(dateStr.substring(4, 6)) ?? 0;
+              int day = int.tryParse(dateStr.substring(6, 8)) ?? 0;
+              if (year > 0) {
+                DateTime d = DateTime(year, month, day);
+                if (!d.isBefore(startDate)) {
+                  countTotalGoals++;
+                  int goal = int.tryParse(widget.contexts[k]!) ?? 0;
+                  int drinksCount = widget.consumptions.where((c) {
+                    return c.date.year == d.year &&
+                        c.date.month == d.month &&
+                        c.date.day == d.day;
+                  }).length;
+                  if (drinksCount <= goal) countSuccessGoals++;
+                }
+              }
             }
           }
-        }
-      }
-    });
+        });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -2719,8 +3139,11 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isDanger 
-                      ? L10n.s('stats.danger_threshold', args: {'threshold': threshold.toStringAsFixed(1)}) 
+                  isDanger
+                      ? L10n.s(
+                          'stats.danger_threshold',
+                          args: {'threshold': threshold.toStringAsFixed(1)},
+                        )
                       : L10n.s('stats.safety_ok'),
                   style: TextStyle(
                     color: isDanger ? Colors.red : Colors.green,
@@ -2773,7 +3196,9 @@ class _StatsScreenState extends State<StatsScreen> {
             showHalo: false,
             borderColor: isDanger
                 ? Colors.red.withValues(alpha: 0.3)
-                : (currentBac > 0 ? Colors.orange.withValues(alpha: 0.3) : widget.accentColor.withValues(alpha: 0.3)),
+                : (currentBac > 0
+                      ? Colors.orange.withValues(alpha: 0.3)
+                      : widget.accentColor.withValues(alpha: 0.3)),
             child: Column(
               children: [
                 Text(
@@ -2888,9 +3313,16 @@ class _StatsScreenState extends State<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    L10n.s('stats.title_period', args: {
-                      'period': _period == 'Semaine' ? L10n.s('stats.periods.week') : (_period == 'Mois' ? L10n.s('stats.periods.month') : L10n.s('stats.periods.year'))
-                    }),
+                    L10n.s(
+                      'stats.title_period',
+                      args: {
+                        'period': _period == 'Semaine'
+                            ? L10n.s('stats.periods.week')
+                            : (_period == 'Mois'
+                                  ? L10n.s('stats.periods.month')
+                                  : L10n.s('stats.periods.year')),
+                      },
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -2901,10 +3333,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    L10n.s('stats.date_range', args: {
-                      'start': DateFormat('dd MMM').format(startDate),
-                      'end': DateFormat('dd MMM').format(now),
-                    }),
+                    L10n.s(
+                      'stats.date_range',
+                      args: {
+                        'start': DateFormat('dd MMM').format(startDate),
+                        'end': DateFormat('dd MMM').format(now),
+                      },
+                    ),
                     style: TextStyle(
                       fontSize: 9,
                       fontStyle: FontStyle.italic,
@@ -2924,60 +3359,66 @@ class _StatsScreenState extends State<StatsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
-                  children: [L10n.s('stats.periods.week'), L10n.s('stats.periods.month'), L10n.s('stats.periods.year')].map((localizedP) {
-                    // Logic mapping back to original keys if necessary, or just use indices
-                    String p;
-                    if (localizedP == L10n.s('stats.periods.week')) {
-                      p = 'Semaine';
-                    } else if (localizedP == L10n.s('stats.periods.month')) {
-                      p = 'Mois';
-                    } else {
-                      p = 'Année';
-                    }
-                    
-                    bool isSelected = _period == p;
-                    return GestureDetector(
-                      onTap: () => setState(() => _period = p),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? (widget.isDarkMode
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.white)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: isSelected && !widget.isDarkMode
-                              ? const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Text(
-                          p,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                            color: isSelected
-                                ? (widget.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black)
-                                : (widget.isDarkMode
-                                      ? Colors.white54
-                                      : Colors.black54),
+                  children:
+                      [
+                        L10n.s('stats.periods.week'),
+                        L10n.s('stats.periods.month'),
+                        L10n.s('stats.periods.year'),
+                      ].map((localizedP) {
+                        // Logic mapping back to original keys if necessary, or just use indices
+                        String p;
+                        if (localizedP == L10n.s('stats.periods.week')) {
+                          p = 'Semaine';
+                        } else if (localizedP ==
+                            L10n.s('stats.periods.month')) {
+                          p = 'Mois';
+                        } else {
+                          p = 'Année';
+                        }
+
+                        bool isSelected = _period == p;
+                        return GestureDetector(
+                          onTap: () => setState(() => _period = p),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (widget.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.15)
+                                        : Colors.white)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: isSelected && !widget.isDarkMode
+                                  ? const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: Text(
+                              p,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isSelected
+                                    ? (widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black)
+                                    : (widget.isDarkMode
+                                          ? Colors.white54
+                                          : Colors.black54),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
               ),
             ],
@@ -3011,7 +3452,10 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       Text(
-                        L10n.s('stats.days_count', args: {'count': daysToLookBack.toString()}),
+                        L10n.s(
+                          'stats.days_count',
+                          args: {'count': daysToLookBack.toString()},
+                        ),
                         style: TextStyle(
                           fontSize: 9,
                           color: widget.isDarkMode
@@ -3074,12 +3518,18 @@ class _StatsScreenState extends State<StatsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: countSuccessGoals == countTotalGoals ? Colors.green.withValues(alpha: 0.2) : widget.accentColor.withValues(alpha: 0.1),
+                      color: countSuccessGoals == countTotalGoals
+                          ? Colors.green.withValues(alpha: 0.2)
+                          : widget.accentColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      countSuccessGoals == countTotalGoals ? Icons.emoji_events : Icons.track_changes,
-                      color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                      countSuccessGoals == countTotalGoals
+                          ? Icons.emoji_events
+                          : Icons.track_changes,
+                      color: countSuccessGoals == countTotalGoals
+                          ? Colors.green
+                          : widget.accentColor,
                       size: 24,
                     ),
                   ),
@@ -3093,7 +3543,9 @@ class _StatsScreenState extends State<StatsScreen> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                            color: countSuccessGoals == countTotalGoals
+                                ? Colors.green
+                                : widget.accentColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -3102,14 +3554,18 @@ class _StatsScreenState extends State<StatsScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: widget.isDarkMode ? Colors.white : Colors.black87,
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
                         Text(
                           L10n.s('stats.goals_count'),
                           style: TextStyle(
                             fontSize: 10,
-                            color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                            color: widget.isDarkMode
+                                ? Colors.white54
+                                : Colors.black54,
                           ),
                         ),
                       ],
@@ -3123,8 +3579,12 @@ class _StatsScreenState extends State<StatsScreen> {
                       children: [
                         CircularProgressIndicator(
                           value: countSuccessGoals / countTotalGoals,
-                          color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
-                          backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
+                          color: countSuccessGoals == countTotalGoals
+                              ? Colors.green
+                              : widget.accentColor,
+                          backgroundColor: widget.isDarkMode
+                              ? Colors.white10
+                              : Colors.black12,
                           strokeWidth: 4,
                         ),
                         Center(
@@ -3133,7 +3593,9 @@ class _StatsScreenState extends State<StatsScreen> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                              color: widget.isDarkMode
+                                  ? Colors.white70
+                                  : Colors.black87,
                             ),
                           ),
                         ),
@@ -3599,7 +4061,9 @@ class _StatsScreenState extends State<StatsScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.redAccent.withValues(alpha: widget.isDarkMode ? 0.6 : 0.4),
+                Colors.redAccent.withValues(
+                  alpha: widget.isDarkMode ? 0.6 : 0.4,
+                ),
                 Colors.orange.withValues(alpha: widget.isDarkMode ? 0.2 : 0.1),
                 Colors.transparent,
               ],
@@ -4399,10 +4863,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
             });
             widget.onProfilesChanged();
           },
-          proxyDecorator: (child, index, animation) => Material(
-            color: Colors.transparent,
-            child: child,
-          ),
+          proxyDecorator: (child, index, animation) =>
+              Material(color: Colors.transparent, child: child),
           itemBuilder: (context, index) {
             final p = widget.profiles[index];
             return Padding(
@@ -4423,7 +4885,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
                               padding: const EdgeInsets.only(right: 8),
                               child: Icon(
                                 Icons.drag_indicator,
-                                color: widget.isDarkMode ? Colors.white24 : Colors.black12,
+                                color: widget.isDarkMode
+                                    ? Colors.white24
+                                    : Colors.black12,
                                 size: 20,
                               ),
                             ),
@@ -4434,8 +4898,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                                 backgroundColor: Color(p.colorValue),
                                 radius: 24,
                                 backgroundImage: getProfileImage(p.imagePath),
-                                child: (p.imagePath == null || p.imagePath!.isEmpty)
-                                    ? const Icon(Icons.person, color: Colors.white)
+                                child:
+                                    (p.imagePath == null ||
+                                        p.imagePath!.isEmpty)
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                      )
                                     : null,
                               ),
                               Positioned(
@@ -4528,8 +4997,12 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 child: ListTile(
                   dense: true,
                   visualDensity: VisualDensity.compact,
-                  leading: Icon(Icons.person_add_alt_1, color: widget.accentColor, size: 20),
-                   title: Text(
+                  leading: Icon(
+                    Icons.person_add_alt_1,
+                    color: widget.accentColor,
+                    size: 20,
+                  ),
+                  title: Text(
                     L10n.s('settings.create_profile'),
                     style: TextStyle(
                       color: widget.accentColor,
@@ -4549,7 +5022,11 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 child: ListTile(
                   dense: true,
                   visualDensity: VisualDensity.compact,
-                  leading: Icon(Icons.file_download_outlined, color: widget.accentColor, size: 20),
+                  leading: Icon(
+                    Icons.file_download_outlined,
+                    color: widget.accentColor,
+                    size: 20,
+                  ),
                   title: Text(
                     L10n.s('settings.import_json_profile'),
                     style: TextStyle(
@@ -4571,20 +5048,38 @@ class _OptionsScreenState extends State<OptionsScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
-                    Icon(Icons.account_circle_outlined, color: widget.accentColor, size: 24),
+                    Icon(
+                      Icons.account_circle_outlined,
+                      color: widget.accentColor,
+                      size: 24,
+                    ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(L10n.s('settings.account_connected'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: widget.accentColor, letterSpacing: 1.1)),
                           Text(
-                            Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
+                            L10n.s('settings.account_connected'),
                             style: TextStyle(
-                              color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: widget.accentColor,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          Text(
+                            Supabase.instance.client.auth.currentUser?.email ??
+                                "Utilisateur",
+                            style: TextStyle(
+                              color: widget.isDarkMode
+                                  ? Colors.white60
+                                  : Colors.black54,
                               fontSize: 10,
                             ),
                           ),
@@ -4593,7 +5088,15 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     TextButton(
                       onPressed: widget.onLogout,
-                      child: Text(L10n.s('settings.logout'), style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                      child: Text(
+                        L10n.s('settings.logout'),
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -4602,7 +5105,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity.compact,
-                leading: Icon(Icons.cloud_upload_rounded, color: widget.accentColor),
+                leading: Icon(
+                  Icons.cloud_upload_rounded,
+                  color: widget.accentColor,
+                ),
                 title: Text(
                   L10n.s('settings.save_cloud'),
                   style: TextStyle(
@@ -4612,14 +5118,23 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text(L10n.s('settings.save_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  L10n.s('settings.save_cloud_desc'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onPushCloud,
               ),
               _divider(),
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity.compact,
-                leading: Icon(Icons.cloud_download_rounded, color: widget.accentColor),
+                leading: Icon(
+                  Icons.cloud_download_rounded,
+                  color: widget.accentColor,
+                ),
                 title: Text(
                   L10n.s('settings.sync_cloud'),
                   style: TextStyle(
@@ -4629,7 +5144,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text(L10n.s('settings.sync_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  L10n.s('settings.sync_cloud_desc'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onSyncCloud,
               ),
               _divider(),
@@ -4687,7 +5208,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SwitchListTile(
                 dense: true,
                 title: Text(
-                  widget.isDarkMode ? L10n.s('settings.theme_dark') : L10n.s('settings.theme_light'),
+                  widget.isDarkMode
+                      ? L10n.s('settings.theme_dark')
+                      : L10n.s('settings.theme_light'),
                   style: TextStyle(color: itemTxt, fontSize: 13),
                 ),
                 value: widget.isDarkMode,
@@ -4701,16 +5224,30 @@ class _OptionsScreenState extends State<OptionsScreen> {
               _divider(),
               SwitchListTile(
                 dense: true,
-                secondary: Icon(Icons.warning_amber_rounded, color: widget.accentColor, size: 20),
-                title: Text(L10n.s('settings.young_driver'), style: const TextStyle(fontSize: 13)),
+                secondary: Icon(
+                  Icons.warning_amber_rounded,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
+                title: Text(
+                  L10n.s('settings.young_driver'),
+                  style: const TextStyle(fontSize: 13),
+                ),
                 value: widget.isYoungDriver,
                 onChanged: widget.onYoungDriverChanged,
               ),
               _divider(),
               SwitchListTile(
                 dense: true,
-                secondary: Icon(Icons.straighten, color: widget.accentColor, size: 20),
-                title: Text(L10n.s('settings.unit_ml'), style: const TextStyle(fontSize: 13)),
+                secondary: Icon(
+                  Icons.straighten,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
+                title: Text(
+                  L10n.s('settings.unit_ml'),
+                  style: const TextStyle(fontSize: 13),
+                ),
                 value: widget.unitMl,
                 onChanged: widget.onUnitMlChanged,
               ),
@@ -4783,7 +5320,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
             leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
             title: Text(
               L10n.s('settings.reset_all'),
-              style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onTap: () => _confirmFullReset(),
           ),
@@ -4826,9 +5366,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
       context: context,
       builder: (c) => AlertDialog(
         title: Text(L10n.s('settings.reset_confirm_title')),
-        content: Text(
-          L10n.s('settings.reset_confirm_content'),
-        ),
+        content: Text(L10n.s('settings.reset_confirm_content')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
@@ -4839,12 +5377,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
               widget.onReset();
               Navigator.pop(c);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Toutes les données ont été effacées")),
+                const SnackBar(
+                  content: Text("Toutes les données ont été effacées"),
+                ),
               );
             },
             child: const Text(
               "TOUT SUPPRIMER",
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -5119,7 +5662,8 @@ class _SaisieSheet extends StatefulWidget {
       return const TimeOfDay(hour: 8, minute: 0);
     } else if (moment == L10n.s('moments.noon') || moment == 'Midi') {
       return const TimeOfDay(hour: 12, minute: 30);
-    } else if (moment == L10n.s('moments.afternoon') || moment == 'Après-midi') {
+    } else if (moment == L10n.s('moments.afternoon') ||
+        moment == 'Après-midi') {
       return const TimeOfDay(hour: 16, minute: 0);
     } else if (moment == L10n.s('moments.evening') || moment == 'Soir') {
       return const TimeOfDay(hour: 19, minute: 30);
@@ -5176,20 +5720,17 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: widget.isDarkMode 
-                ? const Color(0xFF1A1F26).withValues(alpha: 0.6) 
+            color: widget.isDarkMode
+                ? const Color(0xFF1A1F26).withValues(alpha: 0.6)
                 : Colors.white.withValues(alpha: 0.6),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             gradient: widget.isDarkMode
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E272E),
-                    Color(0xFF000000),
-                  ],
-                )
-              : null,
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1E272E), Color(0xFF000000)],
+                  )
+                : null,
             border: Border.all(
               color: widget.isDarkMode ? Colors.white10 : Colors.black12,
               width: 0.5,
@@ -5215,7 +5756,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   ),
                   margin: const EdgeInsets.only(bottom: 25),
                 ),
-                
+
                 Text(
                   L10n.s('entry.title'),
                   style: TextStyle(
@@ -5233,9 +5774,9 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Sélecteur de type premium
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -5244,13 +5785,11 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     L10n.s('common.wine'),
                     L10n.s('common.spirits'),
                     L10n.s('common.soft'),
-                  ]
-                      .map((type) => _buildTypeCard(type))
-                      .toList(),
+                  ].map((type) => _buildTypeCard(type)).toList(),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Sélecteur de volume moderne
                 Align(
                   alignment: Alignment.centerLeft,
@@ -5259,7 +5798,9 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                      color: widget.isDarkMode
+                          ? Colors.white70
+                          : Colors.black87,
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -5269,14 +5810,21 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   child: Row(
-                    children: ['4cl','8cl','12.5cl','15cl','25cl','33cl','50cl','75cl']
-                        .map((vol) => _buildVolumeChip(vol))
-                        .toList(),
+                    children: [
+                      '4cl',
+                      '8cl',
+                      '12.5cl',
+                      '15cl',
+                      '25cl',
+                      '33cl',
+                      '50cl',
+                      '75cl',
+                    ].map((vol) => _buildVolumeChip(vol)).toList(),
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Section Degré
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -5286,12 +5834,17 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                        color: widget.isDarkMode
+                            ? Colors.white70
+                            : Colors.black87,
                         letterSpacing: 1.2,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: widget.accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -5312,13 +5865,20 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 6,
                     activeTrackColor: widget.accentColor,
-                    inactiveTrackColor: widget.isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                    inactiveTrackColor: widget.isDarkMode
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
                     thumbColor: Colors.white,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 5),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 10,
+                      elevation: 5,
+                    ),
                     overlayColor: widget.accentColor.withValues(alpha: 0.2),
                     showValueIndicator: ShowValueIndicator.onDrag,
                     valueIndicatorColor: widget.accentColor,
-                    valueIndicatorTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    valueIndicatorTextStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   child: Slider(
                     value: _d,
@@ -5330,26 +5890,53 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Heure avec style épuré
                 Container(
                   decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+                    color: widget.isDarkMode
+                        ? Colors.black26
+                        : Colors.black.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    leading: Icon(Icons.access_time_filled, color: widget.accentColor, size: 20),
-                    title: Text(L10n.s('entry.time'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    leading: Icon(
+                      Icons.access_time_filled,
+                      color: widget.accentColor,
+                      size: 20,
+                    ),
+                    title: Text(
+                      L10n.s('entry.time'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: widget.accentColor.withValues(alpha: 0.3),
+                        ),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
+<<<<<<< Updated upstream
                         "${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}",
                         style: TextStyle(color: widget.accentColor, fontWeight: FontWeight.w900),
+=======
+                        _time.format(context),
+                        style: TextStyle(
+                          color: widget.accentColor,
+                          fontWeight: FontWeight.w900,
+                        ),
+>>>>>>> Stashed changes
                       ),
                     ),
                     onTap: () async {
@@ -5381,6 +5968,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     },
                   ),
                 ),
+<<<<<<< Updated upstream
                 
                 const SizedBox(height: 20),
                 
@@ -5403,8 +5991,11 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   ),
                 ),
                 
+=======
+
+>>>>>>> Stashed changes
                 const SizedBox(height: 35),
-                
+
                 // Bouton Enregistrer Premium
                 Container(
                   width: double.infinity,
@@ -5423,13 +6014,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.accentColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       elevation: 0,
                     ),
                     onPressed: () {
                       final String calculatedMoment = _getMomentFromTime(_time);
                       DateTime finalDate = widget.date;
-                      if (calculatedMoment == L10n.s('moments.night') && _time.hour < 6) {
+                      if (calculatedMoment == L10n.s('moments.night') &&
+                          _time.hour < 6) {
                         finalDate = widget.date.add(const Duration(days: 1));
                       }
                       final fDate = DateTime(
@@ -5439,6 +6033,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         _time.hour,
                         _time.minute,
                       );
+<<<<<<< Updated upstream
                       widget.onSave(Consumption(
                         id: widget.existingConso?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                         date: fDate,
@@ -5454,11 +6049,32 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                       String contextKey = "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
                       widget.onUpdateContext(contextKey, _contextCtrl.text);
 
+=======
+                      widget.onSave(
+                        Consumption(
+                          id:
+                              widget.existingConso?.id ??
+                              DateTime.now().millisecondsSinceEpoch.toString(),
+                          date: fDate,
+                          moment: calculatedMoment,
+                          type: _t == L10n.s('entry.types.soft')
+                              ? L10n.s('entry.types.no_alcohol')
+                              : _t,
+                          volume: _v,
+                          degree: _d,
+                          userId: widget.activeUserId,
+                        ),
+                      );
+>>>>>>> Stashed changes
                       Navigator.pop(context);
                     },
                     child: Text(
                       L10n.s('entry.save'),
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -5471,7 +6087,10 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   }
 
   Widget _buildTypeCard(String type) {
-    bool isSel = _t == type || (_t == L10n.s('entry.types.no_alcohol') && type == L10n.s('entry.types.soft'));
+    bool isSel =
+        _t == type ||
+        (_t == L10n.s('entry.types.no_alcohol') &&
+            type == L10n.s('entry.types.soft'));
     IconData icon;
     if (type == L10n.s('common.beer')) {
       icon = Icons.sports_bar;
@@ -5505,33 +6124,41 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         width: 75,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSel 
-              ? widget.accentColor.withValues(alpha: 0.25) 
-              : (widget.isDarkMode ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+          color: isSel
+              ? widget.accentColor.withValues(alpha: 0.25)
+              : (widget.isDarkMode
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSel ? widget.accentColor : Colors.white10,
             width: isSel ? 2 : 1,
           ),
-          boxShadow: isSel ? [
-            BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.3),
-              blurRadius: 10,
-              spreadRadius: 1,
-            )
-          ] : [],
+          boxShadow: isSel
+              ? [
+                  BoxShadow(
+                    color: widget.accentColor.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : [],
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSel ? widget.accentColor : Colors.blueGrey, size: 28),
+            Icon(
+              icon,
+              color: isSel ? widget.accentColor : Colors.blueGrey,
+              size: 28,
+            ),
             const SizedBox(height: 8),
             Text(
               type,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-                color: isSel 
-                    ? (widget.isDarkMode ? Colors.white : Colors.black) 
+                color: isSel
+                    ? (widget.isDarkMode ? Colors.white : Colors.black)
                     : Colors.blueGrey,
               ),
             ),
@@ -5558,7 +6185,9 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           color: isSel ? widget.accentColor : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSel ? widget.accentColor : (widget.isDarkMode ? Colors.white24 : Colors.black12),
+            color: isSel
+                ? widget.accentColor
+                : (widget.isDarkMode ? Colors.white24 : Colors.black12),
           ),
         ),
         child: Text(
@@ -5566,11 +6195,12 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-            color: isSel ? Colors.white : (widget.isDarkMode ? Colors.white70 : Colors.black87),
+            color: isSel
+                ? Colors.white
+                : (widget.isDarkMode ? Colors.white70 : Colors.black87),
           ),
         ),
       ),
     );
   }
 }
-
