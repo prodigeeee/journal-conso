@@ -23,6 +23,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 body {
     background-color: #000;
     background-image: url('assets/images/background_hero.jpg');
@@ -850,6 +855,7 @@ h1 {
     max-width: 1200px;
     margin: 0 auto 150px;
     padding: 0 40px;
+    overflow: hidden; /* Empêche le débordement horizontal des slides 3D */
 }
 
 .carousel-wrapper {
