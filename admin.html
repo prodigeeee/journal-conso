@@ -682,14 +682,27 @@
             window.saveKey = async (key) => {
                 const val = document.querySelector(`textarea[data-key="${key}"]`).value;
                 const btn = document.querySelector(`.editor-card [onclick="saveKey('${key}')"]`);
+                const originalBg = btn.style.background;
+                
                 btn.style.opacity = "0.3"; btn.disabled = true;
 
                 try {
+                    console.log(`Saving ${key}...`);
                     const { error } = await sb.from('site_content').upsert({ key, value: val }, { onConflict: 'key' });
-                    if (error) throw error;
+                    
+                    if (error) {
+                        console.error("Supabase Error:", error);
+                        alert(`Erreur Supabase (${error.code}) : ${error.message}\n\nVérifiez les politiques RLS de la table 'site_content'.`);
+                        throw error;
+                    }
+                    
                     showToast();
-                } catch(e) { alert("Erreur: " + e.message); }
-                finally { btn.style.opacity = "0.5"; btn.disabled = false; }
+                    btn.style.background = "var(--success)";
+                    setTimeout(() => btn.style.background = originalBg, 1000);
+                } catch(e) { 
+                    console.error("Save Error:", e);
+                }
+                finally { btn.style.opacity = "1"; btn.disabled = false; }
             };
 
             function renderChart(visits) {

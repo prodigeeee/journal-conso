@@ -481,4 +481,36 @@ function setupEventListeners() {
     setInterval(() => {
         logEvent('heartbeat', { url: window.location.pathname });
     }, 30000);
+
+    // Initial CMS Sync (Active Update)
+    hydrateCMS();
+}
+
+// Fonction de synchronisation dynamique du contenu (CMS Direct)
+async function hydrateCMS() {
+    const supabaseUrl = 'https://aswxkjibvcadnwujzwcm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
+
+    try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/site_content?select=*`, {
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            }
+        });
+        const data = await res.json();
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                const elements = document.querySelectorAll(`[data-cms-key="${item.key}"]`);
+                elements.forEach(el => {
+                    // Pour ne pas casser le rendu initial si la donnée est identique
+                    if (el.innerHTML !== item.value) {
+                        el.innerHTML = item.value;
+                    }
+                });
+            });
+        }
+    } catch (err) {
+        console.error("CMS Hydration Error:", err);
+    }
 }
