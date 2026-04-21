@@ -289,8 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const openReflexBtn = document.getElementById('open-reflex-test');
     const closeReflexBtn = document.getElementById('close-reflex');
     const reflexGameArea = document.getElementById('reflex-game');
-    const reflexTitle = reflexGameArea.querySelector('h2');
-    const reflexDesc = reflexGameArea.querySelector('p');
+    const reflexTitle = document.getElementById('reflex-main-val');
+    const reflexDesc = document.getElementById('reflex-instruction');
 
     let gameStatus = 'idle'; // idle, waiting, ready, result
     let startTime, timeoutId;
@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetReflexGame() {
         gameStatus = 'idle';
         reflexGameArea.className = 'reflex-game-area';
-        reflexTitle.textContent = 'Cliquer pour commencer';
-        reflexDesc.textContent = 'Attendez le VERT pour cliquer';
+        reflexTitle.textContent = 'START';
+        reflexDesc.textContent = 'Cliquer pour commencer';
     }
 
     function handleReflexClick() {
@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function startWaiting() {
         gameStatus = 'waiting';
         reflexGameArea.className = 'reflex-game-area waiting';
-        reflexTitle.textContent = 'ATTENDEZ...';
-        reflexDesc.textContent = 'Le vert va apparaître bientôt';
+        reflexTitle.textContent = 'WAIT';
+        reflexDesc.textContent = 'Attendez le vert...';
         
         const delay = 2000 + Math.random() * 3000;
         timeoutId = setTimeout(() => {
@@ -344,15 +344,15 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(timeoutId);
         gameStatus = 'result';
         reflexGameArea.className = 'reflex-game-area result';
-        reflexTitle.textContent = 'TROP TÔT !';
+        reflexTitle.textContent = 'OUPSS';
         reflexDesc.textContent = 'Cliquer pour réessayer';
     }
 
     function startReady() {
         gameStatus = 'ready';
         reflexGameArea.className = 'reflex-game-area ready';
-        reflexTitle.textContent = 'CLIQUEZ !';
-        reflexDesc.textContent = 'MAINTENANT !';
+        reflexTitle.textContent = 'GO !';
+        reflexDesc.textContent = 'CLIQUEZ VITE !';
         startTime = Date.now();
     }
 
@@ -361,14 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const reactionTime = endTime - startTime;
         gameStatus = 'result';
         reflexGameArea.className = 'reflex-game-area result';
-        reflexTitle.textContent = reactionTime + ' ms';
+        reflexTitle.textContent = reactionTime + 'ms';
         
         let appreciation = "Pas mal !";
         if (reactionTime < 200) appreciation = "Incroyable ! ⚡";
         else if (reactionTime < 300) appreciation = "Excellent !";
         else if (reactionTime > 500) appreciation = "Un peu lent... 🐢";
         
-        reflexDesc.textContent = appreciation + " - Réessayer ?";
+        reflexDesc.textContent = appreciation;
         logEvent('reflex_test_score', { ms: reactionTime });
     }
 

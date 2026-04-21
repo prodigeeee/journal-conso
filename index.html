@@ -457,6 +457,145 @@
             50% { transform: translateY(-8px) rotate(-0.5deg); }
             100% { transform: translateY(0px) rotate(0.5deg); }
         }
+        
+        /* REFLEX MODAL STYLES - CONCEPTUAL REDESIGN */
+        .reflex-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .reflex-modal.active {
+            display: flex;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .reflex-card {
+            background: transparent;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .reflex-outer-ring {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            padding: 15px;
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            box-shadow: 
+                20px 20px 60px #050505,
+                -20px -20px 60px #151515,
+                inset 2px 2px 5px rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .reflex-game-area {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .reflex-game-area::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .reflex-game-area:active {
+            transform: scale(0.96);
+            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.8);
+        }
+
+        /* States with Aura Glow */
+        .reflex-game-area.waiting {
+            background: #1a0f0f;
+            box-shadow: 0 0 40px rgba(231, 76, 60, 0.2);
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+
+        .reflex-game-area.ready {
+            background: #0f1a0f;
+            box-shadow: 0 0 60px rgba(46, 204, 113, 0.4);
+            border-color: rgba(46, 204, 113, 0.6);
+        }
+
+        .reflex-game-area.result {
+            background: #0f151a;
+            box-shadow: 0 0 40px rgba(52, 152, 219, 0.2);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+
+        .reflex-game-area.ready h2 {
+            color: #2ecc71;
+            text-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+        }
+
+        .reflex-game-area h2 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: white;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+
+        .reflex-game-area p {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .reflex-status-text {
+            margin-bottom: 20px;
+            height: 60px;
+        }
+
+        .reflex-status-text h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .reflex-status-text p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
     </style>
     
     <!-- HIDDEN LEGAL CONTENT FOR MODALS -->
@@ -495,15 +634,19 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <div class="reflex-modal" id="reflex-modal">
         <div class="reflex-card">
-            <h3 style="color: white; margin-bottom: 5px;">Test de Réflexes</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Mesurez votre temps de réaction</p>
-            
-            <div id="reflex-game" class="reflex-game-area">
-                <h2>Cliquer pour commencer</h2>
-                <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Attendez le VERT pour cliquer</p>
+            <div class="reflex-status-text">
+                <h3>Vérification de Réactivité</h3>
+                <p id="reflex-subtext">Mesurez votre temps de réaction pour le suivi</p>
             </div>
             
-            <button class="btn btn-secondary" id="close-reflex" style="width: 100%;">Fermer</button>
+            <div class="reflex-outer-ring">
+                <div id="reflex-game" class="reflex-game-area">
+                    <h2 id="reflex-main-val">START</h2>
+                    <p id="reflex-instruction">Cliquer pour commencer</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" id="close-reflex" style="width: 100%; margin-top: 20px;">Quitter le test</button>
         </div>
     </div>
 
