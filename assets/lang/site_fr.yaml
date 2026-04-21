@@ -101,6 +101,15 @@ footer:
   trust_badge: "Données 100% sécurisées"
   copy: "© 2026 ChrisK • Journal Conso. Tous droits réservés."
 
+spirit:
+  badge: "L'ESPRIT DU PROJET"
+  title_start: "Une application faite"
+  title_highlight: "avec passion."
+  desc1: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design."
+  desc2: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est entièrement gratuite et sans publicité."
+  disclaimer: "Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée."
+  btn: "Soutenir le projet via PayPal"
+
 legal_policy:
   title: "Mentions Légales"
   editor_title: "ÉDITEUR"
