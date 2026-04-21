@@ -972,7 +972,6 @@ h1 {
 
     .carousel-slide.far-left { transform: translate3d(-240px, 0, -100px) rotateY(35deg) scale(0.6); opacity: 0; }
     .carousel-slide.far-right { transform: translate3d(240px, 0, -100px) rotateY(-35deg) scale(0.6); opacity: 0; }
-}
 
     .nav-content {
         padding: 0 20px;
