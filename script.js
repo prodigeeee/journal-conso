@@ -40,21 +40,62 @@ document.addEventListener('DOMContentLoaded', () => {
         graphObserver.observe(graphSection);
     }
 
-    // 2. Logique du Carrousel des Screenshots
-    const track = document.querySelector('.carousel-track');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
+    // 2. Logique du Carrousel des Screenshots (Moderne 3D Flow)
+    const slides = document.querySelectorAll('.carousel-slide');
+    const nextBtn = document.getElementById('carousel-next');
+    const prevBtn = document.getElementById('carousel-prev');
+    let currentIndex = 2; // On commence par le milieu (le 3ème slide)
 
-    if (track && prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', () => {
-            const slideWidth = track.querySelector('.carousel-slide').offsetWidth + 30; // 30 = gap
-            track.scrollBy({ left: -slideWidth, behavior: 'smooth' });
-        });
+    if (slides.length > 0 && nextBtn && prevBtn) {
+        function updateCarousel() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev', 'next', 'far-left', 'far-right');
+                
+                // Calcul de la distance relative circulaire pour le défilement infini
+                let diff = index - currentIndex;
+                
+                // Gestion de la boucle infinie
+                if (diff > 2) diff -= slides.length;
+                if (diff < -2) diff += slides.length;
+
+                if (diff === 0) {
+                    slide.classList.add('active');
+                } else if (diff === -1) {
+                    slide.classList.add('prev');
+                } else if (diff === 1) {
+                    slide.classList.add('next');
+                } else if (diff === -2) {
+                    slide.classList.add('far-left');
+                } else if (diff === 2) {
+                    slide.classList.add('far-right');
+                } else {
+                    // Cacher les autres si plus de 5 slides
+                    slide.style.opacity = '0';
+                    slide.style.pointerEvents = 'none';
+                }
+            });
+        }
 
         nextBtn.addEventListener('click', () => {
-            const slideWidth = track.querySelector('.carousel-slide').offsetWidth + 30;
-            track.scrollBy({ left: slideWidth, behavior: 'smooth' });
+            currentIndex = (currentIndex + 1) % slides.length;
+            updateCarousel();
         });
+
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+            updateCarousel();
+        });
+
+        // Navigation au clic direct sur une slide
+        slides.forEach((slide, index) => {
+            slide.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarousel();
+            });
+        });
+
+        // Initialisation
+        updateCarousel();
     }
 
     // 3. Gestion des Modales Légales

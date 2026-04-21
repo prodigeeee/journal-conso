@@ -366,25 +366,28 @@
         </div>
 
         <div class="carousel-wrapper">
-            <button class="carousel-btn prev-btn">❮</button>
-            <div class="carousel-track">
-                <div class="carousel-slide">
+            <div class="carousel-container" id="carousel-3d-track">
+                <div class="carousel-slide" data-index="0">
                     <img src="assets/screenshots/1.jpg" alt="{{ gallery.alt1 }}" class="screenshot-img">
                 </div>
-                <div class="carousel-slide">
+                <div class="carousel-slide" data-index="1">
                     <img src="assets/screenshots/2.jpg" alt="{{ gallery.alt2 }}" class="screenshot-img">
                 </div>
-                <div class="carousel-slide">
+                <div class="carousel-slide" data-index="2">
                     <img src="assets/screenshots/3.jpg" alt="{{ gallery.alt3 }}" class="screenshot-img">
                 </div>
-                <div class="carousel-slide">
+                <div class="carousel-slide" data-index="3">
                     <img src="assets/screenshots/4.jpg" alt="{{ gallery.alt4 }}" class="screenshot-img">
                 </div>
-                <div class="carousel-slide">
+                <div class="carousel-slide" data-index="4">
                     <img src="assets/screenshots/5.jpg" alt="{{ gallery.alt5 }}" class="screenshot-img">
                 </div>
             </div>
-            <button class="carousel-btn next-btn">❯</button>
+            
+            <div class="carousel-controls">
+                <button class="carousel-btn prev-btn" id="carousel-prev">❮</button>
+                <button class="carousel-btn next-btn" id="carousel-next">❯</button>
+            </div>
         </div>
     </section>
 
