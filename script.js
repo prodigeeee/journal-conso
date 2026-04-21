@@ -284,6 +284,94 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 8. Logique du Test de Réflexes (Popin)
+    const reflexModal = document.getElementById('reflex-modal');
+    const openReflexBtn = document.getElementById('open-reflex-test');
+    const closeReflexBtn = document.getElementById('close-reflex');
+    const reflexGameArea = document.getElementById('reflex-game');
+    const reflexTitle = reflexGameArea.querySelector('h2');
+    const reflexDesc = reflexGameArea.querySelector('p');
+
+    let gameStatus = 'idle'; // idle, waiting, ready, result
+    let startTime, timeoutId;
+
+    if (reflexModal && openReflexBtn) {
+        openReflexBtn.addEventListener('click', () => {
+            reflexModal.classList.add('active');
+            resetReflexGame();
+        });
+
+        closeReflexBtn.addEventListener('click', () => {
+            reflexModal.classList.remove('active');
+            clearTimeout(timeoutId);
+        });
+
+        reflexGameArea.addEventListener('click', () => {
+            handleReflexClick();
+        });
+    }
+
+    function resetReflexGame() {
+        gameStatus = 'idle';
+        reflexGameArea.className = 'reflex-game-area';
+        reflexTitle.textContent = 'Cliquer pour commencer';
+        reflexDesc.textContent = 'Attendez le VERT pour cliquer';
+    }
+
+    function handleReflexClick() {
+        if (gameStatus === 'idle' || gameStatus === 'result') {
+            startWaiting();
+        } else if (gameStatus === 'waiting') {
+            tooEarly();
+        } else if (gameStatus === 'ready') {
+            showResult();
+        }
+    }
+
+    function startWaiting() {
+        gameStatus = 'waiting';
+        reflexGameArea.className = 'reflex-game-area waiting';
+        reflexTitle.textContent = 'ATTENDEZ...';
+        reflexDesc.textContent = 'Le vert va apparaître bientôt';
+        
+        const delay = 2000 + Math.random() * 3000;
+        timeoutId = setTimeout(() => {
+            startReady();
+        }, delay);
+    }
+
+    function tooEarly() {
+        clearTimeout(timeoutId);
+        gameStatus = 'result';
+        reflexGameArea.className = 'reflex-game-area result';
+        reflexTitle.textContent = 'TROP TÔT !';
+        reflexDesc.textContent = 'Cliquer pour réessayer';
+    }
+
+    function startReady() {
+        gameStatus = 'ready';
+        reflexGameArea.className = 'reflex-game-area ready';
+        reflexTitle.textContent = 'CLIQUEZ !';
+        reflexDesc.textContent = 'MAINTENANT !';
+        startTime = Date.now();
+    }
+
+    function showResult() {
+        const endTime = Date.now();
+        const reactionTime = endTime - startTime;
+        gameStatus = 'result';
+        reflexGameArea.className = 'reflex-game-area result';
+        reflexTitle.textContent = reactionTime + ' ms';
+        
+        let appreciation = "Pas mal !";
+        if (reactionTime < 200) appreciation = "Incroyable ! ⚡";
+        else if (reactionTime < 300) appreciation = "Excellent !";
+        else if (reactionTime > 500) appreciation = "Un peu lent... 🐢";
+        
+        reflexDesc.textContent = appreciation + " - Réessayer ?";
+        logEvent('reflex_test_score', { ms: reactionTime });
+    }
+
     // 7. Tracking des visites
     logVisit();
 });

@@ -126,7 +126,8 @@
             </div>
 
             <!-- Composant Bouton Test Réflexes -->
-            <a href="#" class="gradient-btn" style="z-index: 3; animation: float 7s ease-in-out infinite reverse; margin-top: 20px;">
+            <!-- Composant Bouton Test Réflexes -->
+            <div class="gradient-btn" id="open-reflex-test" style="z-index: 3; animation: float 7s ease-in-out infinite reverse; margin-top: 20px;">
                 <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px; display: flex;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/></svg>
                 </div>
@@ -134,7 +135,7 @@
                     <div class="gradient-btn-title">TEST DE RÉFLEXES</div>
                     <div class="gradient-btn-subtitle">Vérifiez votre réactivité maintenant</div>
                 </div>
-            </a>
+            </div>
 
             <div class="mockup-disclaimer" style="margin-top: 25px;">
                 Estimation théorique uniquement. Ne remplace pas un éthylotest.
@@ -492,6 +493,20 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <div class="reflex-modal" id="reflex-modal">
+        <div class="reflex-card">
+            <h3 style="color: white; margin-bottom: 5px;">Test de Réflexes</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Mesurez votre temps de réaction</p>
+            
+            <div id="reflex-game" class="reflex-game-area">
+                <h2>Cliquer pour commencer</h2>
+                <p style="color: rgba(255,255,255,0.6); margin-top: 10px;">Attendez le VERT pour cliquer</p>
+            </div>
+            
+            <button class="btn btn-secondary" id="close-reflex" style="width: 100%;">Fermer</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

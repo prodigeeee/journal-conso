@@ -500,7 +500,9 @@ h1 {
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
-    width: fit-content;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
 }
 
 .gradient-btn:hover {
