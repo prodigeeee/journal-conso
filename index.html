@@ -1,33 +1,40 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journal Conso - Suivi d'alcoolémie & Journal de consommation premium</title>
-    <meta name="description" content="Découvrez Journal Conso, l'application mobile pour un suivi personnel de votre consommation d'alcool. Estimation de l'alcoolémie (formule de Widmark), statistiques de tendance et confidentialité totale.">
-    <meta name="keywords" content="journal conso, suivi alcool, application alcoolémie, tracker consommation, santé, bien-être, widmark, sécurité routière">
-    
+    <meta name="description"
+        content="Découvrez Journal Conso, l'application mobile pour un suivi personnel de votre consommation d'alcool. Estimation de l'alcoolémie (formule de Widmark), statistiques de tendance et confidentialité totale.">
+    <meta name="keywords"
+        content="journal conso, suivi alcool, application alcoolémie, tracker consommation, santé, bien-être, widmark, sécurité routière">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://journalconso.app/">
     <meta property="og:title" content="Journal Conso - Prenez le contrôle avec élégance">
-    <meta property="og:description" content="L'application de suivi de consommation d'alcool la plus élégante. Suivi au fil de l'eau, statistiques de tendances et 100% confidentiel.">
+    <meta property="og:description"
+        content="L'application de suivi de consommation d'alcool la plus élégante. Suivi au fil de l'eau, statistiques de tendances et 100% confidentiel.">
     <meta property="og:image" content="assets/images/og-image.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://journalconso.app/">
     <meta property="twitter:title" content="Journal Conso - Suivi d'alcoolémie premium">
-    <meta property="twitter:description" content="Estimation de l'alcoolémie en temps réel et journal de bord confidentiel.">
+    <meta property="twitter:description"
+        content="Estimation de l'alcoolémie en temps réel et journal de bord confidentiel.">
     <meta property="twitter:image" content="assets/images/og-image.jpg">
 
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="apple-touch-icon" href="assets/images/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- FOND AURA DYNAMIQUE -->
     <div class="aura-container">
@@ -45,10 +52,11 @@
                 <a href="#screenshots" data-cms-key="nav_link_overview">Aperçu</a>
                 <a href="#multiplatform" data-cms-key="nav_link_webapp">Web App</a>
                 <a href="#contact" data-cms-key="nav_link_contact">Contact</a>
-                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener" data-cms-key="nav_link_login">Se connecter</a>
+                <a href="app/" class="nav-login-btn" target="_blank" rel="noopener" data-cms-key="nav_link_login">{{
+                    nav.login }}</a>
                 <a href="#download" class="nav-btn" data-cms-key="nav_link_download">Télécharger</a>
             </div>
-            
+
             <!-- Mobile Menu Toggle -->
             <div class="burger-menu" id="burger-toggle">
                 <div class="line1"></div>
@@ -71,19 +79,28 @@
     <header class="hero">
         <div class="hero-text">
             <div class="badge" data-cms-key="hero_badge">V2 • 1.2.0 • Refonte Totale</div>
-            <h1 data-cms-key="hero_title">Prenez le contrôle<br>avec <span class="highlight">élégance.</span></h1>
+            <h1 data-cms-key="hero_title">Prenez le contrôle<br>avec <span class="highlight">{{ hero.title_highlight
+                    }}</span></h1>
             <p data-cms-key="hero_desc">Une application de suivi de consommation premium, conçue pour vous accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu.</p>
             <div class="hero-actions">
                 <a href="app/" class="gradient-btn">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14 21 3" />
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    </svg>
                     <div style="text-align: left;">
                         <div class="gradient-btn-title">Lancer l'App</div>
-                        <div class="gradient-btn-subtitle">journalconso.com/app</div>
                     </div>
                 </a>
                 <div class="btn-dormant">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
-                    Appli Android (Bientôt) 
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 19V5" />
+                        <path d="M5 12l7 7 7-7" />
+                    </svg>
+                    Appli Android (Bientôt)
                     <span class="badge-soon">STORE</span>
                 </div>
             </div>
@@ -109,10 +126,11 @@
                 <div class="circular-progress-mock" id="sim-circle">
                     <div class="circular-content">
                         <div class="circular-val"><span id="sim-val">0.00</span></div>
-                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.4); font-weight: 700;">unités</div>
+                        <div style="font-size: 0.6rem; color: rgba(255,255,255,0.4); font-weight: 700;">{{ mockup.units
+                            }}</div>
                     </div>
                 </div>
-                
+
                 <div class="sim-controls">
                     <button class="sim-btn" id="drink-minus">−</button>
                     <div class="sim-units"><span id="sim-units-val">0</span> unités</div>
@@ -120,16 +138,24 @@
                 </div>
 
                 <div class="status-pill" id="sim-status-pill">
-                    <span id="sim-status-icon" style="color: #4CAF50; font-size: 1.1rem; font-weight: 800;">✓</span> 
-                    <span id="sim-status-text" style="color: #4CAF50; font-size: 0.95rem; font-weight: 700;">Sécurité OK</span>
+                    <span id="sim-status-icon" style="color: #4CAF50; font-size: 1.1rem; font-weight: 800;">✓</span>
+                    <span id="sim-status-text" style="color: #4CAF50; font-size: 0.95rem; font-weight: 700;">{{
+                        mockup.safety_ok }}</span>
                 </div>
             </div>
 
             <!-- Composant Bouton Test Réflexes -->
             <!-- Composant Bouton Test Réflexes -->
-            <div class="gradient-btn" id="open-reflex-test" style="z-index: 3; animation: float 7s ease-in-out infinite reverse; margin-top: 20px;">
+            <div class="gradient-btn" id="open-reflex-test"
+                style="z-index: 3; animation: float 7s ease-in-out infinite reverse; margin-top: 20px;">
                 <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px; display: flex;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z" />
+                        <path
+                            d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z" />
+                    </svg>
                 </div>
                 <div style="text-align: left;">
                     <div class="gradient-btn-title">TEST DE RÉFLEXES</div>
@@ -146,35 +172,54 @@
     <section id="features" class="features">
         <div class="section-header">
             <div class="badge" data-cms-key="feature_badge">FEATURES</div>
-            <h2 data-cms-key="feature_title">Vos données,  <br><span class="highlight">votre contrôle.</span></h2>
+            <h2 data-cms-key="feature_title">Vos données,  <br><span class="highlight">{{
+                    features.title_highlight }}</span></h2>
             <p data-cms-key="feature_desc" style="margin-bottom: 50px;">Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel.</p>
         </div>
 
         <div class="features-grid">
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                    </svg>
                 </div>
                 <h3 data-cms-key="feature1_title">SUIVI COMPLET</h3>
                 <p data-cms-key="feature1_desc">Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 3v18h18" />
+                        <path d="m19 9-5 5-4-4-3 3" />
+                    </svg>
                 </div>
                 <h3 data-cms-key="feature2_title">STATS AVANCÉES</h3>
                 <p data-cms-key="feature2_desc">Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
                 </div>
                 <h3 data-cms-key="feature3_title">OBJECTIFS SANTÉ</h3>
                 <p data-cms-key="feature3_desc">Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès.</p>
             </div>
             <div class="feature-card" data-tilt>
                 <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
                 </div>
                 <h3 data-cms-key="feature4_title">CONFIDENTIALITÉ</h3>
                 <p data-cms-key="feature4_desc">Vos données sont stockées localement et ne sont jamais partagées sans votre accord.</p>
@@ -187,22 +232,30 @@
         <div class="spirit-container glass-panel">
             <div class="spirit-text">
                 <div class="badge" data-cms-key="spirit_badge">L'ESPRIT DU PROJET</div>
-                <h2 data-cms-key="spirit_title">Une application faite <br><span class="highlight">avec passion.</span></h2>
+                <h2 data-cms-key="spirit_title">Une application faite <br><span class="highlight">{{
+                        spirit.title_highlight }}</span></h2>
                 <p data-cms-key="spirit_desc1">Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design.</p>
                 <p data-cms-key="spirit_desc2">Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est entièrement gratuite et sans publicité.</p>
-                
+
                 <div class="spirit-actions">
                     <p class="spirit-disclaimer" data-cms-key="spirit_disclaimer">Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée.</p>
-                    <a href="https://paypal.me/prodigeeee" class="btn-paypal" target="_blank" rel="noopener" data-cms-key="spirit_btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <a href="https://paypal.me/prodigeeee" class="btn-paypal" target="_blank" rel="noopener"
+                        data-cms-key="spirit_btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-right: 12px;">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
                         Soutenir le projet via PayPal
                     </a>
                 </div>
             </div>
             <div class="spirit-visual" style="flex: 0.8; display: flex; justify-content: center; align-items: center;">
                 <!-- Illustration Premium ou Avatar -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 50%; overflow: hidden; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow);">
-                    <img src="assets/images/user.png" alt="Chris" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: contrast(1.1) brightness(1.1);">
+                <div class="glass-panel"
+                    style="padding: 20px; border-radius: 50%; overflow: hidden; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow);">
+                    <img src="assets/images/user.png" alt="Chris"
+                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: contrast(1.1) brightness(1.1);">
                 </div>
             </div>
         </div>
@@ -219,14 +272,22 @@
                             <div class="stats-subtitle">DU 15 MARS AU 14 AVRIL</div>
                         </div>
                         <div class="stats-icon-wrapper">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                <polyline points="17 6 23 6 23 12" />
+                            </svg>
                         </div>
                     </div>
-                    
+
                     <div class="graph-container">
                         <svg class="graph-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
-                            <path class="graph-path-glow" d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150" fill="none" stroke="var(--accent)" stroke-width="8" opacity="0.4" />
-                            <path class="graph-path" d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" />
+                            <path class="graph-path-glow"
+                                d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150"
+                                fill="none" stroke="var(--accent)" stroke-width="8" opacity="0.4" />
+                            <path class="graph-path"
+                                d="M10,150 C50,140 80,80 120,100 C160,120 200,160 250,90 C300,20 330,180 390,150"
+                                fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" />
                         </svg>
                         <div class="graph-labels">
                             <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
@@ -248,31 +309,48 @@
 
             <div class="analysis-text">
                 <div class="badge analysis-badge" data-cms-key="analysis_badge">ANALYSE & DONNÉES</div>
-                <h2 class="analysis-title" data-cms-key="analysis_title">Comprenez votre <br><span class="highlight">consommation.</span></h2>
+                <h2 class="analysis-title" data-cms-key="analysis_title">Comprenez votre <br><span
+                        class="highlight">consommation.</span></h2>
                 <p data-cms-key="analysis_desc">Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies.</p>
-                
+
                 <ul class="analysis-list">
                     <li>
                         <span class="list-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+                            </svg>
                         </span>
                         Estimation de l'alcoolémie (Widmark + Pic)
                     </li>
                     <li>
                         <span class="list-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+                            </svg>
                         </span>
                         Calcul du temps de retour au seuil légal
                     </li>
                     <li>
                         <span class="list-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+                            </svg>
                         </span>
                         Répartition globale par type de boisson
                     </li>
                     <li>
                         <span class="list-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9" />
+                                <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+                            </svg>
                         </span>
                         Historique complet des consommations
                     </li>
@@ -286,7 +364,7 @@
             <h2>L'application en <span class="highlight">images</span></h2>
             <p>Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal.</p>
         </div>
-        
+
         <div class="carousel-wrapper">
             <button class="carousel-btn prev-btn">❮</button>
             <div class="carousel-track">
@@ -315,34 +393,55 @@
             <div class="multi-content">
                 <div class="section-header" style="text-align: left; margin-bottom: 25px;">
                     <div class="badge" data-cms-key="multi_badge">DISPONIBLE PARTOUT</div>
-                    <h2 data-cms-key="multi_title">Un seul compte.<br><span class="highlight">Tous vos appareils.</span></h2>
+                    <h2 data-cms-key="multi_title">Un seul compte.<br><span class="highlight">{{
+                            multi.title_highlight }}</span></h2>
                 </div>
                 <p data-cms-key="multi_desc">Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil.</p>
-                
+
                 <div class="platforms">
                     <div class="platform-item">
                         <span class="p-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h.01" />
+                                <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+                            </svg>
                         </span>
                         <div class="p-text">Android App</div>
                     </div>
                     <div class="platform-item">
                         <span class="p-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+                                <path d="M12 18h.01" />
+                            </svg>
                         </span>
                         <div class="p-text">iOS (Web App)</div>
                     </div>
                     <div class="platform-item">
                         <span class="p-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="3" rx="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
                         </span>
                         <div class="p-text">Desktop Browser</div>
                     </div>
                 </div>
-                
+
                 <div class="multi-actions">
-                    <a href="app/" class="btn btn-primary-outline" target="_blank" rel="noopener" data-cms-key="multi_btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                    <a href="app/" class="btn btn-primary-outline" target="_blank" rel="noopener"
+                        data-cms-key="multi_btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-right: 10px;">
+                            <path d="M15 3h6v6" />
+                            <path d="M10 14 21 3" />
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        </svg>
                         Lancer la Web App
                     </a>
                 </div>
@@ -352,7 +451,13 @@
                     <div class="sync-animation">
                         <div class="sync-circle"></div>
                         <div class="sync-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                <path d="M16 16h5v5" />
+                            </svg>
                         </div>
                     </div>
                 </div>
@@ -366,39 +471,46 @@
             <h2 data-cms-key="contact_title">Un souci, une idée ?</h2>
             <p data-cms-key="contact_desc">On discute ? Envoyez-nous un message, nous répondons en moins de 24h.</p>
         </div>
-        
+
         <div class="contact-container glass-panel">
             <form id="contact-form" class="contact-form">
                 <div class="form-group grid-2">
                     <div class="input-box">
                         <label>Votre Nom</label>
-                        <input type="text" name="name" id="contact-name" placeholder="Ex: Chris" required>
+                        <input type="text" name="name" id="contact-name" placeholder="Ex: Chris"
+                            required>
                     </div>
                     <div class="input-box">
                         <label>Votre Email</label>
-                        <input type="email" name="email" id="contact-email" placeholder="nom@exemple.com" required>
+                        <input type="email" name="email" id="contact-email"
+                            placeholder="nom@exemple.com" required>
                     </div>
                 </div>
-                
+
                 <div class="input-box">
                     <label>Sujet</label>
-                    <input type="text" name="subject" id="contact-subject" placeholder="Bug, Suggestion, Partenariat..." required>
+                    <input type="text" name="subject" id="contact-subject"
+                        placeholder="Bug, Suggestion, Partenariat..." required>
                 </div>
-                
+
                 <div class="input-box">
                     <label>Votre Message</label>
-                    <textarea name="message" id="contact-message" rows="5" placeholder="Dites-nous tout..." required></textarea>
+                    <textarea name="message" id="contact-message" rows="5"
+                        placeholder="Dites-nous tout..." required></textarea>
                 </div>
-                
-                <button type="submit" class="btn-submit" id="btn-submit-contact" data-cms-key="contact_btn">Envoyer le message</button>
+
+                <button type="submit" class="btn-submit" id="btn-submit-contact" data-cms-key="contact_btn">{{
+                    contact.btn_send }}</button>
             </form>
 
             <!-- Message de succès caché -->
-            <div id="contact-success" class="success-message" style="display: none; text-align: center; padding: 40px 20px;">
+            <div id="contact-success" class="success-message"
+                style="display: none; text-align: center; padding: 40px 20px;">
                 <div class="success-icon" style="font-size: 3rem; color: #4CAF50; margin-bottom: 20px;">✓</div>
                 <h3 style="color: white; margin-bottom: 10px;">Message envoyé !</h3>
                 <p style="color: rgba(255,255,255,0.7);">Merci pour votre retour. Chris vous répondra très prochainement.</p>
-                <button onclick="location.reload()" class="btn btn-secondary" style="margin-top: 30px; font-size: 0.8rem;">Envoyer un autre message</button>
+                <button onclick="location.reload()" class="btn btn-secondary"
+                    style="margin-top: 30px; font-size: 0.8rem;">Envoyer un autre message</button>
             </div>
         </div>
     </section>
@@ -411,10 +523,13 @@
                 </div>
                 <p data-cms-key="footer_desc">Votre compagnon de route pour une consommation responsable. 100% privé, 100% local sur votre téléphone.</p>
                 <div class="trust-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Données 100% sécurisées
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg> Données 100% sécurisées
                 </div>
             </div>
-            
+
             <div class="footer-column links">
                 <h4>Navigation</h4>
                 <a href="#">Accueil</a>
@@ -422,14 +537,14 @@
                 <a href="#screenshots">Aperçu</a>
                 <a href="app/">Web App</a>
             </div>
-            
+
             <div class="footer-column legal">
                 <h4>Légal</h4>
                 <a href="#" id="open-privacy">Confidentialité</a>
                 <a href="#" id="open-legal">Mentions légales</a>
                 <a href="#contact">Contact</a>
             </div>
-            
+
             <div class="footer-column disclaimer">
                 <h4 data-cms-key="footer_disclaimer_title">Avertissement</h4>
                 <p data-cms-key="footer_disclaimer_desc">Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire.</p>
@@ -453,11 +568,19 @@
     <style>
         /* Animation subtile pour les panneaux de la hero visual */
         @keyframes float {
-            0% { transform: translateY(0px) rotate(0.5deg); }
-            50% { transform: translateY(-8px) rotate(-0.5deg); }
-            100% { transform: translateY(0px) rotate(0.5deg); }
+            0% {
+                transform: translateY(0px) rotate(0.5deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(-0.5deg);
+            }
+
+            100% {
+                transform: translateY(0px) rotate(0.5deg);
+            }
         }
-        
+
         /* REFLEX MODAL STYLES - CONCEPTUAL REDESIGN */
         .reflex-modal {
             position: fixed;
@@ -496,10 +619,10 @@
             border-radius: 50%;
             padding: 15px;
             background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-            box-shadow: 
+            box-shadow:
                 20px 20px 60px #050505,
                 -20px -20px 60px #151515,
-                inset 2px 2px 5px rgba(255,255,255,0.05);
+                inset 2px 2px 5px rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -520,7 +643,7 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .reflex-game-area::after {
@@ -530,14 +653,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
         .reflex-game-area:active {
             transform: scale(0.96);
-            box-shadow: inset 5px 5px 15px rgba(0,0,0,0.8);
+            box-shadow: inset 5px 5px 15px rgba(0, 0, 0, 0.8);
         }
 
         /* States with Aura Glow */
@@ -574,7 +697,7 @@
 
         .reflex-game-area p {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
             margin-top: 8px;
             font-weight: 600;
             text-transform: uppercase;
@@ -597,7 +720,7 @@
             font-size: 0.9rem;
         }
     </style>
-    
+
     <!-- HIDDEN LEGAL CONTENT FOR MODALS -->
     <div id="content-privacy" style="display: none;">
         <h2>Politique de Confidentialité</h2>
@@ -638,18 +761,20 @@
                 <h3>Vérification de Réactivité</h3>
                 <p id="reflex-subtext">Mesurez votre temps de réaction pour le suivi</p>
             </div>
-            
+
             <div class="reflex-outer-ring">
                 <div id="reflex-game" class="reflex-game-area">
                     <h2 id="reflex-main-val">START</h2>
                     <p id="reflex-instruction">Cliquer pour commencer</p>
                 </div>
             </div>
-            
-            <button class="btn btn-secondary" id="close-reflex" style="width: 100%; margin-top: 20px;">Quitter le test</button>
+
+            <button class="btn btn-secondary" id="close-reflex" style="width: 100%; margin-top: 20px;">Quitter le
+                test</button>
         </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
