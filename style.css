@@ -249,7 +249,7 @@ h1 {
 
 .hero p {
     font-size: 1.1rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     max-width: 500px;
     margin-bottom: 40px;
     font-weight: 400;
@@ -652,8 +652,11 @@ h1 {
     flex: 1.2;
 }
 
-.analysis-text {
-    flex: 1;
+.analysis-text p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
 }
 
 .analysis-badge {
@@ -1237,6 +1240,12 @@ h1 {
     flex: 1.2;
 }
 
+.multi-content p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
 .multi-visual {
     flex: 0.8;
     display: flex;
@@ -1612,7 +1621,7 @@ h1 {
 }
 
 .spirit-text p {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     font-size: 1.1rem;
     line-height: 1.6;
     margin-bottom: 20px;
