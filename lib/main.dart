@@ -500,11 +500,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   Future<void> _pushToCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      if (!silent)
+      if (!silent) {
         _showAuraSnackBar(
           "Veuillez vous connecter pour sauvegarder",
           isError: true,
         );
+      }
       return;
     }
     if (!silent) _showAuraSnackBar("Sauvegarde vers le Cloud...");
@@ -524,11 +525,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         );
       }
     } catch (e) {
-      if (!silent)
+      if (!silent) {
         _showAuraSnackBar(
           L10n.s('sync.error', args: {'message': e.toString()}),
           isError: true,
         );
+      }
     }
   }
 
@@ -569,11 +571,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   Future<void> _pullFromCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      if (!silent)
+      if (!silent) {
         _showAuraSnackBar(
           "Veuillez vous connecter pour synchroniser",
           isError: true,
         );
+      }
       return;
     }
     if (!silent) _showAuraSnackBar("Récupération de vos données...");
@@ -835,8 +838,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
         if (profilesData == null) throw L10n.s('settings.unknown_format');
         if (profilesData is Map) profilesData = [profilesData];
-        if ((profilesData as List).isEmpty)
+        if ((profilesData as List).isEmpty) {
           throw L10n.s('settings.no_profile_found');
+        }
 
         final newP = UserProfile.fromJson(profilesData[0]);
         newP.id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -1037,7 +1041,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                               (weekIndex * 7) + dayIndex - firstWeekday + 1;
                           if (currentDay <= 0 || currentDay > daysInMonth) {
                             return pw.Container(
-                              constraints: const pw.BoxConstraints(minHeight: 60),
+                              constraints: const pw.BoxConstraints(
+                                minHeight: 60,
+                              ),
                               decoration: const pw.BoxDecoration(
                                 color: PdfColors.grey50,
                               ),
@@ -2300,8 +2306,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           itemBuilder: (context, index) {
             final dayNum = index - firstDay + 1;
-            if (dayNum <= 0 || dayNum > daysInMonth)
+            if (dayNum <= 0 || dayNum > daysInMonth) {
               return const SizedBox.shrink();
+            }
             final date = DateTime(monthDate.year, monthDate.month, dayNum);
 
             final isSel =
@@ -2650,10 +2657,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _getUIConstantDrinkColor(String type) {
     if (type == L10n.s('common.beer')) return const Color(0xFFEA9216); // Orange
     if (type == L10n.s('common.wine')) return const Color(0xFFE53935); // Rouge
-    if (type == L10n.s('common.spirits'))
+    if (type == L10n.s('common.spirits')) {
       return const Color(0xFF9C27B0); // Violet
-    if (type == L10n.s('entry.types.no_alcohol'))
+    }
+    if (type == L10n.s('entry.types.no_alcohol')) {
       return const Color(0xFF43A047); // Vert
+    }
     return widget.accentColor;
   }
 
@@ -5965,8 +5974,10 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: effectiveAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
@@ -5992,7 +6003,9 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                           : Colors.black.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.05),
                         width: 1,
                       ),
                     ),
@@ -6082,7 +6095,11 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                               initialDate: _selectedDate,
                               firstDate: DateTime(2000),
                               lastDate: DateTime.now(),
-                              builder: (context, child) => _buildThemePicker(context, child, const Color(0xFF6366F1)),
+                              builder: (context, child) => _buildThemePicker(
+                                context,
+                                child,
+                                const Color(0xFF6366F1),
+                              ),
                             );
                             if (d != null) setState(() => _selectedDate = d);
                           },
@@ -6099,7 +6116,11 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                             final t = await showTimePicker(
                               context: context,
                               initialTime: _time,
-                              builder: (context, child) => _buildThemePicker(context, child, const Color(0xFF10B981)),
+                              builder: (context, child) => _buildThemePicker(
+                                context,
+                                child,
+                                const Color(0xFF10B981),
+                              ),
                             );
                             if (t != null) setState(() => _time = t);
                           },
@@ -6160,8 +6181,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     return Theme(
       data: Theme.of(context).copyWith(
         colorScheme: widget.isDarkMode
-            ? ColorScheme.dark(primary: color, onPrimary: Colors.white, surface: const Color(0xFF1A1F26))
-            : ColorScheme.light(primary: color, onPrimary: Colors.white, surface: Colors.white),
+            ? ColorScheme.dark(
+                primary: color,
+                onPrimary: Colors.white,
+                surface: const Color(0xFF1A1F26),
+              )
+            : ColorScheme.light(
+                primary: color,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+              ),
       ),
       child: child!,
     );
@@ -6174,21 +6203,31 @@ class _SaisieSheetState extends State<_SaisieSheet> {
       finalDate = _selectedDate.add(const Duration(days: 1));
     }
     final fDate = DateTime(
-      finalDate.year, finalDate.month, finalDate.day,
-      _time.hour, _time.minute,
+      finalDate.year,
+      finalDate.month,
+      finalDate.day,
+      _time.hour,
+      _time.minute,
     );
-    widget.onSave(Consumption(
-      id: widget.existingConso?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      date: fDate,
-      moment: calculatedMoment,
-      type: _t == L10n.s('entry.types.soft') ? L10n.s('entry.types.no_alcohol') : _t,
-      volume: _v,
-      degree: _d,
-      userId: widget.activeUserId,
-    ));
+    widget.onSave(
+      Consumption(
+        id:
+            widget.existingConso?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        date: fDate,
+        moment: calculatedMoment,
+        type: _t == L10n.s('entry.types.soft')
+            ? L10n.s('entry.types.no_alcohol')
+            : _t,
+        volume: _v,
+        degree: _d,
+        userId: widget.activeUserId,
+      ),
+    );
 
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
-    String contextKey = "${widget.activeUserId}_${logicalKeyDate}_$calculatedMoment";
+    String contextKey =
+        "${widget.activeUserId}_${logicalKeyDate}_$calculatedMoment";
     widget.onUpdateContext(contextKey, _contextCtrl.text);
     Navigator.pop(context);
   }
@@ -6196,22 +6235,38 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   Widget _buildTypeCard(String type) {
     final bool isDark = widget.isDarkMode;
     final Color accent = widget.accentColor;
-    bool isSel = _t == type || (_t == L10n.s('entry.types.no_alcohol') && type == L10n.s('entry.types.soft'));
-    
+    bool isSel =
+        _t == type ||
+        (_t == L10n.s('entry.types.no_alcohol') &&
+            type == L10n.s('entry.types.soft'));
+
     IconData icon;
-    if (type == L10n.s('common.beer')) icon = Icons.sports_bar_rounded;
-    else if (type == L10n.s('common.wine')) icon = Icons.wine_bar_rounded;
-    else if (type == L10n.s('common.soft')) icon = Icons.local_cafe_rounded;
-    else icon = Icons.local_drink_rounded;
+    if (type == L10n.s('common.beer')) {
+      icon = Icons.sports_bar_rounded;
+    } else if (type == L10n.s('common.wine'))
+      icon = Icons.wine_bar_rounded;
+    else if (type == L10n.s('common.soft'))
+      icon = Icons.local_cafe_rounded;
+    else
+      icon = Icons.local_drink_rounded;
 
     return GestureDetector(
       onTap: () {
         setState(() {
           _t = type;
-          if (type == L10n.s('common.beer')) { _d = 6.0; if (widget.existingConso == null) _v = '33cl'; }
-          else if (type == L10n.s('common.wine')) { _d = 13.0; if (widget.existingConso == null) _v = '12.5cl'; }
-          else if (type == L10n.s('common.spirits')) { _d = 40.0; if (widget.existingConso == null) _v = '4cl'; }
-          else { _d = 0.0; if (widget.existingConso == null) _v = '25cl'; }
+          if (type == L10n.s('common.beer')) {
+            _d = 6.0;
+            if (widget.existingConso == null) _v = '33cl';
+          } else if (type == L10n.s('common.wine')) {
+            _d = 13.0;
+            if (widget.existingConso == null) _v = '12.5cl';
+          } else if (type == L10n.s('common.spirits')) {
+            _d = 40.0;
+            if (widget.existingConso == null) _v = '4cl';
+          } else {
+            _d = 0.0;
+            if (widget.existingConso == null) _v = '25cl';
+          }
         });
         int vIdx = _volumes.indexOf(_v);
         if (vIdx != -1) _volumeCtrl.jumpToItem(vIdx);
@@ -6222,26 +6277,48 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         width: MediaQuery.of(context).size.width / 4.8,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSel ? accent.withValues(alpha: 0.15) : (isDark ? const Color(0xFF161A20) : Colors.black.withValues(alpha: 0.03)),
+          color: isSel
+              ? accent.withValues(alpha: 0.15)
+              : (isDark
+                    ? const Color(0xFF161A20)
+                    : Colors.black.withValues(alpha: 0.03)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? accent.withValues(alpha: 0.8) : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+            color: isSel
+                ? accent.withValues(alpha: 0.8)
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05)),
             width: isSel ? 2 : 1,
           ),
-          boxShadow: isSel ? [
-            BoxShadow(color: accent.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: 2)
-          ] : null,
+          boxShadow: isSel
+              ? [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSel ? accent : (isDark ? Colors.white38 : Colors.black38), size: 28),
+            Icon(
+              icon,
+              color: isSel
+                  ? accent
+                  : (isDark ? Colors.white38 : Colors.black38),
+              size: 28,
+            ),
             const SizedBox(height: 8),
             Text(
               type,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
-                color: isSel ? accent : (isDark ? Colors.white38 : Colors.black38),
+                color: isSel
+                    ? accent
+                    : (isDark ? Colors.white38 : Colors.black38),
               ),
             ),
           ],
@@ -6251,14 +6328,14 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   }
 
   Widget _buildWheelSelector(
-    String label, 
-    FixedExtentScrollController ctrl, 
-    List<String> items, 
-    String current, 
-    IconData icon, 
-    Function(int) onSelected,
-    {bool isVolume = false}
-  ) {
+    String label,
+    FixedExtentScrollController ctrl,
+    List<String> items,
+    String current,
+    IconData icon,
+    Function(int) onSelected, {
+    bool isVolume = false,
+  }) {
     final bool isDark = widget.isDarkMode;
     return Column(
       children: [
@@ -6308,7 +6385,8 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   builder: (context, index) {
                     String display = items[index];
                     if (isVolume && widget.unitMl && display.contains('cl')) {
-                      double val = double.tryParse(display.replaceAll('cl', '')) ?? 0;
+                      double val =
+                          double.tryParse(display.replaceAll('cl', '')) ?? 0;
                       display = "${(val * 10).toInt()}ml";
                     }
                     bool isSel = current == display;
@@ -6316,14 +6394,19 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (isSel) Icon(icon, size: 14, color: widget.accentColor),
+                          if (isSel)
+                            Icon(icon, size: 14, color: widget.accentColor),
                           if (isSel) const SizedBox(width: 8),
                           Text(
                             display,
                             style: TextStyle(
                               fontSize: isSel ? 20 : 14,
-                              fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-                              color: isSel ? Colors.white : (isDark ? Colors.white24 : Colors.black26),
+                              fontWeight: isSel
+                                  ? FontWeight.w900
+                                  : FontWeight.w500,
+                              color: isSel
+                                  ? Colors.white
+                                  : (isDark ? Colors.white24 : Colors.black26),
                             ),
                           ),
                         ],
@@ -6339,18 +6422,35 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     );
   }
 
-  Widget _buildPremiumDateTimeBlock(String label, String value, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildPremiumDateTimeBlock(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final bool isDark = widget.isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF161A20) : Colors.black.withValues(alpha: 0.03),
+          color: isDark
+              ? const Color(0xFF161A20)
+              : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.05),
+          ),
           boxShadow: [
-            if (isDark) BoxShadow(color: color.withValues(alpha: 0.05), blurRadius: 20, spreadRadius: 0)
+            if (isDark)
+              BoxShadow(
+                color: color.withValues(alpha: 0.05),
+                blurRadius: 20,
+                spreadRadius: 0,
+              ),
           ],
         ),
         child: Column(
