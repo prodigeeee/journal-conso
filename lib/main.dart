@@ -6039,13 +6039,21 @@ class _SaisieSheetState extends State<_SaisieSheet> {
 
                   // Sélecteur de Type (Premium Grid)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       L10n.s('common.beer'),
                       L10n.s('common.wine'),
                       L10n.s('common.spirits'),
                       L10n.s('common.soft'),
-                    ].map((type) => _buildTypeCard(type)).toList(),
+                    ].asMap().entries.map((entry) {
+                      int idx = entry.key;
+                      String type = entry.value;
+                      return Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: idx < 3 ? 10 : 0),
+                          child: _buildTypeCard(type),
+                        ),
+                      );
+                    }).toList(),
                   ),
 
                   const SizedBox(height: 32),
@@ -6274,7 +6282,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        width: MediaQuery.of(context).size.width / 4.8,
+        // Retiré width fixe pour laisser Expanded gérer l'espace
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: isSel
