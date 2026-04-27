@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // Ajout pour le support Web
+import 'package:flutter/foundation.dart'
+    show kIsWeb; // Ajout pour le support Web
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'widgets/sobriety_test_sheet.dart';
@@ -33,16 +34,18 @@ typedef File = io.File;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Chargement des langues
   await L10n.load();
 
   // On lance l'uninitialisation en arrière-plan
   Supabase.initialize(
-    url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
-  ).then((_) => debugPrint("✅ Supabase initialisé"))
-   .catchError((e) => debugPrint("⚠️ Erreur Supabase : $e"));
+        url: 'https://aswxkjibvcadnwujzwcm.supabase.co',
+        anonKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro',
+      )
+      .then((_) => debugPrint("✅ Supabase initialisé"))
+      .catchError((e) => debugPrint("⚠️ Erreur Supabase : $e"));
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initializeDateFormatting('fr_FR', null); // On réactive les dates
@@ -51,13 +54,12 @@ void main() async {
 
 // --- MODÈLES ET UTILITAIRES DÉPLACÉS ---
 
-
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }
 
 class AlcoholTrackerApp extends StatefulWidget {
@@ -169,7 +171,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   void initState() {
     super.initState();
     _loadTheme();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) async {
       if (data.event == AuthChangeEvent.signedIn) {
         _isOfflineMode = false;
         await StorageService.savePref('isOfflineMode', false);
@@ -280,7 +284,8 @@ class MainNavigationScreen extends StatefulWidget {
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> with WidgetsBindingObserver {
+class _MainNavigationScreenState extends State<MainNavigationScreen>
+    with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
   List<Consumption> _allConsumptions = [];
@@ -300,9 +305,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         ? now.subtract(const Duration(days: 1))
         : now;
     _initApp();
-    
+
     // Timer de synchro auto toutes les 30 min (plus économe)
-    _syncTimer = Timer.periodic(const Duration(minutes: 30), (_) => _pushToCloud(silent: true));
+    _syncTimer = Timer.periodic(
+      const Duration(minutes: 30),
+      (_) => _pushToCloud(silent: true),
+    );
   }
 
   @override
@@ -317,7 +325,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     if (state == AppLifecycleState.resumed) {
       // On resynchronise quand l'utilisateur revient sur l'app
       _pullFromCloud();
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       // Sauvegarde vers le cloud uniquement quand l'app passe en arrière-plan
       _pushToCloud(silent: true);
     }
@@ -332,7 +341,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       debugPrint("Changement de compte détecté : purge du cache local.");
       await StorageService.clearAll();
     }
-    
+
     // On enregistre l'ID actuel pour la prochaine fois
     if (user != null) {
       await StorageService.setSupabaseUserId(user.id);
@@ -342,7 +351,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
     setState(() {
       _profiles = data['profiles'];
-      
+
       // Si on n'a pas de profil local mais qu'on a des infos d'inscription
       if (_profiles.isEmpty && user != null && user.userMetadata != null) {
         final meta = user.userMetadata!;
@@ -354,10 +363,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
             age: (meta['age'] as num?)?.toInt() ?? 35,
             weight: (meta['weight'] as num?)?.toInt() ?? 70,
             imagePath: meta['image_path'],
-          )
+          ),
         ];
       } else if (_profiles.isEmpty) {
-        _profiles = [UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35)];
+        _profiles = [
+          UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35),
+        ];
       }
 
       _activeUserId = data['activeUserId'];
@@ -365,10 +376,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       _allConsumptions = data['consumptions'];
     });
     // On lance une synchro Cloud au démarrage pour être certain d'avoir le dernier état (silencieuse)
-    _pullFromCloud(silent: true);
+    await _pullFromCloud(silent: true);
+    // On s'assure que les données locales (ex: un profil créé hors ligne) sont bien remontées sur Supabase automatiquement
+    await _pushToCloud(silent: true);
   }
 
-  Future<void> _saveAll({bool silent = true}) async {
+  Future<void> _saveAll() async {
     // 1. Mise à jour de l'UI IMMÉDIATE
     if (mounted) setState(() {});
 
@@ -389,30 +402,36 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       'activeUserId': _activeUserId,
     };
     final jsonStr = jsonEncode(data);
-    
+
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonStr);
-      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'backup_full_$dateStr.json');
-      await Share.shareXFiles([xfile], text: 'Sauvegarde complète Alcohol Tracker');
+      final xfile = XFile.fromData(
+        bytes,
+        mimeType: 'application/json',
+        name: 'backup_full_$dateStr.json',
+      );
+      await Share.shareXFiles([
+        xfile,
+      ], text: 'Sauvegarde complète Alcohol Tracker');
     } else {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/backup_full_$dateStr.json');
       await file.writeAsString(jsonStr);
-      await Share.shareXFiles([XFile(file.path)], text: 'Sauvegarde complète Alcohol Tracker');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Sauvegarde complète Alcohol Tracker');
     }
   }
 
   Future<void> _deleteProfile(String id) async {
     if (_profiles.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.s('common.error_last_profile')),
-        ),
+        SnackBar(content: Text(L10n.s('common.error_last_profile'))),
       );
       return;
     }
-    
+
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       // Suppression immédiate sur le cloud
@@ -427,7 +446,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     });
     _saveAll();
   }
-  
+
   void _showAuraSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -443,15 +462,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
-                color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.2),
+                color: (isError ? Colors.red : widget.accentColor).withValues(
+                  alpha: 0.2,
+                ),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: (isError ? Colors.red : widget.accentColor).withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: (isError ? Colors.red : widget.accentColor).withValues(
+                    alpha: 0.3,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                   Icon(isError ? Icons.error_outline : Icons.cloud_done_rounded, color: isError ? Colors.redAccent : widget.accentColor),
-                   const SizedBox(width: 12),
-                   Expanded(child: Text(message, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                  Icon(
+                    isError ? Icons.error_outline : Icons.cloud_done_rounded,
+                    color: isError ? Colors.redAccent : widget.accentColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -464,7 +500,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   Future<void> _pushToCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      if (!silent) _showAuraSnackBar("Veuillez vous connecter pour sauvegarder", isError: true);
+      if (!silent) {
+        _showAuraSnackBar(
+          "Veuillez vous connecter pour sauvegarder",
+          isError: true,
+        );
+      }
       return;
     }
     if (!silent) _showAuraSnackBar("Sauvegarde vers le Cloud...");
@@ -473,13 +514,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       await SupabaseService.syncConsumptions(_allConsumptions, user.id);
       await SupabaseService.syncContexts(_contexts, user.id);
       if (!silent) {
-        _showAuraSnackBar(L10n.s('sync.success', args: {
-          'profiles': _profiles.length.toString(),
-          'consos': _allConsumptions.length.toString(),
-        }));
+        _showAuraSnackBar(
+          L10n.s(
+            'sync.success',
+            args: {
+              'profiles': _profiles.length.toString(),
+              'consos': _allConsumptions.length.toString(),
+            },
+          ),
+        );
       }
     } catch (e) {
-      if (!silent) _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+      if (!silent) {
+        _showAuraSnackBar(
+          L10n.s('sync.error', args: {'message': e.toString()}),
+          isError: true,
+        );
+      }
     }
   }
 
@@ -491,23 +542,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       // 1. Suppression des données sur le serveur
       // 1. Suppression des données sur le serveur (Cascade SQL)
       await SupabaseService.deleteAllUserData(user.id);
-      
+
       // 1.b Suppression DEFINITIVE du compte Auth (via la fonction RPC créée dans Supabase)
       await Supabase.instance.client.rpc('delete_user');
-      
+
       // 2. Déconnexion
       await Supabase.instance.client.auth.signOut();
-      
+
       // 3. Réinitialisation locale pour un nouveau départ propre
       setState(() {
-        _profiles = [UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35)];
+        _profiles = [
+          UserProfile(id: '1', name: 'Moi', gender: 'Homme', age: 35),
+        ];
         _allConsumptions.clear();
         _contexts.clear();
         _activeUserId = '1';
       });
       await _saveAll();
-      
-      _showAuraSnackBar("Données effacées. Vote compte email reste enregistré mais est maintenant vide.");
+
+      _showAuraSnackBar(
+        "Données effacées. Vote compte email reste enregistré mais est maintenant vide.",
+      );
     } catch (e) {
       _showAuraSnackBar("Erreur lors de la suppression: $e", isError: true);
     }
@@ -516,16 +571,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
   Future<void> _pullFromCloud({bool silent = true}) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      if (!silent) _showAuraSnackBar("Veuillez vous connecter pour synchroniser", isError: true);
+      if (!silent) {
+        _showAuraSnackBar(
+          "Veuillez vous connecter pour synchroniser",
+          isError: true,
+        );
+      }
       return;
     }
     if (!silent) _showAuraSnackBar("Récupération de vos données...");
     try {
       final data = await SupabaseService.fetchAllData(user.id);
-      final List<UserProfile> cloudProfiles = data['profiles'] != null ? List<UserProfile>.from(data['profiles']) : [];
-      final List<Consumption> cloudConsos = data['consumptions'] != null ? List<Consumption>.from(data['consumptions']) : [];
-      
-      if (cloudProfiles.isNotEmpty || cloudConsos.isNotEmpty || (data['contexts'] != null && (data['contexts'] as Map).isNotEmpty)) {
+      final List<UserProfile> cloudProfiles = data['profiles'] != null
+          ? List<UserProfile>.from(data['profiles'])
+          : [];
+      final List<Consumption> cloudConsos = data['consumptions'] != null
+          ? List<Consumption>.from(data['consumptions'])
+          : [];
+
+      if (cloudProfiles.isNotEmpty ||
+          cloudConsos.isNotEmpty ||
+          (data['contexts'] != null && (data['contexts'] as Map).isNotEmpty)) {
         setState(() {
           // Si on récupère des profils du cloud, on supprime le profil par défaut local
           if (cloudProfiles.isNotEmpty) {
@@ -554,7 +620,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
 
           // Fusion des Contextes
           if (data['contexts'] != null) {
-            final Map<String, String> cloudCtx = Map<String, String>.from(data['contexts']);
+            final Map<String, String> cloudCtx = Map<String, String>.from(
+              data['contexts'],
+            );
             cloudCtx.forEach((key, value) {
               _contexts[key] = value;
             });
@@ -571,22 +639,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           activeUserId: _activeUserId,
         );
         if (!silent) {
-          _showAuraSnackBar(L10n.s('sync.fetch_success', args: {
-            'profiles': cloudProfiles.length.toString(),
-            'consos': cloudConsos.length.toString(),
-          }));
+          _showAuraSnackBar(
+            L10n.s(
+              'sync.fetch_success',
+              args: {
+                'profiles': cloudProfiles.length.toString(),
+                'consos': cloudConsos.length.toString(),
+              },
+            ),
+          );
         }
       } else {
         if (!silent) {
-          _showAuraSnackBar(L10n.s('sync.no_data', args: {
-            'profiles': cloudProfiles.length.toString(),
-            'consos': cloudConsos.length.toString(),
-          }));
+          _showAuraSnackBar(
+            L10n.s(
+              'sync.no_data',
+              args: {
+                'profiles': cloudProfiles.length.toString(),
+                'consos': cloudConsos.length.toString(),
+              },
+            ),
+          );
         }
       }
     } catch (e) {
       if (!silent) {
-        _showAuraSnackBar(L10n.s('sync.error', args: {'message': e.toString()}), isError: true);
+        _showAuraSnackBar(
+          L10n.s('sync.error', args: {'message': e.toString()}),
+          isError: true,
+        );
       }
     }
   }
@@ -602,13 +683,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
     if (kIsWeb) {
       final bytes = utf8.encode(jsonString);
-      final xfile = XFile.fromData(bytes, mimeType: 'application/json', name: 'export_${p.name}_$dateStr.json');
+      final xfile = XFile.fromData(
+        bytes,
+        mimeType: 'application/json',
+        name: 'export_${p.name}_$dateStr.json',
+      );
       await Share.shareXFiles([xfile], text: 'Export du profil ${p.name}');
     } else {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/export_${p.name}_$dateStr.json');
       await file.writeAsString(jsonString);
-      await Share.shareXFiles([XFile(file.path)], text: 'Export du profil ${p.name}');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Export du profil ${p.name}');
     }
   }
 
@@ -663,18 +750,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         content = await file.readAsString();
       }
       final data = jsonDecode(content);
-      
+
       setState(() {
         // Recherche souple des profils
-        final profilesData = data['profiles'] ?? data['Profiles'] ?? data['userProfiles'];
+        final profilesData =
+            data['profiles'] ?? data['Profiles'] ?? data['userProfiles'];
         if (profilesData != null) {
           _profiles = (profilesData as List)
               .map((i) => UserProfile.fromJson(i))
               .toList();
         }
-        
+
         // Recherche souple des consommations
-        final consosData = data['consumptions'] ?? data['Consumptions'] ?? data['history'] ?? data['consumoires'];
+        final consosData =
+            data['consumptions'] ??
+            data['Consumptions'] ??
+            data['history'] ??
+            data['consumoires'];
         if (consosData != null) {
           _allConsumptions = (consosData as List)
               .map((i) => Consumption.fromJson(i))
@@ -682,22 +774,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         } else {
           _allConsumptions = [];
         }
-        
-        _contexts = Map<String, String>.from(data['momentsContexts'] ?? data['contexts'] ?? {});
-        
+
+        _contexts = Map<String, String>.from(
+          data['momentsContexts'] ?? data['contexts'] ?? {},
+        );
+
         if (_profiles.isNotEmpty) {
           _activeUserId = _profiles.first.id;
         }
       });
-      
+
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(L10n.s('sync.restoration_success', args: {
-              'profiles': _profiles.length.toString(),
-              'consos': _allConsumptions.length.toString(),
-            })),
+            content: Text(
+              L10n.s(
+                'sync.restoration_success',
+                args: {
+                  'profiles': _profiles.length.toString(),
+                  'consos': _allConsumptions.length.toString(),
+                },
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -718,24 +817,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         content = await file.readAsString();
       }
       final data = jsonDecode(content);
-      
+
       setState(() {
-        dynamic profilesData = data['profiles'] ?? data['profile'] ?? data['Profiles'] ?? data['userProfiles'] ?? data['users'];
-        
+        dynamic profilesData =
+            data['profiles'] ??
+            data['profile'] ??
+            data['Profiles'] ??
+            data['userProfiles'] ??
+            data['users'];
+
         if (profilesData == null) {
           try {
-            profilesData = data.values.firstWhere((v) => v is List && v.isNotEmpty && v.first['name'] != null);
-          } catch (_) { profilesData = null; }
+            profilesData = data.values.firstWhere(
+              (v) => v is List && v.isNotEmpty && v.first['name'] != null,
+            );
+          } catch (_) {
+            profilesData = null;
+          }
         }
 
         if (profilesData == null) throw L10n.s('settings.unknown_format');
         if (profilesData is Map) profilesData = [profilesData];
-        if ((profilesData as List).isEmpty) throw L10n.s('settings.no_profile_found');
+        if ((profilesData as List).isEmpty) {
+          throw L10n.s('settings.no_profile_found');
+        }
 
         final newP = UserProfile.fromJson(profilesData[0]);
         newP.id = DateTime.now().millisecondsSinceEpoch.toString();
         _profiles.add(newP);
-        
+
         final importedConsos = (data['consumptions'] as List).map((i) {
           final c = Consumption.fromJson(i);
           c.userId = newP.id;
@@ -744,22 +854,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         _allConsumptions.addAll(importedConsos);
         _activeUserId = newP.id;
       });
-      
+
       await _saveAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(L10n.s('settings.import_success')), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(L10n.s('settings.import_success')),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(L10n.s('settings.import_failed', args: {'error': e.toString()})), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              L10n.s('settings.import_failed', args: {'error': e.toString()}),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
-
 
   Future<void> _printProfile(UserProfile p, {DateTime? specificMonth}) async {
     final pdf = pw.Document();
@@ -786,13 +903,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
         0,
       ).day;
       int firstWeekday = firstOfMonth.weekday - 1;
-
       var monthConsosTotal = userConsos
           .where((c) => DateFormat('yyyy-MM').format(c.date) == monthStr)
           .toList();
-      int totalB = monthConsosTotal.where((c) => c.type == 'Bière').length;
-      int totalV = monthConsosTotal.where((c) => c.type == 'Vin').length;
-      int totalS = monthConsosTotal.where((c) => c.type == 'Spiritueux').length;
+      int totalB = monthConsosTotal
+          .where((c) => c.type == L10n.s('common.beer'))
+          .length;
+      int totalV = monthConsosTotal
+          .where((c) => c.type == L10n.s('common.wine'))
+          .length;
+      int totalS = monthConsosTotal
+          .where((c) => c.type == L10n.s('common.spirits'))
+          .length;
+      int totalSoft = monthConsosTotal
+          .where((c) => c.type == L10n.s('entry.types.no_alcohol'))
+          .length;
 
       pdf.addPage(
         pw.Page(
@@ -803,6 +928,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
               children: [
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -810,8 +936,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                         pw.Text(
                           L10n.s('pdf.journal_title', args: {'name': p.name}),
                           style: pw.TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.grey700,
                           ),
                         ),
                         pw.Text(
@@ -820,23 +947,57 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                             'fr_FR',
                           ).format(firstOfMonth).toUpperCase(),
                           style: pw.TextStyle(
-                            fontSize: 18,
+                            fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.blueGrey,
+                            color: PdfColors.orange800,
                           ),
                         ),
                       ],
                     ),
-                    pw.Text(
-                      L10n.s('pdf.summary', args: {'b': '$totalB', 'v': '$totalV', 's': '$totalS'}),
-                      style: pw.TextStyle(
-                        fontSize: 10,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Row(
+                          children: [
+                            _legendItem(
+                              "B",
+                              L10n.s('common.beer'),
+                              PdfColors.orange800,
+                            ),
+                            pw.SizedBox(width: 10),
+                            _legendItem(
+                              "V",
+                              L10n.s('common.wine'),
+                              PdfColors.red800,
+                            ),
+                            pw.SizedBox(width: 10),
+                            _legendItem(
+                              "S",
+                              L10n.s('common.spirits'),
+                              PdfColors.purple800,
+                            ),
+                            pw.SizedBox(width: 10),
+                            _legendItem(
+                              "Ø",
+                              L10n.s('entry.types.no_alcohol'),
+                              PdfColors.green800,
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          "Total : $totalB B | $totalV V | $totalS S | $totalSoft Ø",
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.grey600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 10),
+                pw.SizedBox(height: 15),
                 pw.Table(
                   border: pw.TableBorder.all(
                     color: PdfColors.grey300,
@@ -846,26 +1007,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                     pw.TableRow(
                       children:
                           [
-                            L10n.s('pdf.days.mon'),
-                            L10n.s('pdf.days.tue'),
-                            L10n.s('pdf.days.wed'),
-                            L10n.s('pdf.days.thu'),
-                            L10n.s('pdf.days.fri'),
-                            L10n.s('pdf.days.sat'),
-                            L10n.s('pdf.days.sun'),
-                          ]
+                                L10n.s('pdf.days.mon'),
+                                L10n.s('pdf.days.tue'),
+                                L10n.s('pdf.days.wed'),
+                                L10n.s('pdf.days.thu'),
+                                L10n.s('pdf.days.fri'),
+                                L10n.s('pdf.days.sat'),
+                                L10n.s('pdf.days.sun'),
+                              ]
                               .map(
                                 (d) => pw.Container(
                                   alignment: pw.Alignment.center,
                                   padding: const pw.EdgeInsets.all(4),
                                   decoration: const pw.BoxDecoration(
-                                    color: PdfColors.grey200,
+                                    color: PdfColors.grey100,
                                   ),
                                   child: pw.Text(
-                                    d,
+                                    d.toUpperCase(),
                                     style: pw.TextStyle(
                                       fontWeight: pw.FontWeight.bold,
-                                      fontSize: 9,
+                                      fontSize: 8,
+                                      color: PdfColors.grey700,
                                     ),
                                   ),
                                 ),
@@ -878,23 +1040,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                           int currentDay =
                               (weekIndex * 7) + dayIndex - firstWeekday + 1;
                           if (currentDay <= 0 || currentDay > daysInMonth) {
-                            return pw.Container();
+                            return pw.Container(
+                              constraints: const pw.BoxConstraints(
+                                minHeight: 60,
+                              ),
+                              decoration: const pw.BoxDecoration(
+                                color: PdfColors.grey50,
+                              ),
+                            );
                           }
 
-                          String dayKey = DateFormat('yyyyMMdd').format(
-                            DateTime(
-                              firstOfMonth.year,
-                              firstOfMonth.month,
-                              currentDay,
-                            ),
+                          DateTime currentCalDay = DateTime(
+                            firstOfMonth.year,
+                            firstOfMonth.month,
+                            currentDay,
                           );
+                          String dayKey = DateFormat(
+                            'yyyyMMdd',
+                          ).format(currentCalDay);
+
                           var dayConsos = userConsos
                               .where(
                                 (c) =>
-                                    DateFormat('yyyyMMdd').format(c.date) ==
-                                    dayKey,
+                                    belongsToLogicalDay(c.date, currentCalDay),
                               )
                               .toList();
+
+                          // Tri chronologique
+                          dayConsos.sort((a, b) => a.date.compareTo(b.date));
 
                           List<String> contextsOfDay = [];
                           for (var m in [
@@ -912,6 +1085,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                           }
 
                           return pw.Container(
+                            constraints: const pw.BoxConstraints(minHeight: 60),
                             padding: const pw.EdgeInsets.all(3),
                             color:
                                 (dayConsos.isNotEmpty ||
@@ -921,35 +1095,65 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                             child: pw.Column(
                               crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
-                                pw.Text(
-                                  "$currentDay",
-                                  style: pw.TextStyle(
-                                    fontWeight: pw.FontWeight.bold,
-                                    fontSize: 8,
-                                  ),
-                                ),
-                                ...dayConsos.map(
-                                  (c) => pw.Text(
-                                    "${c.type[0]} ${c.volume}",
-                                    style: pw.TextStyle(
-                                      fontSize: 6,
-                                      color: c.type == L10n.s('common.beer')
-                                          ? PdfColors.orange800
-                                          : c.type == L10n.s('common.wine')
-                                          ? PdfColors.red800
-                                          : PdfColors.blue800,
+                                pw.Row(
+                                  mainAxisAlignment:
+                                      pw.MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    pw.Text(
+                                      "$currentDay",
+                                      style: pw.TextStyle(
+                                        fontWeight: pw.FontWeight.bold,
+                                        fontSize: 9,
+                                        color: (dayConsos.isNotEmpty)
+                                            ? PdfColors.orange900
+                                            : PdfColors.grey800,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                if (contextsOfDay.isNotEmpty)
+                                pw.SizedBox(height: 2),
+                                ...dayConsos.map((c) {
+                                  final color = _getDrinkColor(c.type);
+                                  String initial =
+                                      (c.type ==
+                                          L10n.s('entry.types.no_alcohol'))
+                                      ? "Ø"
+                                      : (c.type == L10n.s('common.beer'))
+                                      ? "B"
+                                      : (c.type == L10n.s('common.wine'))
+                                      ? "V"
+                                      : (c.type == L10n.s('common.spirits'))
+                                      ? "S"
+                                      : c.type[0];
+
+                                  String timeStr =
+                                      "${c.date.hour.toString().padLeft(2, '0')}:${c.date.minute.toString().padLeft(2, '0')}";
+
+                                  return pw.Padding(
+                                    padding: const pw.EdgeInsets.only(
+                                      bottom: 1,
+                                    ),
+                                    child: pw.Text(
+                                      "$timeStr $initial ${c.volume}",
+                                      style: pw.TextStyle(
+                                        fontSize: 5.5,
+                                        fontWeight: pw.FontWeight.bold,
+                                        color: color,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                if (contextsOfDay.isNotEmpty) ...[
+                                  pw.SizedBox(height: 2),
                                   pw.Text(
-                                    cleanDisplay(contextsOfDay.join("/")),
+                                    cleanDisplay(contextsOfDay.join(" / ")),
                                     style: pw.TextStyle(
-                                      fontSize: 5,
+                                      fontSize: 4.5,
                                       fontStyle: pw.FontStyle.italic,
+                                      color: PdfColors.grey700,
                                     ),
-                                    maxLines: 3,
                                   ),
+                                ],
                               ],
                             ),
                           );
@@ -965,11 +1169,63 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       );
     }
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Journal_${p.name}.pdf',
-      format: PdfPageFormat.a4.landscape,
+    final String dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final String pdfName = 'journal_${p.name}_$dateStr.pdf';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: const Text("Aperçu Impression"),
+            backgroundColor: widget.isDarkMode
+                ? const Color(0xFF14191F)
+                : Colors.white,
+            foregroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+            elevation: 0,
+          ),
+          body: PdfPreview(
+            build: (format) async => pdf.save(),
+            pdfFileName: pdfName,
+            canChangeOrientation: false,
+            canChangePageFormat: false,
+          ),
+        ),
+      ),
     );
+  }
+
+  // Helper pour la légende PDF
+  pw.Widget _legendItem(String initial, String label, PdfColor color) {
+    return pw.Row(
+      children: [
+        pw.Container(
+          width: 10,
+          height: 10,
+          decoration: pw.BoxDecoration(color: color, shape: pw.BoxShape.circle),
+          child: pw.Center(
+            child: pw.Text(
+              initial,
+              style: pw.TextStyle(
+                fontSize: 6,
+                color: PdfColors.white,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        pw.SizedBox(width: 4),
+        pw.Text(label, style: const pw.TextStyle(fontSize: 8)),
+      ],
+    );
+  }
+
+  PdfColor _getDrinkColor(String type) {
+    if (type == L10n.s('common.beer')) return PdfColors.orange800;
+    if (type == L10n.s('common.wine')) return PdfColors.red800;
+    if (type == L10n.s('common.spirits')) return PdfColors.purple800;
+    if (type == L10n.s('entry.types.no_alcohol')) return PdfColors.green800;
+    return PdfColors.blue800;
   }
 
   @override
@@ -1004,8 +1260,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
           ),
           Container(
             color: widget.isDarkMode
-                ? Colors.transparent 
-                : Colors.black.withValues(alpha: 0.15), // Voile léger pour protéger les yeux en Light Mode
+                ? Colors.transparent
+                : Colors.black.withValues(
+                    alpha: 0.15,
+                  ), // Voile léger pour protéger les yeux en Light Mode
           ),
           Positioned(
             top: 0,
@@ -1019,7 +1277,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                   end: Alignment.bottomCenter,
                   colors: widget.isDarkMode
                       ? [Colors.black87, Colors.transparent]
-                      : [Colors.white.withValues(alpha: 0.9), Colors.transparent],
+                      : [
+                          Colors.white.withValues(alpha: 0.9),
+                          Colors.transparent,
+                        ],
                 ),
               ),
             ),
@@ -1031,286 +1292,324 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
               constraints: const BoxConstraints(maxWidth: 600),
               child: Column(
                 children: [
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 5,
-                  ),
-                  child: glassModule(
-                    isDarkMode: widget.isDarkMode,
-                    showHalo: false,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Color(activeUser.colorValue),
-                          radius: 16,
-                          backgroundImage: getProfileImage(activeUser.imagePath),
-                          child: (activeUser.imagePath == null || activeUser.imagePath!.isEmpty)
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 16,
-                                  color: Colors.white,
-                                )
-                              : null,
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 5,
+                      ),
+                      child: glassModule(
+                        isDarkMode: widget.isDarkMode,
+                        showHalo: false,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "PROFIL",
-                                style: TextStyle(
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.bold,
-                                  color: widget.isDarkMode
-                                      ? Colors.white38
-                                      : Colors.black87,
-                                  letterSpacing: 0.5,
-                                ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Color(activeUser.colorValue),
+                              radius: 16,
+                              backgroundImage: getProfileImage(
+                                activeUser.imagePath,
                               ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                              child:
+                                  (activeUser.imagePath == null ||
+                                      activeUser.imagePath!.isEmpty)
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    activeUser.name,
+                                    "PROFIL",
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 7,
                                       fontWeight: FontWeight.bold,
                                       color: widget.isDarkMode
-                                          ? Colors.white
+                                          ? Colors.white38
                                           : Colors.black87,
+                                      letterSpacing: 0.5,
                                     ),
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        activeUser.name,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: widget.isDarkMode
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                            Text(
+                              DateFormat(
+                                'EEEE d MMMM',
+                                'fr_FR',
+                              ).format(DateTime.now()),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: widget.isDarkMode
+                                    ? Colors.white54
+                                    : Colors.black45,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            PopupMenuButton<String>(
+                              tooltip: "Changer de profil",
+                              offset: const Offset(0, 40),
+                              color: widget.isDarkMode
+                                  ? const Color(0xFF1A1F26)
+                                  : Colors.white,
+                              icon: Icon(
+                                Icons.swap_horiz_rounded,
+                                color: widget.accentColor,
+                                size: 20,
+                              ),
+                              onSelected: (id) {
+                                setState(() => _activeUserId = id);
+                                _saveAll();
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: BorderSide(
+                                  color: widget.isDarkMode
+                                      ? Colors.white10
+                                      : Colors.black12,
+                                ),
+                              ),
+                              itemBuilder: (context) => _profiles
+                                  .map(
+                                    (p) => PopupMenuItem(
+                                      value: p.id,
+                                      child: Container(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                            120,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Color(
+                                                p.colorValue,
+                                              ),
+                                              radius: 12,
+                                              backgroundImage: getProfileImage(
+                                                p.imagePath,
+                                              ),
+                                              child:
+                                                  (p.imagePath == null ||
+                                                      p.imagePath!.isEmpty)
+                                                  ? const Icon(
+                                                      Icons.person,
+                                                      size: 14,
+                                                      color: Colors.white,
+                                                    )
+                                                  : null,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              p.name,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight:
+                                                    p.id == _activeUserId
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                                color: p.id == _activeUserId
+                                                    ? widget.accentColor
+                                                    : null,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            if (p.id == _activeUserId)
+                                              const Icon(
+                                                Icons.check_circle,
+                                                size: 18,
+                                                color: Colors.green,
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
                         ),
-                        Text(
-                          DateFormat('EEEE d MMMM', 'fr_FR').format(DateTime.now()),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: widget.isDarkMode
-                                ? Colors.white54
-                                : Colors.black45,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        PopupMenuButton<String>(
-                          tooltip: "Changer de profil",
-                          offset: const Offset(0, 40),
-                          color: widget.isDarkMode
-                              ? const Color(0xFF1A1F26)
-                              : Colors.white,
-                          icon: Icon(
-                            Icons.swap_horiz_rounded,
-                            color: widget.accentColor,
-                            size: 20,
-                          ),
-                          onSelected: (id) {
-                            setState(() => _activeUserId = id);
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (index) =>
+                          setState(() => _selectedIndex = index),
+                      children: [
+                        HomeScreen(
+                          consumptions: userConsos,
+                          activeUserId: _activeUserId,
+                          contexts: _contexts,
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          activeUser: activeUser,
+                          onDateSelected: (date) =>
+                              setState(() => _currentJournalDate = date),
+                          onAddOrUpdate: (c) async {
+                            setState(() {
+                              final i = _allConsumptions.indexWhere(
+                                (item) => item.id == c.id,
+                              );
+                              if (i != -1) {
+                                _allConsumptions[i] = c;
+                              } else {
+                                _allConsumptions.add(c);
+                              }
+                            });
+                            await _saveAll();
+
+                            final user =
+                                Supabase.instance.client.auth.currentUser;
+                            if (user != null) {
+                              try {
+                                await SupabaseService.syncConsumptions([
+                                  c,
+                                ], user.id);
+                              } catch (e) {
+                                debugPrint("Erreur synchro conso : $e");
+                              }
+                            }
+                          },
+                          onDelete: (id) async {
+                            setState(
+                              () => _allConsumptions.removeWhere(
+                                (c) => c.id == id,
+                              ),
+                            );
+                            final user =
+                                Supabase.instance.client.auth.currentUser;
+                            if (user != null) {
+                              await SupabaseService.deleteConsumption(
+                                id,
+                                user.id,
+                              );
+                            }
                             _saveAll();
                           },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: BorderSide(
-                              color: widget.isDarkMode
-                                  ? Colors.white10
-                                  : Colors.black12,
-                            ),
+                          onUpdateContext: (key, val) async {
+                            setState(() {
+                              if (val.trim().isEmpty) {
+                                _contexts.remove(key);
+                              } else {
+                                _contexts[key] = val;
+                              }
+                            });
+                            await _saveAll();
+
+                            // Synchro immédiate si connecté (évite les pertes au restart/pull)
+                            final user =
+                                Supabase.instance.client.auth.currentUser;
+                            if (user != null) {
+                              try {
+                                if (val.trim().isEmpty) {
+                                  await SupabaseService.deleteContext(
+                                    key,
+                                    user.id,
+                                  );
+                                } else {
+                                  await SupabaseService.syncSingleContext(
+                                    key,
+                                    val,
+                                    user.id,
+                                  );
+                                }
+                              } catch (e) {
+                                debugPrint("Erreur synchro contexte : $e");
+                              }
+                            }
+                          },
+                          onPrint: (m) =>
+                              _printProfile(activeUser, specificMonth: m),
+                          unitMl: widget.unitMl,
+                        ),
+                        StatsScreen(
+                          consumptions: userConsos,
+                          contexts: _contexts,
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          activeUser: activeUser,
+                          isYoungDriver: widget.isYoungDriver,
+                        ),
+                        OptionsScreen(
+                          key: ValueKey(
+                            'opt_${_profiles.length}_$_activeUserId',
                           ),
-                          itemBuilder: (context) => _profiles
-                              .map(
-                                (p) => PopupMenuItem(
-                                  value: p.id,
-                                  child: Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 120,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Color(p.colorValue),
-                                          radius: 12,
-                                          backgroundImage: getProfileImage(p.imagePath),
-                                          child: (p.imagePath == null || p.imagePath!.isEmpty)
-                                              ? const Icon(
-                                                  Icons.person,
-                                                  size: 14,
-                                                  color: Colors.white,
-                                                )
-                                              : null,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          p.name,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: p.id == _activeUserId
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: p.id == _activeUserId
-                                                ? widget.accentColor
-                                                : null,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        if (p.id == _activeUserId)
-                                          const Icon(
-                                            Icons.check_circle,
-                                            size: 18,
-                                            color: Colors.green,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          profiles: _profiles,
+                          onProfilesChanged: () async {
+                            await _saveAll();
+                            _pushToCloud(silent: true);
+                          },
+                          onReset: () {
+                            setState(() {
+                              _allConsumptions.clear();
+                              _contexts.clear();
+                            });
+                            _saveAll();
+                          },
+                          isDarkMode: widget.isDarkMode,
+                          accentColor: widget.accentColor,
+                          onThemeChanged: widget.onThemeChanged,
+                          onDeleteProfile: _deleteProfile,
+                          onExportProfile: _exportProfile,
+                          onImportProfile: _importToProfile,
+                          onPrintProfile: _printProfile,
+                          onImportFullProject: _importFullProject,
+                          onImportAsNew: _importAsNewProfile,
+                          onExportFullProject: _exportFullProject,
+                          isYoungDriver: widget.isYoungDriver,
+                          onYoungDriverChanged: widget.onYoungDriverChanged,
+                          unitMl: widget.unitMl,
+                          onUnitMlChanged: widget.onUnitMlChanged,
+                          onSyncCloud: () => _pullFromCloud(silent: false),
+                          onPushCloud: () => _pushToCloud(silent: false),
+                          onDeleteAccount: _deleteOnlineAccount,
+                          onLogout: () async {
+                            final session =
+                                Supabase.instance.client.auth.currentSession;
+                            if (session != null) {
+                              await Supabase.instance.client.auth.signOut();
+                            } else {
+                              widget.onOfflineLogout();
+                            }
+                          },
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (index) =>
-                      setState(() => _selectedIndex = index),
-                  children: [
-                    HomeScreen(
-                      consumptions: userConsos,
-                      activeUserId: _activeUserId,
-                      contexts: _contexts,
-                      isDarkMode: widget.isDarkMode,
-                      accentColor: widget.accentColor,
-                      activeUser: activeUser,
-                      onDateSelected: (date) =>
-                          setState(() => _currentJournalDate = date),
-                      onAddOrUpdate: (c) async {
-                        setState(() {
-                          final i = _allConsumptions.indexWhere(
-                            (item) => item.id == c.id,
-                          );
-                          if (i != -1) {
-                            _allConsumptions[i] = c;
-                          } else {
-                            _allConsumptions.add(c);
-                          }
-                        });
-                        await _saveAll();
-                        
-                        final user = Supabase.instance.client.auth.currentUser;
-                        if (user != null) {
-                          try {
-                            await SupabaseService.syncConsumptions([c], user.id);
-                          } catch (e) {
-                            debugPrint("Erreur synchro conso : $e");
-                          }
-                        }
-                      },
-                      onDelete: (id) async {
-                        setState(() => _allConsumptions.removeWhere((c) => c.id == id));
-                        final user = Supabase.instance.client.auth.currentUser;
-                        if (user != null) {
-                          await SupabaseService.deleteConsumption(id, user.id);
-                        }
-                        _saveAll();
-                      },
-                      onUpdateContext: (key, val) async {
-                        setState(() {
-                          if (val.trim().isEmpty) {
-                            _contexts.remove(key);
-                          } else {
-                            _contexts[key] = val;
-                          }
-                        });
-                        await _saveAll();
-
-                        // Synchro immédiate si connecté (évite les pertes au restart/pull)
-                        final user = Supabase.instance.client.auth.currentUser;
-                        if (user != null) {
-                          try {
-                            if (val.trim().isEmpty) {
-                              await SupabaseService.deleteContext(key, user.id);
-                            } else {
-                              await SupabaseService.syncSingleContext(key, val, user.id);
-                            }
-                          } catch (e) {
-                            debugPrint("Erreur synchro contexte : $e");
-                          }
-                        }
-                      },
-                      onPrint: (m) =>
-                          _printProfile(activeUser, specificMonth: m),
-                      unitMl: widget.unitMl,
-                    ),
-                    StatsScreen(
-                      consumptions: userConsos,
-                      contexts: _contexts,
-                      isDarkMode: widget.isDarkMode,
-                      accentColor: widget.accentColor,
-                      activeUser: activeUser,
-                      isYoungDriver: widget.isYoungDriver,
-                    ),
-                    OptionsScreen(
-                      key: ValueKey('opt_${_profiles.length}_$_activeUserId'),
-                      profiles: _profiles,
-                      onProfilesChanged: () async {
-                        await _saveAll();
-                        _pushToCloud(silent: true);
-                      },
-                      onReset: () {
-                        setState(() {
-                          _allConsumptions.clear();
-                          _contexts.clear();
-                        });
-                        _saveAll();
-                      },
-                      isDarkMode: widget.isDarkMode,
-                      accentColor: widget.accentColor,
-                      onThemeChanged: widget.onThemeChanged,
-                      onDeleteProfile: _deleteProfile,
-                      onExportProfile: _exportProfile,
-                      onImportProfile: _importToProfile,
-                      onPrintProfile: _printProfile,
-                      onImportFullProject: _importFullProject,
-                      onImportAsNew: _importAsNewProfile,
-                      onExportFullProject: _exportFullProject,
-                      isYoungDriver: widget.isYoungDriver,
-                      onYoungDriverChanged: widget.onYoungDriverChanged,
-                      unitMl: widget.unitMl,
-                      onUnitMlChanged: widget.onUnitMlChanged,
-                      onSyncCloud: () => _pullFromCloud(silent: false),
-                      onPushCloud: () => _pushToCloud(silent: false),
-                      onDeleteAccount: _deleteOnlineAccount,
-                      onLogout: () async {
-                        final session = Supabase.instance.client.auth.currentSession;
-                        if (session != null) {
-                          await Supabase.instance.client.auth.signOut();
-                        } else {
-                          widget.onOfflineLogout();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
 
           Positioned(
             top: 0,
@@ -1323,7 +1622,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.black.withValues(alpha: 0.9), Colors.transparent],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.9),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -1334,7 +1636,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Widget
       floatingActionButton: _selectedIndex == 0
           ? LiquidGlassFAB(
               accentColor: widget.accentColor,
-              currentBac: calculateBACAt(activeUser.gender, activeUser.weight, userConsos, DateTime.now()),
+              currentBac: calculateBACAt(
+                activeUser.gender,
+                activeUser.weight,
+                userConsos,
+                DateTime.now(),
+              ),
               threshold: widget.isYoungDriver ? 0.2 : 0.5,
               onPressed: () {
                 final now = DateTime.now();
@@ -1502,8 +1809,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(20), // Réduit de 24 à 20
                       decoration: BoxDecoration(
-                        color: widget.isDarkMode 
-                            ? Colors.white.withValues(alpha: 0.08) // Beaucoup plus transparent
+                        color: widget.isDarkMode
+                            ? Colors.white.withValues(
+                                alpha: 0.08,
+                              ) // Beaucoup plus transparent
                             : Colors.black.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
@@ -1511,21 +1820,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 1,
                         ),
                       ),
-                      child: Material( // Nécessaire pour les InkWells/Buttons
+                      child: Material(
+                        // Nécessaire pour les InkWells/Buttons
                         color: Colors.transparent,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.nightlife, color: widget.accentColor, size: 24),
+                                Icon(
+                                  Icons.nightlife,
+                                  color: widget.accentColor,
+                                  size: 24,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     L10n.s('home.party_goal_title'),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: widget.isDarkMode ? Colors.white : Colors.black87,
+                                      color: widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87,
                                       fontSize: 18,
                                     ),
                                   ),
@@ -1536,7 +1852,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               L10n.s('home.party_goal_desc'),
                               style: TextStyle(
-                                color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                                color: widget.isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black54,
                                 fontSize: 13,
                               ),
                             ),
@@ -1545,9 +1863,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle, size: 40),
-                                  color: selectedVal > 1 ? widget.accentColor : Colors.white24,
-                                  onPressed: selectedVal > 1 ? () => setStateSB(() => selectedVal--) : null,
+                                  icon: const Icon(
+                                    Icons.remove_circle,
+                                    size: 40,
+                                  ),
+                                  color: selectedVal > 1
+                                      ? widget.accentColor
+                                      : Colors.white24,
+                                  onPressed: selectedVal > 1
+                                      ? () => setStateSB(() => selectedVal--)
+                                      : null,
                                 ),
                                 const SizedBox(width: 20),
                                 Text(
@@ -1555,14 +1880,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontSize: 42,
                                     fontWeight: FontWeight.w900,
-                                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                                    color: widget.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                 ),
                                 const SizedBox(width: 20),
                                 IconButton(
                                   icon: const Icon(Icons.add_circle, size: 40),
-                                  color: selectedVal < 20 ? widget.accentColor : Colors.white24,
-                                  onPressed: selectedVal < 20 ? () => setStateSB(() => selectedVal++) : null,
+                                  color: selectedVal < 20
+                                      ? widget.accentColor
+                                      : Colors.white24,
+                                  onPressed: selectedVal < 20
+                                      ? () => setStateSB(() => selectedVal++)
+                                      : null,
                                 ),
                               ],
                             ),
@@ -1574,23 +1905,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onPressed: () => Navigator.pop(c),
                                   child: Text(
                                     L10n.s('common.cancel'),
-                                    style: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54),
+                                    style: TextStyle(
+                                      color: widget.isDarkMode
+                                          ? Colors.white54
+                                          : Colors.black54,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 ElevatedButton(
                                   onPressed: () {
-                                    widget.onUpdateContext(partyKey, selectedVal.toString());
+                                    widget.onUpdateContext(
+                                      partyKey,
+                                      selectedVal.toString(),
+                                    );
                                     Navigator.pop(c);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: widget.accentColor,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                     elevation: 0,
                                   ),
-                                  child: Text(L10n.s('home.activate_limit'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  child: Text(
+                                    L10n.s('home.activate_limit'),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1602,7 +1950,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             );
-          }
+          },
         );
       },
     );
@@ -1612,12 +1960,14 @@ class _HomeScreenState extends State<HomeScreen> {
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
     String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
     int? currentGoal;
-    
+
     if (widget.contexts.containsKey(partyKey)) {
       currentGoal = int.tryParse(widget.contexts[partyKey]!);
     }
-    
-    int currentDrinks = widget.consumptions.where((c) => DateFormat('yyyyMMdd').format(c.date) == logicalKeyDate).length;
+
+    int currentDrinks = widget.consumptions
+        .where((c) => DateFormat('yyyyMMdd').format(c.date) == logicalKeyDate)
+        .length;
 
     if (currentGoal == null) {
       return GestureDetector(
@@ -1633,7 +1983,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: widget.accentColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.nightlife, color: widget.accentColor, size: 20),
+                child: Icon(
+                  Icons.nightlife,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -1645,14 +1999,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                        color: widget.isDarkMode
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                     ),
                     Text(
                       L10n.s('home.fix_limit'),
                       style: TextStyle(
                         fontSize: 10,
-                        color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                        color: widget.isDarkMode
+                            ? Colors.white54
+                            : Colors.black54,
                       ),
                     ),
                   ],
@@ -1673,8 +2031,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       return GestureDetector(
-         onTap: _showSetPartyGoalDialog,
-         child: glassModule(
+        onTap: _showSetPartyGoalDialog,
+        child: glassModule(
           isDarkMode: widget.isDarkMode,
           borderColor: progressColor.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -1692,14 +2050,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                            color: widget.isDarkMode
+                                ? Colors.white70
+                                : Colors.black87,
                           ),
                         ),
                         Text(
-                          L10n.s('home.drinks_count', args: {
-                            'current': currentDrinks.toString(),
-                            'goal': currentGoal.toString(),
-                          }),
+                          L10n.s(
+                            'home.drinks_count',
+                            args: {
+                              'current': currentDrinks.toString(),
+                              'goal': currentGoal.toString(),
+                            },
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -1714,8 +2077,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 8,
-                        backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
-                        valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                        backgroundColor: widget.isDarkMode
+                            ? Colors.white10
+                            : Colors.black12,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progressColor,
+                        ),
                       ),
                     ),
                     if (progress >= 1.0)
@@ -1723,7 +2090,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           L10n.s('home.objective_reached'),
-                          style: const TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],
@@ -1906,140 +2277,146 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.only(bottom: 8, top: 5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekDays.map((d) => Expanded(
-              child: Text(
-                d,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: widget.accentColor.withValues(alpha: 0.5),
-                ),
-              ),
-            )).toList(),
+            children: weekDays
+                .map(
+                  (d) => Expanded(
+                    child: Text(
+                      d,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: widget.accentColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ),
         GridView.builder(
           shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 42,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1.1,
-      ),
-      itemBuilder: (context, index) {
-        final dayNum = index - firstDay + 1;
-        if (dayNum <= 0 || dayNum > daysInMonth) return const SizedBox.shrink();
-        final date = DateTime(monthDate.year, monthDate.month, dayNum);
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 42,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 1.1,
+          ),
+          itemBuilder: (context, index) {
+            final dayNum = index - firstDay + 1;
+            if (dayNum <= 0 || dayNum > daysInMonth) {
+              return const SizedBox.shrink();
+            }
+            final date = DateTime(monthDate.year, monthDate.month, dayNum);
 
-        final isSel =
-            date.year == _selectedDate.year &&
-            date.month == _selectedDate.month &&
-            date.day == _selectedDate.day;
-        final isFuture = date.isAfter(
-          DateTime(todayLogical.year, todayLogical.month, todayLogical.day),
-        );
-        final hasC = widget.consumptions.any(
-          (c) => belongsToLogicalDay(c.date, date),
-        );
+            final isSel =
+                date.year == _selectedDate.year &&
+                date.month == _selectedDate.month &&
+                date.day == _selectedDate.day;
+            final isFuture = date.isAfter(
+              DateTime(todayLogical.year, todayLogical.month, todayLogical.day),
+            );
+            final hasC = widget.consumptions.any(
+              (c) => belongsToLogicalDay(c.date, date),
+            );
 
-        return GestureDetector(
-          onTap: isFuture
-              ? null
-              : () {
-                  setState(() => _selectedDate = date);
-                  widget.onDateSelected?.call(date);
-                },
-          child: Opacity(
-            opacity: isFuture ? 0.25 : 1.0,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSel
-                  ? widget.accentColor
-                  : (hasC
-                        ? widget.accentColor.withValues(alpha: 0.4)
-                        : (widget.isDarkMode
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.03))),
-              border: Border.all(
-                color: isSel
-                    ? Colors.white.withValues(alpha: 0.5)
-                    : Colors.transparent,
-                width: 1.5,
-              ),
-              boxShadow: isSel
-                  ? [
-                      BoxShadow(
-                        color: widget.accentColor.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : [],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                children: [
-                  if (isSel)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 1.5,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
+            return GestureDetector(
+              onTap: isFuture
+                  ? null
+                  : () {
+                      setState(() => _selectedDate = date);
+                      widget.onDateSelected?.call(date);
+                    },
+              child: Opacity(
+                opacity: isFuture ? 0.25 : 1.0,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: isSel
+                        ? widget.accentColor
+                        : (hasC
+                              ? widget.accentColor.withValues(alpha: 0.4)
+                              : (widget.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03))),
+                    border: Border.all(
+                      color: isSel
+                          ? Colors.white.withValues(alpha: 0.5)
+                          : Colors.transparent,
+                      width: 1.5,
                     ),
-                  if (isSel)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withValues(alpha: 0.25),
-                              Colors.white.withValues(alpha: 0.05),
-                              Colors.transparent,
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.4, 0.41, 1.0],
+                    boxShadow: isSel
+                        ? [
+                            BoxShadow(
+                              color: widget.accentColor.withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Stack(
+                      children: [
+                        if (isSel)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 1.5,
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        if (isSel)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white.withValues(alpha: 0.25),
+                                    Colors.white.withValues(alpha: 0.05),
+                                    Colors.transparent,
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [0.0, 0.4, 0.41, 1.0],
+                                ),
+                              ),
+                            ),
+                          ),
+                        Center(
+                          child: Text(
+                            dayNum.toString(),
+                            style: TextStyle(
+                              fontSize: isSel ? 13 : 10,
+                              color: (isSel || hasC)
+                                  ? Colors.white
+                                  : (widget.isDarkMode
+                                        ? Colors.white38
+                                        : Colors.black38),
+                              fontWeight: (isSel || hasC)
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  Center(
-                    child: Text(
-                      dayNum.toString(),
-                      style: TextStyle(
-                        fontSize: isSel ? 13 : 10,
-                        color: (isSel || hasC)
-                            ? Colors.white
-                            : (widget.isDarkMode
-                                  ? Colors.white38
-                                  : Colors.black38),
-                        fontWeight: (isSel || hasC)
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
-      );
-      },
-    ),
-  ],
-);
-}
+      ],
+    );
+  }
 
   Widget _buildMonthlySummary() {
     var monthConsos = widget.consumptions
@@ -2051,9 +2428,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
     if (monthConsos.isEmpty) return const SizedBox.shrink();
 
-    int totalB = monthConsos.where((c) => c.type == L10n.s('common.beer')).length;
-    int totalV = monthConsos.where((c) => c.type == L10n.s('common.wine')).length;
-    int totalS = monthConsos.where((c) => c.type == L10n.s('common.spirits')).length;
+    int totalB = monthConsos
+        .where((c) => c.type == L10n.s('common.beer'))
+        .length;
+    int totalV = monthConsos
+        .where((c) => c.type == L10n.s('common.wine'))
+        .length;
+    int totalS = monthConsos
+        .where((c) => c.type == L10n.s('common.spirits'))
+        .length;
 
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
@@ -2110,7 +2493,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _verticalDivider() {
     return VerticalDivider(
-      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(alpha: 0.1),
+      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(
+        alpha: 0.1,
+      ),
       thickness: 1,
       width: 1,
       indent: 4,
@@ -2122,12 +2507,15 @@ class _HomeScreenState extends State<HomeScreen> {
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
     final key = "${widget.activeUserId}_${logicalKeyDate}_$moment";
     final momentContext = widget.contexts[key];
-    final momentConsos = widget.consumptions
-        .where(
-          (c) =>
-              c.moment == moment && belongsToLogicalDay(c.date, _selectedDate),
-        )
-        .toList();
+    final momentConsos =
+        widget.consumptions
+            .where(
+              (c) =>
+                  c.moment == moment &&
+                  belongsToLogicalDay(c.date, _selectedDate),
+            )
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
     IconData icon = (moment == 'Matin')
         ? Icons.coffee_outlined
         : (moment == 'Midi')
@@ -2230,7 +2618,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             (momentContext != null &&
                                     momentContext.trim().isNotEmpty)
                                 ? cleanDisplay(momentContext)
-                                  : L10n.s('journal.add_context'),
+                                : L10n.s('journal.add_context'),
                             style: TextStyle(
                               color:
                                   (momentContext != null &&
@@ -2266,31 +2654,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Color _getUIConstantDrinkColor(String type) {
+    if (type == L10n.s('common.beer')) return const Color(0xFFEA9216); // Orange
+    if (type == L10n.s('common.wine')) return const Color(0xFFE53935); // Rouge
+    if (type == L10n.s('common.spirits')) {
+      return const Color(0xFF9C27B0); // Violet
+    }
+    if (type == L10n.s('entry.types.no_alcohol')) {
+      return const Color(0xFF43A047); // Vert
+    }
+    return widget.accentColor;
+  }
+
   Widget _consoDraggable(Consumption c) {
+    final Color drinkColor = _getUIConstantDrinkColor(c.type);
+    final String initial = (c.type == L10n.s('entry.types.no_alcohol'))
+        ? "Ø"
+        : c.type[0];
+
     final chip = Material(
       color: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.accentColor.withValues(alpha: 0.1),
+          color: drinkColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
+          border: Border.all(color: drinkColor.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             InkWell(
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), bottomLeft: Radius.circular(14)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                bottomLeft: Radius.circular(14),
+              ),
               onTap: () {
                 final now = DateTime.now();
-                
-                // Déterminer la date logique de la conso d'origine
-                DateTime logicalDate = c.date.hour < 6 
+                DateTime logicalDate = c.date.hour < 6
                     ? c.date.subtract(const Duration(days: 1))
                     : c.date;
-                    
-                // Si la nouvelle heure est après minuit (pour la nuit), on l'affecte au jour suivant physiquement
-                DateTime targetPhysicalDate = now.hour < 6 
+
+                DateTime targetPhysicalDate = now.hour < 6
                     ? logicalDate.add(const Duration(days: 1))
                     : logicalDate;
 
@@ -2301,7 +2706,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   now.hour,
                   now.minute,
                 );
-                
+
                 widget.onAddOrUpdate(
                   Consumption(
                     id: now.millisecondsSinceEpoch.toString(),
@@ -2316,7 +2721,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-                child: Icon(Icons.add_circle, size: 20, color: widget.accentColor),
+                child: Icon(Icons.add_circle, size: 20, color: drinkColor),
               ),
             ),
             InkWell(
@@ -2324,17 +2729,20 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 child: Text(
-                  '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
+                  '$initial ${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
                   style: TextStyle(
                     fontSize: 13,
-                    color: widget.accentColor,
+                    color: drinkColor,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
             InkWell(
-              borderRadius: const BorderRadius.only(topRight: Radius.circular(14), bottomRight: Radius.circular(14)),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(14),
+                bottomRight: Radius.circular(14),
+              ),
               onTap: () => widget.onDelete(c.id),
               child: const Padding(
                 padding: EdgeInsets.fromLTRB(6, 8, 10, 8),
@@ -2372,9 +2780,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             color: widget.isDarkMode ? Colors.white : Colors.black87,
           ),
-          decoration: InputDecoration(
-            hintText: L10n.s('journal.context_hint'),
-          ),
+          decoration: InputDecoration(hintText: L10n.s('journal.context_hint')),
         ),
         actions: [
           TextButton(
@@ -2453,7 +2859,7 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  String _period = 'Semaine';
+  String _period = 'Mois';
 
   double _calculateBACAt(DateTime targetTime) {
     return calculateBACAt(
@@ -2489,7 +2895,7 @@ class _StatsScreenState extends State<StatsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-             Text(
+            Text(
               "ÉVOLUTION PRÉVISIONNELLE (12H)",
               style: TextStyle(
                 fontSize: 9,
@@ -2498,7 +2904,11 @@ class _StatsScreenState extends State<StatsScreen> {
                 letterSpacing: 1.2,
               ),
             ),
-            Icon(Icons.show_chart, size: 12, color: widget.accentColor.withValues(alpha: 0.5)),
+            Icon(
+              Icons.show_chart,
+              size: 12,
+              color: widget.accentColor.withValues(alpha: 0.5),
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -2511,15 +2921,23 @@ class _StatsScreenState extends State<StatsScreen> {
                 drawVerticalLine: false,
                 horizontalInterval: 0.2,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: (value == threshold) ? Colors.red.withValues(alpha: 0.3) : (widget.isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                  color: (value == threshold)
+                      ? Colors.red.withValues(alpha: 0.3)
+                      : (widget.isDarkMode
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.05)),
                   strokeWidth: (value == threshold) ? 1.5 : 0.5,
                   dashArray: (value == threshold) ? [5, 5] : null,
                 ),
               ),
               titlesData: FlTitlesData(
                 show: true,
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -2527,7 +2945,12 @@ class _StatsScreenState extends State<StatsScreen> {
                     reservedSize: 30,
                     getTitlesWidget: (v, m) => Text(
                       v.toStringAsFixed(1),
-                      style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 8),
+                      style: TextStyle(
+                        color: widget.isDarkMode
+                            ? Colors.white24
+                            : Colors.black26,
+                        fontSize: 8,
+                      ),
                     ),
                   ),
                 ),
@@ -2542,9 +2965,15 @@ class _StatsScreenState extends State<StatsScreen> {
                         child: Text(
                           DateFormat('HH:mm').format(t),
                           style: TextStyle(
-                            color: v.toInt() == 0 ? widget.accentColor : (widget.isDarkMode ? Colors.white30 : Colors.black26), 
+                            color: v.toInt() == 0
+                                ? widget.accentColor
+                                : (widget.isDarkMode
+                                      ? Colors.white30
+                                      : Colors.black26),
                             fontSize: 8,
-                            fontWeight: v.toInt() == 0 ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: v.toInt() == 0
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                       );
@@ -2563,13 +2992,15 @@ class _StatsScreenState extends State<StatsScreen> {
                   color: widget.accentColor,
                   dotData: FlDotData(
                     show: true,
-                    checkToShowDot: (spot, barData) => spot.x == 0, // Point sur "Maintenant"
-                    getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                      radius: 4,
-                      color: Colors.white,
-                      strokeWidth: 2,
-                      strokeColor: widget.accentColor,
-                    ),
+                    checkToShowDot: (spot, barData) =>
+                        spot.x == 0, // Point sur "Maintenant"
+                    getDotPainter: (spot, percent, barData, index) =>
+                        FlDotCirclePainter(
+                          radius: 4,
+                          color: Colors.white,
+                          strokeWidth: 2,
+                          strokeColor: widget.accentColor,
+                        ),
                   ),
                   belowBarData: BarAreaData(
                     show: true,
@@ -2586,11 +3017,21 @@ class _StatsScreenState extends State<StatsScreen> {
               ],
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (spot) => widget.isDarkMode ? const Color(0xFF2C3440) : Colors.white,
-                  getTooltipItems: (items) => items.map((i) => LineTooltipItem(
-                    "${i.y.toStringAsFixed(2)} g/L",
-                    TextStyle(color: widget.accentColor, fontWeight: FontWeight.bold, fontSize: 12),
-                  )).toList(),
+                  getTooltipColor: (spot) => widget.isDarkMode
+                      ? const Color(0xFF2C3440)
+                      : Colors.white,
+                  getTooltipItems: (items) => items
+                      .map(
+                        (i) => LineTooltipItem(
+                          "${i.y.toStringAsFixed(2)} g/L",
+                          TextStyle(
+                            color: widget.accentColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ),
@@ -2606,10 +3047,18 @@ class _StatsScreenState extends State<StatsScreen> {
     double threshold = widget.isYoungDriver ? 0.2 : 0.5;
     bool isDanger = currentBac >= threshold;
     String countdownText = currentBac > threshold
-        ? L10n.s('stats.countdown_format', args: {
-            'h': ((currentBac - threshold) / 0.15).floor().toString(),
-            'm': (((currentBac - threshold) / 0.15 - ((currentBac - threshold) / 0.15).floor()) * 60).round().toString(),
-          })
+        ? L10n.s(
+            'stats.countdown_format',
+            args: {
+              'h': ((currentBac - threshold) / 0.15).floor().toString(),
+              'm':
+                  (((currentBac - threshold) / 0.15 -
+                              ((currentBac - threshold) / 0.15).floor()) *
+                          60)
+                      .round()
+                      .toString(),
+            },
+          )
         : L10n.s('stats.ready_to_drive');
     final now = DateTime.now();
     final countedDrinks = widget.consumptions
@@ -2651,29 +3100,37 @@ class _StatsScreenState extends State<StatsScreen> {
 
     int countTotalGoals = 0;
     int countSuccessGoals = 0;
-    
-    widget.contexts.keys.where((k) => k.startsWith("${widget.activeUser.id}_") && k.endsWith("_partyGoal")).forEach((k) {
-      var parts = k.split('_');
-      if (parts.length >= 3) {
-        String dateStr = parts[1];
-        if (dateStr.length == 8) {
-          int year = int.tryParse(dateStr.substring(0,4)) ?? 0;
-          int month = int.tryParse(dateStr.substring(4,6)) ?? 0;
-          int day = int.tryParse(dateStr.substring(6,8)) ?? 0;
-          if (year > 0) {
-            DateTime d = DateTime(year, month, day);
-            if (!d.isBefore(startDate)) {
-              countTotalGoals++;
-              int goal = int.tryParse(widget.contexts[k]!) ?? 0;
-              int drinksCount = widget.consumptions.where((c) {
-                return c.date.year == d.year && c.date.month == d.month && c.date.day == d.day;
-              }).length;
-              if (drinksCount <= goal) countSuccessGoals++;
+
+    widget.contexts.keys
+        .where(
+          (k) =>
+              k.startsWith("${widget.activeUser.id}_") &&
+              k.endsWith("_partyGoal"),
+        )
+        .forEach((k) {
+          var parts = k.split('_');
+          if (parts.length >= 3) {
+            String dateStr = parts[1];
+            if (dateStr.length == 8) {
+              int year = int.tryParse(dateStr.substring(0, 4)) ?? 0;
+              int month = int.tryParse(dateStr.substring(4, 6)) ?? 0;
+              int day = int.tryParse(dateStr.substring(6, 8)) ?? 0;
+              if (year > 0) {
+                DateTime d = DateTime(year, month, day);
+                if (!d.isBefore(startDate)) {
+                  countTotalGoals++;
+                  int goal = int.tryParse(widget.contexts[k]!) ?? 0;
+                  int drinksCount = widget.consumptions.where((c) {
+                    return c.date.year == d.year &&
+                        c.date.month == d.month &&
+                        c.date.day == d.day;
+                  }).length;
+                  if (drinksCount <= goal) countSuccessGoals++;
+                }
+              }
             }
           }
-        }
-      }
-    });
+        });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -2719,8 +3176,11 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isDanger 
-                      ? L10n.s('stats.danger_threshold', args: {'threshold': threshold.toStringAsFixed(1)}) 
+                  isDanger
+                      ? L10n.s(
+                          'stats.danger_threshold',
+                          args: {'threshold': threshold.toStringAsFixed(1)},
+                        )
                       : L10n.s('stats.safety_ok'),
                   style: TextStyle(
                     color: isDanger ? Colors.red : Colors.green,
@@ -2773,7 +3233,9 @@ class _StatsScreenState extends State<StatsScreen> {
             showHalo: false,
             borderColor: isDanger
                 ? Colors.red.withValues(alpha: 0.3)
-                : (currentBac > 0 ? Colors.orange.withValues(alpha: 0.3) : widget.accentColor.withValues(alpha: 0.3)),
+                : (currentBac > 0
+                      ? Colors.orange.withValues(alpha: 0.3)
+                      : widget.accentColor.withValues(alpha: 0.3)),
             child: Column(
               children: [
                 Text(
@@ -2888,9 +3350,16 @@ class _StatsScreenState extends State<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    L10n.s('stats.title_period', args: {
-                      'period': _period == 'Semaine' ? L10n.s('stats.periods.week') : (_period == 'Mois' ? L10n.s('stats.periods.month') : L10n.s('stats.periods.year'))
-                    }),
+                    L10n.s(
+                      'stats.title_period',
+                      args: {
+                        'period': _period == 'Semaine'
+                            ? L10n.s('stats.periods.week')
+                            : (_period == 'Mois'
+                                  ? L10n.s('stats.periods.month')
+                                  : L10n.s('stats.periods.year')),
+                      },
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -2901,10 +3370,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    L10n.s('stats.date_range', args: {
-                      'start': DateFormat('dd MMM').format(startDate),
-                      'end': DateFormat('dd MMM').format(now),
-                    }),
+                    L10n.s(
+                      'stats.date_range',
+                      args: {
+                        'start': DateFormat('dd MMM').format(startDate),
+                        'end': DateFormat('dd MMM').format(now),
+                      },
+                    ),
                     style: TextStyle(
                       fontSize: 9,
                       fontStyle: FontStyle.italic,
@@ -2924,60 +3396,66 @@ class _StatsScreenState extends State<StatsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
-                  children: [L10n.s('stats.periods.week'), L10n.s('stats.periods.month'), L10n.s('stats.periods.year')].map((localizedP) {
-                    // Logic mapping back to original keys if necessary, or just use indices
-                    String p;
-                    if (localizedP == L10n.s('stats.periods.week')) {
-                      p = 'Semaine';
-                    } else if (localizedP == L10n.s('stats.periods.month')) {
-                      p = 'Mois';
-                    } else {
-                      p = 'Année';
-                    }
-                    
-                    bool isSelected = _period == p;
-                    return GestureDetector(
-                      onTap: () => setState(() => _period = p),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? (widget.isDarkMode
-                                    ? Colors.white.withValues(alpha: 0.15)
-                                    : Colors.white)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: isSelected && !widget.isDarkMode
-                              ? const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Text(
-                          p,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                            color: isSelected
-                                ? (widget.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black)
-                                : (widget.isDarkMode
-                                      ? Colors.white54
-                                      : Colors.black54),
+                  children:
+                      [
+                        L10n.s('stats.periods.week'),
+                        L10n.s('stats.periods.month'),
+                        L10n.s('stats.periods.year'),
+                      ].map((localizedP) {
+                        // Logic mapping back to original keys if necessary, or just use indices
+                        String p;
+                        if (localizedP == L10n.s('stats.periods.week')) {
+                          p = 'Semaine';
+                        } else if (localizedP ==
+                            L10n.s('stats.periods.month')) {
+                          p = 'Mois';
+                        } else {
+                          p = 'Année';
+                        }
+
+                        bool isSelected = _period == p;
+                        return GestureDetector(
+                          onTap: () => setState(() => _period = p),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (widget.isDarkMode
+                                        ? Colors.white.withValues(alpha: 0.15)
+                                        : Colors.white)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: isSelected && !widget.isDarkMode
+                                  ? const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: Text(
+                              p,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isSelected
+                                    ? (widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black)
+                                    : (widget.isDarkMode
+                                          ? Colors.white54
+                                          : Colors.black54),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
               ),
             ],
@@ -3011,7 +3489,10 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       Text(
-                        L10n.s('stats.days_count', args: {'count': daysToLookBack.toString()}),
+                        L10n.s(
+                          'stats.days_count',
+                          args: {'count': daysToLookBack.toString()},
+                        ),
                         style: TextStyle(
                           fontSize: 9,
                           color: widget.isDarkMode
@@ -3074,12 +3555,18 @@ class _StatsScreenState extends State<StatsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: countSuccessGoals == countTotalGoals ? Colors.green.withValues(alpha: 0.2) : widget.accentColor.withValues(alpha: 0.1),
+                      color: countSuccessGoals == countTotalGoals
+                          ? Colors.green.withValues(alpha: 0.2)
+                          : widget.accentColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      countSuccessGoals == countTotalGoals ? Icons.emoji_events : Icons.track_changes,
-                      color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                      countSuccessGoals == countTotalGoals
+                          ? Icons.emoji_events
+                          : Icons.track_changes,
+                      color: countSuccessGoals == countTotalGoals
+                          ? Colors.green
+                          : widget.accentColor,
                       size: 24,
                     ),
                   ),
@@ -3093,7 +3580,9 @@ class _StatsScreenState extends State<StatsScreen> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
+                            color: countSuccessGoals == countTotalGoals
+                                ? Colors.green
+                                : widget.accentColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -3102,14 +3591,18 @@ class _StatsScreenState extends State<StatsScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: widget.isDarkMode ? Colors.white : Colors.black87,
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
                         Text(
                           L10n.s('stats.goals_count'),
                           style: TextStyle(
                             fontSize: 10,
-                            color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                            color: widget.isDarkMode
+                                ? Colors.white54
+                                : Colors.black54,
                           ),
                         ),
                       ],
@@ -3123,8 +3616,12 @@ class _StatsScreenState extends State<StatsScreen> {
                       children: [
                         CircularProgressIndicator(
                           value: countSuccessGoals / countTotalGoals,
-                          color: countSuccessGoals == countTotalGoals ? Colors.green : widget.accentColor,
-                          backgroundColor: widget.isDarkMode ? Colors.white10 : Colors.black12,
+                          color: countSuccessGoals == countTotalGoals
+                              ? Colors.green
+                              : widget.accentColor,
+                          backgroundColor: widget.isDarkMode
+                              ? Colors.white10
+                              : Colors.black12,
                           strokeWidth: 4,
                         ),
                         Center(
@@ -3133,7 +3630,9 @@ class _StatsScreenState extends State<StatsScreen> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                              color: widget.isDarkMode
+                                  ? Colors.white70
+                                  : Colors.black87,
                             ),
                           ),
                         ),
@@ -3257,7 +3756,9 @@ class _StatsScreenState extends State<StatsScreen> {
                         child: Text(
                           "Calcul de l'alcoolémie",
                           style: TextStyle(
-                            color: widget.isDarkMode ? Colors.white : Colors.black87,
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black87,
                             fontWeight: FontWeight.w900,
                             fontSize: 20,
                             letterSpacing: 0.5,
@@ -3297,17 +3798,28 @@ class _StatsScreenState extends State<StatsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: Colors.red.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: const Text(
                             "ATTENTION : Il s'agit d'une estimation théorique. La fatigue, l'alimentation et la santé peuvent modifier ces valeurs. Ne remplace jamais un éthylotest.",
-                            style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold, height: 1.5),
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              height: 1.5,
+                            ),
                           ),
                         ),
                       ],
@@ -3320,19 +3832,25 @@ class _StatsScreenState extends State<StatsScreen> {
                       child: TextButton(
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: widget.accentColor.withValues(alpha: 0.15),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          side: BorderSide(color: widget.accentColor.withValues(alpha: 0.3)),
+                          backgroundColor: widget.accentColor.withValues(
+                            alpha: 0.15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          side: BorderSide(
+                            color: widget.accentColor.withValues(alpha: 0.3),
+                          ),
                         ),
                         onPressed: () => Navigator.pop(context),
                         child: Text(
-                          "J'ai compris", 
+                          "J'ai compris",
                           style: TextStyle(
-                            color: widget.accentColor, 
+                            color: widget.accentColor,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                             fontSize: 16,
-                          )
+                          ),
                         ),
                       ),
                     ),
@@ -3399,11 +3917,13 @@ class _StatsScreenState extends State<StatsScreen> {
       DateTime d = (_period == 'Année')
           ? DateTime(today.year, today.month - (count - 1 - i), 1)
           : today.subtract(Duration(days: (count - 1) - i));
-      
+
       double dayUnits = 0;
-      final dayConsos = widget.consumptions.where((c) => (_period == 'Année')
-                ? (c.date.year == d.year && c.date.month == d.month)
-                : belongsToLogicalDay(c.date, d));
+      final dayConsos = widget.consumptions.where(
+        (c) => (_period == 'Année')
+            ? (c.date.year == d.year && c.date.month == d.month)
+            : belongsToLogicalDay(c.date, d),
+      );
 
       for (var c in dayConsos) {
         double vol = 0;
@@ -3472,11 +3992,13 @@ class _StatsScreenState extends State<StatsScreen> {
       DateTime d = (_period == 'Année')
           ? DateTime(today.year, today.month - (count - 1 - i), 1)
           : today.subtract(Duration(days: (count - 1) - i));
-      
+
       double dayUnits = 0;
-      final dayConsos = widget.consumptions.where((c) => (_period == 'Année')
-                ? (c.date.year == d.year && c.date.month == d.month)
-                : belongsToLogicalDay(c.date, d));
+      final dayConsos = widget.consumptions.where(
+        (c) => (_period == 'Année')
+            ? (c.date.year == d.year && c.date.month == d.month)
+            : belongsToLogicalDay(c.date, d),
+      );
 
       for (var c in dayConsos) {
         double vol = 0;
@@ -3599,7 +4121,9 @@ class _StatsScreenState extends State<StatsScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.redAccent.withValues(alpha: widget.isDarkMode ? 0.6 : 0.4),
+                Colors.redAccent.withValues(
+                  alpha: widget.isDarkMode ? 0.6 : 0.4,
+                ),
                 Colors.orange.withValues(alpha: widget.isDarkMode ? 0.2 : 0.1),
                 Colors.transparent,
               ],
@@ -3799,33 +4323,44 @@ class _OptionsScreenState extends State<OptionsScreen> {
     if (image != null) {
       String? cloudPath;
       if (Supabase.instance.client.auth.currentUser != null) {
-          setState(() => _isUploading = true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("🚀 Envoi de la photo sur le Cloud...")),
-          );
-          
-          final result = await SupabaseService.uploadProfileImage(image);
-          cloudPath = result['url'];
-          
-          setState(() => _isUploading = false);
+        setState(() => _isUploading = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("🚀 Envoi de la photo sur le Cloud...")),
+        );
 
-          if (cloudPath != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("✅ Photo sauvegardée sur le serveur !"), backgroundColor: Colors.green),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("❌ Erreur : ${result['error']}"), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
-            );
-          }
+        final result = await SupabaseService.uploadProfileImage(image);
+        cloudPath = result['url'];
+
+        setState(() => _isUploading = false);
+
+        if (cloudPath != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("✅ Photo sauvegardée sur le serveur !"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("❌ Erreur : ${result['error']}"),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("💡 Mode local : la photo ne sera pas visible dans l'admin.")),
+          const SnackBar(
+            content: Text(
+              "💡 Mode local : la photo ne sera pas visible dans l'admin.",
+            ),
+          ),
         );
       }
-      
+
       setState(() {
-          p.imagePath = cloudPath ?? image.path;
+        p.imagePath = cloudPath ?? image.path;
       });
       widget.onProfilesChanged();
     }
@@ -3953,9 +4488,15 @@ class _OptionsScreenState extends State<OptionsScreen> {
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
               decoration: BoxDecoration(
-                color: (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white).withValues(alpha: 0.8),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
+                color:
+                    (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white)
+                        .withValues(alpha: 0.8),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
+                ),
+                border: Border.all(
+                  color: widget.accentColor.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 children: [
@@ -3990,12 +4531,18 @@ class _OptionsScreenState extends State<OptionsScreen> {
                           style: TextStyle(
                             fontStyle: FontStyle.italic,
                             fontSize: 12,
-                            color: widget.isDarkMode ? Colors.white54 : Colors.black54,
+                            color: widget.isDarkMode
+                                ? Colors.white54
+                                : Colors.black54,
                           ),
                         ),
                         Text(
                           L10n.s('legal_content.privacy_intro'),
-                          style: TextStyle(color: widget.isDarkMode ? Colors.white70 : Colors.black87),
+                          style: TextStyle(
+                            color: widget.isDarkMode
+                                ? Colors.white70
+                                : Colors.black87,
+                          ),
                         ),
                         _infoSection(
                           L10n.s('legal_content.privacy_section1_title'),
@@ -4045,9 +4592,15 @@ class _OptionsScreenState extends State<OptionsScreen> {
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
               decoration: BoxDecoration(
-                color: (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white).withValues(alpha: 0.8),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
+                color:
+                    (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white)
+                        .withValues(alpha: 0.8),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
+                ),
+                border: Border.all(
+                  color: widget.accentColor.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 children: [
@@ -4200,7 +4753,11 @@ class _OptionsScreenState extends State<OptionsScreen> {
             Center(
               child: Text(
                 "v1.2.0+18-CLOUD",
-                style: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26, fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: widget.isDarkMode ? Colors.white24 : Colors.black26,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 40),
@@ -4399,10 +4956,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
             });
             widget.onProfilesChanged();
           },
-          proxyDecorator: (child, index, animation) => Material(
-            color: Colors.transparent,
-            child: child,
-          ),
+          proxyDecorator: (child, index, animation) =>
+              Material(color: Colors.transparent, child: child),
           itemBuilder: (context, index) {
             final p = widget.profiles[index];
             return Padding(
@@ -4423,7 +4978,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
                               padding: const EdgeInsets.only(right: 8),
                               child: Icon(
                                 Icons.drag_indicator,
-                                color: widget.isDarkMode ? Colors.white24 : Colors.black12,
+                                color: widget.isDarkMode
+                                    ? Colors.white24
+                                    : Colors.black12,
                                 size: 20,
                               ),
                             ),
@@ -4434,8 +4991,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                                 backgroundColor: Color(p.colorValue),
                                 radius: 24,
                                 backgroundImage: getProfileImage(p.imagePath),
-                                child: (p.imagePath == null || p.imagePath!.isEmpty)
-                                    ? const Icon(Icons.person, color: Colors.white)
+                                child:
+                                    (p.imagePath == null ||
+                                        p.imagePath!.isEmpty)
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                      )
                                     : null,
                               ),
                               Positioned(
@@ -4528,8 +5090,12 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 child: ListTile(
                   dense: true,
                   visualDensity: VisualDensity.compact,
-                  leading: Icon(Icons.person_add_alt_1, color: widget.accentColor, size: 20),
-                   title: Text(
+                  leading: Icon(
+                    Icons.person_add_alt_1,
+                    color: widget.accentColor,
+                    size: 20,
+                  ),
+                  title: Text(
                     L10n.s('settings.create_profile'),
                     style: TextStyle(
                       color: widget.accentColor,
@@ -4549,7 +5115,11 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 child: ListTile(
                   dense: true,
                   visualDensity: VisualDensity.compact,
-                  leading: Icon(Icons.file_download_outlined, color: widget.accentColor, size: 20),
+                  leading: Icon(
+                    Icons.file_download_outlined,
+                    color: widget.accentColor,
+                    size: 20,
+                  ),
                   title: Text(
                     L10n.s('settings.import_json_profile'),
                     style: TextStyle(
@@ -4571,20 +5141,38 @@ class _OptionsScreenState extends State<OptionsScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
-                    Icon(Icons.account_circle_outlined, color: widget.accentColor, size: 24),
+                    Icon(
+                      Icons.account_circle_outlined,
+                      color: widget.accentColor,
+                      size: 24,
+                    ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(L10n.s('settings.account_connected'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: widget.accentColor, letterSpacing: 1.1)),
                           Text(
-                            Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
+                            L10n.s('settings.account_connected'),
                             style: TextStyle(
-                              color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: widget.accentColor,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          Text(
+                            Supabase.instance.client.auth.currentUser?.email ??
+                                "Utilisateur",
+                            style: TextStyle(
+                              color: widget.isDarkMode
+                                  ? Colors.white60
+                                  : Colors.black54,
                               fontSize: 10,
                             ),
                           ),
@@ -4593,7 +5181,15 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     TextButton(
                       onPressed: widget.onLogout,
-                      child: Text(L10n.s('settings.logout'), style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                      child: Text(
+                        L10n.s('settings.logout'),
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -4602,7 +5198,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity.compact,
-                leading: Icon(Icons.cloud_upload_rounded, color: widget.accentColor),
+                leading: Icon(
+                  Icons.cloud_upload_rounded,
+                  color: widget.accentColor,
+                ),
                 title: Text(
                   L10n.s('settings.save_cloud'),
                   style: TextStyle(
@@ -4612,14 +5211,23 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text(L10n.s('settings.save_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  L10n.s('settings.save_cloud_desc'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onPushCloud,
               ),
               _divider(),
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity.compact,
-                leading: Icon(Icons.cloud_download_rounded, color: widget.accentColor),
+                leading: Icon(
+                  Icons.cloud_download_rounded,
+                  color: widget.accentColor,
+                ),
                 title: Text(
                   L10n.s('settings.sync_cloud'),
                   style: TextStyle(
@@ -4629,14 +5237,23 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text(L10n.s('settings.sync_cloud_desc'), style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  L10n.s('settings.sync_cloud_desc'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onSyncCloud,
               ),
               _divider(),
               ListTile(
                 dense: true,
                 visualDensity: VisualDensity.compact,
-                leading: Icon(Icons.cloud_upload_outlined, color: widget.accentColor),
+                leading: Icon(
+                  Icons.cloud_upload_outlined,
+                  color: widget.accentColor,
+                ),
                 title: Text(
                   L10n.s('legal.save_json'),
                   style: TextStyle(
@@ -4646,7 +5263,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text("Exporter une sauvegarde locale sur cet appareil", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  "Exporter une sauvegarde locale sur cet appareil",
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onExportFullProject,
               ),
               _divider(),
@@ -4663,7 +5286,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                subtitle: Text("Restaurer depuis un fichier JSON local", style: TextStyle(fontSize: 10, color: widget.isDarkMode ? Colors.white60 : Colors.black54)),
+                subtitle: Text(
+                  "Restaurer depuis un fichier JSON local",
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                  ),
+                ),
                 onTap: widget.onImportFullProject,
               ),
             ],
@@ -4687,7 +5316,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
               SwitchListTile(
                 dense: true,
                 title: Text(
-                  widget.isDarkMode ? L10n.s('settings.theme_dark') : L10n.s('settings.theme_light'),
+                  widget.isDarkMode
+                      ? L10n.s('settings.theme_dark')
+                      : L10n.s('settings.theme_light'),
                   style: TextStyle(color: itemTxt, fontSize: 13),
                 ),
                 value: widget.isDarkMode,
@@ -4701,16 +5332,30 @@ class _OptionsScreenState extends State<OptionsScreen> {
               _divider(),
               SwitchListTile(
                 dense: true,
-                secondary: Icon(Icons.warning_amber_rounded, color: widget.accentColor, size: 20),
-                title: Text(L10n.s('settings.young_driver'), style: const TextStyle(fontSize: 13)),
+                secondary: Icon(
+                  Icons.warning_amber_rounded,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
+                title: Text(
+                  L10n.s('settings.young_driver'),
+                  style: const TextStyle(fontSize: 13),
+                ),
                 value: widget.isYoungDriver,
                 onChanged: widget.onYoungDriverChanged,
               ),
               _divider(),
               SwitchListTile(
                 dense: true,
-                secondary: Icon(Icons.straighten, color: widget.accentColor, size: 20),
-                title: Text(L10n.s('settings.unit_ml'), style: const TextStyle(fontSize: 13)),
+                secondary: Icon(
+                  Icons.straighten,
+                  color: widget.accentColor,
+                  size: 20,
+                ),
+                title: Text(
+                  L10n.s('settings.unit_ml'),
+                  style: const TextStyle(fontSize: 13),
+                ),
                 value: widget.unitMl,
                 onChanged: widget.onUnitMlChanged,
               ),
@@ -4783,7 +5428,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
             leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
             title: Text(
               L10n.s('settings.reset_all'),
-              style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onTap: () => _confirmFullReset(),
           ),
@@ -4799,7 +5447,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
               leading: const Icon(Icons.person_off, color: Colors.redAccent),
               title: const Text(
                 "Supprimer mon compte & mes données",
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               onTap: () => _showDeleteAccountConfirm(),
             ),
@@ -4826,9 +5477,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
       context: context,
       builder: (c) => AlertDialog(
         title: Text(L10n.s('settings.reset_confirm_title')),
-        content: Text(
-          L10n.s('settings.reset_confirm_content'),
-        ),
+        content: Text(L10n.s('settings.reset_confirm_content')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
@@ -4839,12 +5488,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
               widget.onReset();
               Navigator.pop(c);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Toutes les données ont été effacées")),
+                const SnackBar(
+                  content: Text("Toutes les données ont été effacées"),
+                ),
               );
             },
             child: const Text(
               "TOUT SUPPRIMER",
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -4874,15 +5528,16 @@ class _OptionsScreenState extends State<OptionsScreen> {
             },
             child: const Text(
               "SUPPRIMER MON COMPTE",
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
-
 
   void _showUserGuide() {
     showModalBottomSheet(
@@ -4901,78 +5556,138 @@ class _OptionsScreenState extends State<OptionsScreen> {
               filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
               child: Container(
                 decoration: BoxDecoration(
-                  color: (widget.isDarkMode ? const Color(0xFF14191F) : Colors.white).withValues(alpha: 0.8),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                  border: Border.all(color: widget.accentColor.withValues(alpha: 0.2)),
+                  color:
+                      (widget.isDarkMode
+                              ? const Color(0xFF14191F)
+                              : Colors.white)
+                          .withValues(alpha: 0.8),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
+                  border: Border.all(
+                    color: widget.accentColor.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: widget.accentColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  "NOTICE D'UTILISATION",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: widget.accentColor,
-                    fontSize: 14,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                TabBar(
-                  dividerColor: Colors.transparent,
-                  indicatorColor: widget.accentColor,
-                  labelColor: widget.accentColor,
-                  unselectedLabelColor: widget.isDarkMode ? Colors.white38 : Colors.black38,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  tabs: const [
-                    Tab(text: "Journal"),
-                    Tab(text: "Stats"),
-                    Tab(text: "Réglages"),
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: widget.accentColor.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      "NOTICE D'UTILISATION",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: widget.accentColor,
+                        fontSize: 14,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TabBar(
+                      dividerColor: Colors.transparent,
+                      indicatorColor: widget.accentColor,
+                      labelColor: widget.accentColor,
+                      unselectedLabelColor: widget.isDarkMode
+                          ? Colors.white38
+                          : Colors.black38,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                      tabs: const [
+                        Tab(text: "Journal"),
+                        Tab(text: "Stats"),
+                        Tab(text: "Réglages"),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _buildGuideTab(scrollController, [
+                            _guideStep(
+                              Icons.add_circle_outline,
+                              L10n.s('guide.step1_title'),
+                              L10n.s('guide.step1_desc'),
+                            ),
+                            _guideStep(
+                              Icons.edit_note_rounded,
+                              L10n.s('guide.step2_title'),
+                              L10n.s('guide.step2_desc'),
+                            ),
+                            _guideStep(
+                              Icons.copy_rounded,
+                              "Duplication intelligente",
+                              "Gagnez du temps en dupliquant un verre ou même une série complète en un clic.",
+                            ),
+                            _guideStep(
+                              Icons.timelapse,
+                              "Journal 24h",
+                              "Parcourez votre journée. Les tranches horaires s'adaptent dynamiquement à vos consommations.",
+                            ),
+                          ]),
+                          _buildGuideTab(scrollController, [
+                            _guideStep(
+                              Icons.analytics_outlined,
+                              "Alcoolémie Réaliste",
+                              "Votre taux n'est pas instantané. Nous simulons une montée linéaire sur 45 min pour refléter le temps de boisson et d'absorption.",
+                            ),
+                            _guideStep(
+                              Icons.directions_car_filled_outlined,
+                              "Prêt à conduire ?",
+                              "L'application calcule en temps réel quand votre taux repassera sous le seuil légal (jeune permis ou confirmé).",
+                            ),
+                            _guideStep(
+                              Icons.calendar_month_outlined,
+                              "Calendrier & PDF",
+                              "Visualisez votre activité mensuelle et exportez des rapports PDF professionnels pour un suivi médical ou personnel.",
+                            ),
+                            _guideStep(
+                              Icons.psychology_outlined,
+                              L10n.s('guide.step3_title'),
+                              L10n.s('guide.step3_desc'),
+                            ),
+                          ]),
+                          _buildGuideTab(scrollController, [
+                            _guideStep(
+                              Icons.people_outline,
+                              L10n.s('guide.step4_title'),
+                              L10n.s('guide.step4_desc'),
+                            ),
+                            _guideStep(
+                              Icons.cloud_done_outlined,
+                              L10n.s('guide.step6_title'),
+                              L10n.s('guide.step6_desc'),
+                            ),
+                            _guideStep(
+                              Icons.security_outlined,
+                              "Vie Privée",
+                              "Vos données de santé sont les vôtres. Elles restent anonymisées et chiffrées sur nos serveurs Supabase.",
+                            ),
+                            _guideStep(
+                              Icons.style_outlined,
+                              L10n.s('guide.step8_title'),
+                              L10n.s('guide.step8_desc'),
+                            ),
+                          ]),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _buildGuideTab(scrollController, [
-                        _guideStep(Icons.add_circle_outline, L10n.s('guide.step1_title'), L10n.s('guide.step1_desc')),
-                        _guideStep(Icons.edit_note_rounded, L10n.s('guide.step2_title'), L10n.s('guide.step2_desc')),
-                        _guideStep(Icons.copy_rounded, "Duplication intelligente", "Gagnez du temps en dupliquant un verre ou même une série complète en un clic."),
-                        _guideStep(Icons.timelapse, "Journal 24h", "Parcourez votre journée. Les tranches horaires s'adaptent dynamiquement à vos consommations."),
-                      ]),
-                      _buildGuideTab(scrollController, [
-                        _guideStep(Icons.analytics_outlined, "Alcoolémie Réaliste", "Votre taux n'est pas instantané. Nous simulons une montée linéaire sur 45 min pour refléter le temps de boisson et d'absorption."),
-                        _guideStep(Icons.directions_car_filled_outlined, "Prêt à conduire ?", "L'application calcule en temps réel quand votre taux repassera sous le seuil légal (jeune permis ou confirmé)."),
-                        _guideStep(Icons.calendar_month_outlined, "Calendrier & PDF", "Visualisez votre activité mensuelle et exportez des rapports PDF professionnels pour un suivi médical ou personnel."),
-                        _guideStep(Icons.psychology_outlined, L10n.s('guide.step3_title'), L10n.s('guide.step3_desc')),
-                      ]),
-                      _buildGuideTab(scrollController, [
-                        _guideStep(Icons.people_outline, L10n.s('guide.step4_title'), L10n.s('guide.step4_desc')),
-                        _guideStep(Icons.cloud_done_outlined, L10n.s('guide.step6_title'), L10n.s('guide.step6_desc')),
-                        _guideStep(Icons.security_outlined, "Vie Privée", "Vos données de santé sont les vôtres. Elles restent anonymisées et chiffrées sur nos serveurs Supabase."),
-                        _guideStep(Icons.style_outlined, L10n.s('guide.step8_title'), L10n.s('guide.step8_desc')),
-                      ]),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  ),
-);
-}
-
+    );
+  }
 
   Widget _buildGuideTab(ScrollController sc, List<Widget> steps) {
     return ListView(
@@ -4986,7 +5701,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
     margin: const EdgeInsets.only(bottom: 24),
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(alpha: 0.03),
+      color: (widget.isDarkMode ? Colors.white : Colors.black).withValues(
+        alpha: 0.03,
+      ),
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: widget.accentColor.withValues(alpha: 0.1)),
     ),
@@ -5008,12 +5725,20 @@ class _OptionsScreenState extends State<OptionsScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: widget.accentColor),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: widget.accentColor,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 desc,
-                style: TextStyle(fontSize: 13, height: 1.4, color: widget.isDarkMode ? Colors.white70 : Colors.black87),
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                ),
               ),
             ],
           ),
@@ -5119,7 +5844,8 @@ class _SaisieSheet extends StatefulWidget {
       return const TimeOfDay(hour: 8, minute: 0);
     } else if (moment == L10n.s('moments.noon') || moment == 'Midi') {
       return const TimeOfDay(hour: 12, minute: 30);
-    } else if (moment == L10n.s('moments.afternoon') || moment == 'Après-midi') {
+    } else if (moment == L10n.s('moments.afternoon') ||
+        moment == 'Après-midi') {
       return const TimeOfDay(hour: 16, minute: 0);
     } else if (moment == L10n.s('moments.evening') || moment == 'Soir') {
       return const TimeOfDay(hour: 19, minute: 30);
@@ -5138,7 +5864,21 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   late String _v;
   late double _d;
   late TimeOfDay _time;
+  late DateTime _selectedDate;
   late TextEditingController _contextCtrl;
+
+  final List<String> _volumes = [
+    '4cl',
+    '8cl',
+    '12.5cl',
+    '15cl',
+    '25cl',
+    '33cl',
+    '50cl',
+    '75cl',
+  ];
+  late FixedExtentScrollController _volumeCtrl;
+  late FixedExtentScrollController _degreeCtrl;
 
   @override
   void initState() {
@@ -5147,20 +5887,32 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     _v = widget.existingConso?.volume ?? '33cl';
     _d = widget.existingConso?.degree ?? 6.0;
 
+    int initVol = _volumes.indexOf(_v);
+    if (initVol == -1) initVol = 5;
+    _volumeCtrl = FixedExtentScrollController(initialItem: initVol);
+    _degreeCtrl = FixedExtentScrollController(initialItem: _d.round());
+
     if (widget.existingConso != null) {
       _time = TimeOfDay.fromDateTime(widget.existingConso!.date);
+      _selectedDate = widget.existingConso!.date;
     } else {
       _time = TimeOfDay.now();
+      _selectedDate = widget.date;
     }
 
-    String logicalKeyDate = DateFormat('yyyyMMdd').format(widget.date);
-    String contextKey = "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
-    _contextCtrl = TextEditingController(text: widget.contexts[contextKey] ?? '');
+    String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
+    String contextKey =
+        "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
+    _contextCtrl = TextEditingController(
+      text: widget.contexts[contextKey] ?? '',
+    );
   }
 
   @override
   void dispose() {
     _contextCtrl.dispose();
+    _volumeCtrl.dispose();
+    _degreeCtrl.dispose();
     super.dispose();
   }
 
@@ -5170,369 +5922,403 @@ class _SaisieSheetState extends State<_SaisieSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.isDarkMode 
-                ? const Color(0xFF1A1F26).withValues(alpha: 0.6) 
-                : Colors.white.withValues(alpha: 0.6),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-            gradient: widget.isDarkMode
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E272E),
-                    Color(0xFF000000),
-                  ],
-                )
-              : null,
-            border: Border.all(
-              color: widget.isDarkMode ? Colors.white10 : Colors.black12,
-              width: 0.5,
+    final Color effectiveAccent = widget.accentColor;
+    final bool isDark = widget.isDarkMode;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0D1014) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+        boxShadow: [
+          if (isDark)
+            BoxShadow(
+              color: effectiveAccent.withValues(alpha: 0.08),
+              blurRadius: 40,
+              spreadRadius: 10,
+              offset: const Offset(0, -10),
+            ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle de fermeture premium
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 20),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white10 : Colors.black12,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          padding: EdgeInsets.fromLTRB(
-            24,
-            12,
-            24,
-            MediaQuery.of(context).viewInsets.bottom + 40,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle de fermeture
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 25),
-                ),
-                
-                Text(
-                  L10n.s('entry.title'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    fontSize: 12,
-                    color: widget.accentColor,
-                  ),
-                ),
-                Text(
-                  widget.moment.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: widget.isDarkMode ? Colors.white38 : Colors.black38,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Sélecteur de type premium
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    L10n.s('common.beer'),
-                    L10n.s('common.wine'),
-                    L10n.s('common.spirits'),
-                    L10n.s('common.soft'),
-                  ]
-                      .map((type) => _buildTypeCard(type))
-                      .toList(),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Sélecteur de volume moderne
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    L10n.s('entry.volume'),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                0,
+                24,
+                MediaQuery.of(context).viewInsets.bottom + 40,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    L10n.s('entry.title').toUpperCase(),
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
-                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.5,
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: ['4cl','8cl','12.5cl','15cl','25cl','33cl','50cl','75cl']
-                        .map((vol) => _buildVolumeChip(vol))
-                        .toList(),
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Section Degré
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      L10n.s('entry.alcohol'),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: effectiveAccent.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      widget.moment.toUpperCase(),
                       style: TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black87,
-                        letterSpacing: 1.2,
+                        color: effectiveAccent,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: widget.accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Champ Contexte Premium (Slick)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF161A20)
+                          : Colors.black.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.05),
+                        width: 1,
                       ),
-                      child: Text(
-                        "${_d.toStringAsFixed(1)} %",
-                        style: TextStyle(
-                          color: widget.accentColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                    ),
+                    child: TextField(
+                      controller: _contextCtrl,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: L10n.s('journal.add_context'),
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white24 : Colors.black26,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.edit_note_rounded,
+                          color: effectiveAccent.withValues(alpha: 0.6),
+                          size: 22,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: 6,
-                    activeTrackColor: widget.accentColor,
-                    inactiveTrackColor: widget.isDarkMode ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                    thumbColor: Colors.white,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 5),
-                    overlayColor: widget.accentColor.withValues(alpha: 0.2),
-                    showValueIndicator: ShowValueIndicator.onDrag,
-                    valueIndicatorColor: widget.accentColor,
-                    valueIndicatorTextStyle: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  child: Slider(
-                    value: _d,
-                    min: 0,
-                    max: 50,
-                    divisions: 100,
-                    label: "${_d.toStringAsFixed(1)}%",
-                    onChanged: (v) => setState(() => _d = v),
+
+                  const SizedBox(height: 32),
+
+                  // Sélecteur de Type (Premium Grid)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      L10n.s('common.beer'),
+                      L10n.s('common.wine'),
+                      L10n.s('common.spirits'),
+                      L10n.s('common.soft'),
+                    ].map((type) => _buildTypeCard(type)).toList(),
                   ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Heure avec style épuré
-                Container(
-                  decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    leading: Icon(Icons.access_time_filled, color: widget.accentColor, size: 20),
-                    title: Text(L10n.s('entry.time'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: widget.accentColor.withValues(alpha: 0.3)),
-                        borderRadius: BorderRadius.circular(10),
+
+                  const SizedBox(height: 32),
+
+                  // Sélecteurs Carrousel (Unified & Slick)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildWheelSelector(
+                          L10n.s('entry.volume').toUpperCase(),
+                          _volumeCtrl,
+                          _volumes,
+                          _v,
+                          Icons.water_drop_rounded,
+                          (idx) => setState(() => _v = _volumes[idx]),
+                          isVolume: true,
+                        ),
                       ),
-                      child: Text(
-                        "${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}",
-                        style: TextStyle(color: widget.accentColor, fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                    onTap: () async {
-                      final p = await showTimePicker(
-                        context: context,
-                        initialTime: _time,
-                        initialEntryMode: TimePickerEntryMode.dial,
-                        builder: (context, child) {
-                          return MediaQuery(
-                            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-                            child: Theme(
-                              data: Theme.of(context).copyWith(
-                                colorScheme: widget.isDarkMode 
-                                  ? ColorScheme.dark(primary: widget.accentColor, onPrimary: Colors.white, surface: const Color(0xFF1A1F26), onSurface: Colors.white)
-                                  : ColorScheme.light(primary: widget.accentColor, onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black),
-                                textButtonTheme: TextButtonThemeData(
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: widget.accentColor,
-                                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                ),
-                              ),
-                              child: child!,
-                            ),
-                          );
-                        },
-                      );
-                      if (p != null) setState(() => _time = p);
-                    },
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Champ Contexte
-                Container(
-                  decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextField(
-                    controller: _contextCtrl,
-                    style: TextStyle(fontSize: 13, color: widget.isDarkMode ? Colors.white : Colors.black),
-                    decoration: InputDecoration(
-                      hintText: L10n.s('journal.add_context'),
-                      hintStyle: TextStyle(color: widget.isDarkMode ? Colors.white24 : Colors.black26),
-                      prefixIcon: Icon(Icons.edit_note, color: widget.accentColor, size: 24),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 35),
-                
-                // Bouton Enregistrer Premium
-                Container(
-                  width: double.infinity,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.accentColor.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: _buildWheelSelector(
+                          "DEGRÉ".toUpperCase(),
+                          _degreeCtrl,
+                          List.generate(51, (i) => "$i%"),
+                          "${_d.toInt()}%",
+                          Icons.local_fire_department_rounded,
+                          (idx) => setState(() => _d = idx.toDouble()),
+                        ),
                       ),
                     ],
                   ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.accentColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      final String calculatedMoment = _getMomentFromTime(_time);
-                      DateTime finalDate = widget.date;
-                      if (calculatedMoment == L10n.s('moments.night') && _time.hour < 6) {
-                        finalDate = widget.date.add(const Duration(days: 1));
-                      }
-                      final fDate = DateTime(
-                        finalDate.year,
-                        finalDate.month,
-                        finalDate.day,
-                        _time.hour,
-                        _time.minute,
-                      );
-                      widget.onSave(Consumption(
-                        id: widget.existingConso?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        date: fDate,
-                        moment: calculatedMoment,
-                        type: _t == L10n.s('entry.types.soft') ? L10n.s('entry.types.no_alcohol') : _t,
-                        volume: _v,
-                        degree: _d,
-                        userId: widget.activeUserId,
-                      ));
 
-                      // Sauvegarde du contexte
-                      String logicalKeyDate = DateFormat('yyyyMMdd').format(widget.date);
-                      String contextKey = "${widget.activeUserId}_${logicalKeyDate}_${widget.moment}";
-                      widget.onUpdateContext(contextKey, _contextCtrl.text);
+                  const SizedBox(height: 32),
 
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      L10n.s('entry.save'),
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
+                  // Date & Heure (Premium Blocks like car interface)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildPremiumDateTimeBlock(
+                          "DATE",
+                          DateFormat('dd/MM').format(_selectedDate),
+                          Icons.calendar_today_rounded,
+                          const Color(0xFF6366F1), // Indigo/Blue
+                          () async {
+                            final d = await showDatePicker(
+                              context: context,
+                              initialDate: _selectedDate,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => _buildThemePicker(
+                                context,
+                                child,
+                                const Color(0xFF6366F1),
+                              ),
+                            );
+                            if (d != null) setState(() => _selectedDate = d);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildPremiumDateTimeBlock(
+                          "HEURE",
+                          "${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}",
+                          Icons.access_time_filled_rounded,
+                          const Color(0xFF10B981), // Emerald/Green
+                          () async {
+                            final t = await showTimePicker(
+                              context: context,
+                              initialTime: _time,
+                              builder: (context, child) => _buildThemePicker(
+                                context,
+                                child,
+                                const Color(0xFF10B981),
+                              ),
+                            );
+                            if (t != null) setState(() => _time = t);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Bouton Enregistrer (Vibrant Glow Button)
+                  GestureDetector(
+                    onTap: _handleSave,
+                    child: Container(
+                      width: double.infinity,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            effectiveAccent,
+                            effectiveAccent.withValues(alpha: 0.8),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: effectiveAccent.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          L10n.s('entry.save').toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
+  Widget _buildThemePicker(BuildContext context, Widget? child, Color color) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: widget.isDarkMode
+            ? ColorScheme.dark(
+                primary: color,
+                onPrimary: Colors.white,
+                surface: const Color(0xFF1A1F26),
+              )
+            : ColorScheme.light(
+                primary: color,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+              ),
+      ),
+      child: child!,
+    );
+  }
+
+  void _handleSave() {
+    final String calculatedMoment = _getMomentFromTime(_time);
+    DateTime finalDate = _selectedDate;
+    if (calculatedMoment == L10n.s('moments.night') && _time.hour < 6) {
+      finalDate = _selectedDate.add(const Duration(days: 1));
+    }
+    final fDate = DateTime(
+      finalDate.year,
+      finalDate.month,
+      finalDate.day,
+      _time.hour,
+      _time.minute,
+    );
+    widget.onSave(
+      Consumption(
+        id:
+            widget.existingConso?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        date: fDate,
+        moment: calculatedMoment,
+        type: _t == L10n.s('entry.types.soft')
+            ? L10n.s('entry.types.no_alcohol')
+            : _t,
+        volume: _v,
+        degree: _d,
+        userId: widget.activeUserId,
+      ),
+    );
+
+    String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
+    String contextKey =
+        "${widget.activeUserId}_${logicalKeyDate}_$calculatedMoment";
+    widget.onUpdateContext(contextKey, _contextCtrl.text);
+    Navigator.pop(context);
+  }
+
   Widget _buildTypeCard(String type) {
-    bool isSel = _t == type || (_t == L10n.s('entry.types.no_alcohol') && type == L10n.s('entry.types.soft'));
+    final bool isDark = widget.isDarkMode;
+    final Color accent = widget.accentColor;
+    bool isSel =
+        _t == type ||
+        (_t == L10n.s('entry.types.no_alcohol') &&
+            type == L10n.s('entry.types.soft'));
+
     IconData icon;
     if (type == L10n.s('common.beer')) {
-      icon = Icons.sports_bar;
-    } else if (type == L10n.s('common.wine')) {
-      icon = Icons.wine_bar;
-    } else if (type == L10n.s('common.soft')) {
-      icon = Icons.local_cafe;
-    } else {
-      icon = Icons.local_drink;
-    }
+      icon = Icons.sports_bar_rounded;
+    } else if (type == L10n.s('common.wine'))
+      icon = Icons.wine_bar_rounded;
+    else if (type == L10n.s('common.soft'))
+      icon = Icons.local_cafe_rounded;
+    else
+      icon = Icons.local_drink_rounded;
 
     return GestureDetector(
-      onTap: () => setState(() {
-        _t = type;
-        if (type == L10n.s('common.beer')) {
-          _d = 6.0;
-          if (widget.existingConso == null) _v = '33cl';
-        } else if (type == L10n.s('common.wine')) {
-          _d = 13.0;
-          if (widget.existingConso == null) _v = '12.5cl';
-        } else if (type == L10n.s('common.spirits')) {
-          _d = 40.0;
-          if (widget.existingConso == null) _v = '4cl';
-        } else {
-          _d = 0.0;
-          if (widget.existingConso == null) _v = '25cl';
-        }
-      }),
+      onTap: () {
+        setState(() {
+          _t = type;
+          if (type == L10n.s('common.beer')) {
+            _d = 6.0;
+            if (widget.existingConso == null) _v = '33cl';
+          } else if (type == L10n.s('common.wine')) {
+            _d = 13.0;
+            if (widget.existingConso == null) _v = '12.5cl';
+          } else if (type == L10n.s('common.spirits')) {
+            _d = 40.0;
+            if (widget.existingConso == null) _v = '4cl';
+          } else {
+            _d = 0.0;
+            if (widget.existingConso == null) _v = '25cl';
+          }
+        });
+        int vIdx = _volumes.indexOf(_v);
+        if (vIdx != -1) _volumeCtrl.jumpToItem(vIdx);
+        _degreeCtrl.jumpToItem(_d.round());
+      },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 75,
+        duration: const Duration(milliseconds: 250),
+        width: MediaQuery.of(context).size.width / 4.8,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSel 
-              ? widget.accentColor.withValues(alpha: 0.25) 
-              : (widget.isDarkMode ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+          color: isSel
+              ? accent.withValues(alpha: 0.15)
+              : (isDark
+                    ? const Color(0xFF161A20)
+                    : Colors.black.withValues(alpha: 0.03)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? widget.accentColor : Colors.white10,
+            color: isSel
+                ? accent.withValues(alpha: 0.8)
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05)),
             width: isSel ? 2 : 1,
           ),
-          boxShadow: isSel ? [
-            BoxShadow(
-              color: widget.accentColor.withValues(alpha: 0.3),
-              blurRadius: 10,
-              spreadRadius: 1,
-            )
-          ] : [],
+          boxShadow: isSel
+              ? [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSel ? widget.accentColor : Colors.blueGrey, size: 28),
+            Icon(
+              icon,
+              color: isSel
+                  ? accent
+                  : (isDark ? Colors.white38 : Colors.black38),
+              size: 28,
+            ),
             const SizedBox(height: 8),
             Text(
               type,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-                color: isSel 
-                    ? (widget.isDarkMode ? Colors.white : Colors.black) 
-                    : Colors.blueGrey,
+                fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
+                color: isSel
+                    ? accent
+                    : (isDark ? Colors.white38 : Colors.black38),
               ),
             ),
           ],
@@ -5541,36 +6327,162 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     );
   }
 
-  Widget _buildVolumeChip(String vol) {
-    bool isSel = _v == vol;
-    String displayLabel = vol;
-    if (widget.unitMl && vol.contains('cl')) {
-      double val = double.tryParse(vol.replaceAll('cl', '')) ?? 0;
-      displayLabel = "${(val * 10).toInt()}ml";
-    }
-    return GestureDetector(
-      onTap: () => setState(() => _v = vol),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSel ? widget.accentColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSel ? widget.accentColor : (widget.isDarkMode ? Colors.white24 : Colors.black12),
+  Widget _buildWheelSelector(
+    String label,
+    FixedExtentScrollController ctrl,
+    List<String> items,
+    String current,
+    IconData icon,
+    Function(int) onSelected, {
+    bool isVolume = false,
+  }) {
+    final bool isDark = widget.isDarkMode;
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: isDark ? Colors.white38 : Colors.black38,
+            letterSpacing: 1.5,
           ),
         ),
-        child: Text(
-          displayLabel,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-            color: isSel ? Colors.white : (widget.isDarkMode ? Colors.white70 : Colors.black87),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 150,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Focus highlight slick
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: widget.accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: widget.accentColor.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.accentColor.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+              ListWheelScrollView.useDelegate(
+                controller: ctrl,
+                itemExtent: 50,
+                perspective: 0.008,
+                diameterRatio: 1.2,
+                physics: const FixedExtentScrollPhysics(),
+                onSelectedItemChanged: onSelected,
+                childDelegate: ListWheelChildBuilderDelegate(
+                  childCount: items.length,
+                  builder: (context, index) {
+                    String display = items[index];
+                    if (isVolume && widget.unitMl && display.contains('cl')) {
+                      double val =
+                          double.tryParse(display.replaceAll('cl', '')) ?? 0;
+                      display = "${(val * 10).toInt()}ml";
+                    }
+                    bool isSel = current == display;
+                    return Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isSel)
+                            Icon(icon, size: 14, color: widget.accentColor),
+                          if (isSel) const SizedBox(width: 8),
+                          Text(
+                            display,
+                            style: TextStyle(
+                              fontSize: isSel ? 20 : 14,
+                              fontWeight: isSel
+                                  ? FontWeight.w900
+                                  : FontWeight.w500,
+                              color: isSel
+                                  ? Colors.white
+                                  : (isDark ? Colors.white24 : Colors.black26),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumDateTimeBlock(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    final bool isDark = widget.isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark
+              ? const Color(0xFF161A20)
+              : Colors.black.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.05),
+          ),
+          boxShadow: [
+            if (isDark)
+              BoxShadow(
+                color: color.withValues(alpha: 0.05),
+                blurRadius: 20,
+                spreadRadius: 0,
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 14, color: color),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
