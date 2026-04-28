@@ -1957,6 +1957,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  double _getCalendarHeight() {
+    final daysInMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    final firstDay =
+        DateTime(_focusedMonth.year, _focusedMonth.month, 1).weekday - 1;
+    final rows = ((firstDay + daysInMonth) / 7.0).ceil();
+    // 40px pour l'en-tête (Lun, Mar...) + environ 55px par ligne (cellule + espacement)
+    return 40.0 + (rows * 54.0);
+  }
+
   Widget _buildPartyModeWidget() {
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
     String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
@@ -2183,8 +2193,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 320,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  height: _getCalendarHeight(),
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) => setState(
