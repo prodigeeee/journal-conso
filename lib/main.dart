@@ -1958,10 +1958,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double _getCalendarHeight(double maxWidth) {
-    // On déduit les paddings du module (20 de marge ext + 16 de padding int)
     final double availableWidth = maxWidth - 32;
     final double cellWidth = (availableWidth - (6 * 8)) / 7;
-    final double cellHeight = cellWidth / 1.1;
+    final double cellHeight = cellWidth; // Ratio 1.0 pour être plus robuste
 
     final daysInMonth =
         DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
@@ -1969,8 +1968,8 @@ class _HomeScreenState extends State<HomeScreen> {
         DateTime(_focusedMonth.year, _focusedMonth.month, 1).weekday - 1;
     final rows = ((firstDay + daysInMonth) / 7.0).ceil();
 
-    // 45px pour l'en-tête (Lun, Mar...) + (Lignes * (Hauteur cellule + espacement))
-    return 50.0 + (rows * (cellHeight + 8));
+    // 70px pour l'en-tête (Lun, Mar...) + (Lignes * (Hauteur cellule + espacement))
+    return 70.0 + (rows * (cellHeight + 8));
   }
 
   Widget _buildPartyModeWidget() {
@@ -2325,7 +2324,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisCount: 7,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 1.1,
+            childAspectRatio: 1.0,
           ),
           itemBuilder: (context, index) {
             final dayNum = index - firstDay + 1;
