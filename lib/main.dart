@@ -1957,21 +1957,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  double _getCalendarHeight(double maxWidth) {
-    final double availableWidth = maxWidth - 32;
-    final double cellWidth = (availableWidth - (6 * 8)) / 7;
-    final double cellHeight = cellWidth; // Ratio 1.0 pour être plus robuste
-
-    final daysInMonth =
-        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
-    final firstDay =
-        DateTime(_focusedMonth.year, _focusedMonth.month, 1).weekday - 1;
-    final rows = ((firstDay + daysInMonth) / 7.0).ceil();
-
-    // 70px pour l'en-tête (Lun, Mar...) + (Lignes * (Hauteur cellule + espacement))
-    return 70.0 + (rows * (cellHeight + 8));
-  }
-
   Widget _buildPartyModeWidget() {
     String logicalKeyDate = DateFormat('yyyyMMdd').format(_selectedDate);
     String partyKey = "${widget.activeUserId}_${logicalKeyDate}_partyGoal";
@@ -2175,11 +2160,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 20,
                             color: widget.accentColor,
                           ),
-                          onPressed: () => _pageController.animateToPage(
-                            _pageController.page!.toInt() - 1,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOutCubic,
-                          ),
+                          onPressed: () => setState(() {
+                            _focusedMonth = DateTime(
+                              _focusedMonth.year,
+                              _focusedMonth.month - 1,
+                            );
+                          }),
                         ),
                         IconButton(
                           icon: Icon(
@@ -2187,41 +2173,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 20,
                             color: widget.accentColor,
                           ),
-                          onPressed: () => _pageController.animateToPage(
-                            _pageController.page!.toInt() + 1,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOutCubic,
-                          ),
+                          onPressed: () => setState(() {
+                            _focusedMonth = DateTime(
+                              _focusedMonth.year,
+                              _focusedMonth.month + 1,
+                            );
+                          }),
                         ),
                       ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      height: _getCalendarHeight(constraints.maxWidth),
-                      child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) => setState(
-                      () => _focusedMonth = DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month + (index - 1200),
-                      ),
-                    ),
-                    itemBuilder: (context, index) => _buildHeatmap(
-                      DateTime(
-                        DateTime.now().year,
-                        DateTime.now().month + (index - 1200),
-                      ),
-                    ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    key: ValueKey(_focusedMonth),
+                    child: _buildHeatmap(_focusedMonth),
                   ),
-                );
-              },
-            ),
+                ),
                 _buildMonthlySummary(),
                 const SizedBox(height: 10),
                 SizedBox(
@@ -2317,6 +2287,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         GridView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 42,
@@ -2324,7 +2295,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisCount: 7,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 1.0,
+            childAspectRatio: 1.1,
           ),
           itemBuilder: (context, index) {
             final dayNum = index - firstDay + 1;
@@ -2490,7 +2461,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -6055,7 +6026,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
             decoration: BoxDecoration(
               color: isDark
