@@ -2459,32 +2459,45 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _summaryBadge(String label, int count, Color color) {
+    String? imagePath;
+    if (label == L10n.s('common.beer')) {
+      imagePath = 'assets/images/beer.png';
+    } else if (label == L10n.s('common.wine')) {
+      imagePath = 'assets/images/wine.png';
+    } else if (label == L10n.s('common.spirits')) {
+      imagePath = 'assets/images/whisky.png';
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
+          if (imagePath != null)
+            Image.asset(imagePath, height: 36, fit: BoxFit.contain)
+          else
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+          const SizedBox(width: 10),
           Text(
             '$count',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
               color: widget.isDarkMode ? Colors.white : Colors.black87,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: Colors.blueGrey,
-              fontWeight: FontWeight.bold,
+              color: widget.isDarkMode ? Colors.white38 : Colors.black45,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -2669,93 +2682,115 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _consoDraggable(Consumption c) {
     final Color drinkColor = _getUIConstantDrinkColor(c.type);
-    final String initial = (c.type == L10n.s('entry.types.no_alcohol'))
-        ? "Ø"
-        : c.type[0];
+    String? imagePath;
+    if (c.type == L10n.s('common.beer')) {
+      imagePath = 'assets/images/beer.png';
+    } else if (c.type == L10n.s('common.wine')) {
+      imagePath = 'assets/images/wine.png';
+    } else if (c.type == L10n.s('common.spirits')) {
+      imagePath = 'assets/images/whisky.png';
+    } else if (c.type == L10n.s('entry.types.no_alcohol') || c.type == 'Soft') {
+      imagePath = 'assets/images/water.png';
+    }
 
     final chip = Material(
       color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: drinkColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: drinkColor.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            InkWell(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                bottomLeft: Radius.circular(14),
-              ),
-              onTap: () {
-                final now = DateTime.now();
-                DateTime logicalDate = c.date.hour < 6
-                    ? c.date.subtract(const Duration(days: 1))
-                    : c.date;
-
-                DateTime targetPhysicalDate = now.hour < 6
-                    ? logicalDate.add(const Duration(days: 1))
-                    : logicalDate;
-
-                final newDate = DateTime(
-                  targetPhysicalDate.year,
-                  targetPhysicalDate.month,
-                  targetPhysicalDate.day,
-                  now.hour,
-                  now.minute,
-                );
-
-                widget.onAddOrUpdate(
-                  Consumption(
-                    id: now.millisecondsSinceEpoch.toString(),
-                    date: newDate,
-                    moment: getMomentFromTime(TimeOfDay.fromDateTime(newDate)),
-                    type: c.type,
-                    volume: c.volume,
-                    degree: c.degree,
-                    userId: c.userId,
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-                child: Icon(Icons.add_circle, size: 20, color: drinkColor),
-              ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.centerLeft,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+              color: drinkColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: drinkColor.withValues(alpha: 0.2)),
             ),
-            InkWell(
-              onTap: () => _showSaisie(c.moment, existingConso: c),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Text(
-                  '$initial ${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: drinkColor,
-                    fontWeight: FontWeight.w700,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 25), // Plus d'espace pour la grande icône
+                InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () {
+                    final now = DateTime.now();
+                    DateTime logicalDate = c.date.hour < 6
+                        ? c.date.subtract(const Duration(days: 1))
+                        : c.date;
+
+                    DateTime targetPhysicalDate = now.hour < 6
+                        ? logicalDate.add(const Duration(days: 1))
+                        : logicalDate;
+
+                    final newDate = DateTime(
+                      targetPhysicalDate.year,
+                      targetPhysicalDate.month,
+                      targetPhysicalDate.day,
+                      now.hour,
+                      now.minute,
+                    );
+
+                    widget.onAddOrUpdate(
+                      Consumption(
+                        id: now.millisecondsSinceEpoch.toString(),
+                        date: newDate,
+                        moment: getMomentFromTime(TimeOfDay.fromDateTime(newDate)),
+                        type: c.type,
+                        volume: c.volume,
+                        degree: c.degree,
+                        userId: c.userId,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                    child: Icon(Icons.add_circle_outline_rounded, size: 18, color: drinkColor.withValues(alpha: 0.6)),
                   ),
                 ),
-              ),
-            ),
-            InkWell(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(14),
-                bottomRight: Radius.circular(14),
-              ),
-              onTap: () => widget.onDelete(c.id),
-              child: const Padding(
-                padding: EdgeInsets.fromLTRB(6, 8, 10, 8),
-                child: Icon(
-                  Icons.delete_outline,
-                  size: 20,
-                  color: Colors.redAccent,
+                InkWell(
+                  onTap: () => _showSaisie(c.moment, existingConso: c),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    child: Text(
+                      '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ),
+                InkWell(
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(22),
+                    bottomRight: Radius.circular(22),
+                  ),
+                  onTap: () => widget.onDelete(c.id),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 12, 14, 12),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: Colors.redAccent.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (imagePath != null)
+            Positioned(
+              left: -5,
+              child: Image.asset(
+                imagePath,
+                height: 50,
+                width: 50,
+                fit: BoxFit.contain,
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
     return LongPressDraggable<Consumption>(
@@ -6123,7 +6158,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     "TYPE DE CONSOMMATION",
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? Colors.white38 : Colors.black38, letterSpacing: 1.2),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 60),
 
                   Row(
                     children: [
@@ -6353,15 +6388,23 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         (_t == L10n.s('entry.types.no_alcohol') &&
             type == L10n.s('entry.types.soft'));
 
+    String? imagePath;
     IconData icon;
     if (type == L10n.s('common.beer')) {
+      imagePath = 'assets/images/beer.png';
       icon = Icons.sports_bar_rounded;
-    } else if (type == L10n.s('common.wine'))
+    } else if (type == L10n.s('common.wine')) {
+      imagePath = 'assets/images/wine.png';
       icon = Icons.wine_bar_rounded;
-    else if (type == L10n.s('common.soft'))
-      icon = Icons.local_cafe_rounded;
-    else
+    } else if (type == L10n.s('common.spirits')) {
+      imagePath = 'assets/images/whisky.png';
       icon = Icons.local_drink_rounded;
+    } else if (type == L10n.s('common.soft')) {
+      imagePath = 'assets/images/water.png';
+      icon = Icons.local_cafe_rounded;
+    } else {
+      icon = Icons.help_outline;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -6385,47 +6428,72 @@ class _SaisieSheetState extends State<_SaisieSheet> {
         if (vIdx != -1) _volumeCtrl.jumpToItem(vIdx);
         _degreeCtrl.jumpToItem(_d.round());
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: isSel
-              ? LinearGradient(
-                  colors: [accent.withValues(alpha: 0.6), accent.withValues(alpha: 0.1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: !isSel ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)) : null,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSel ? accent : Colors.white.withValues(alpha: 0.05),
-            width: isSel ? 2 : 1,
-          ),
-          boxShadow: isSel
-              ? [
-                  BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 15, spreadRadius: 1),
-                ]
-              : null,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
-              size: 28,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.fromLTRB(8, 48, 8, 12),
+            decoration: BoxDecoration(
+              gradient: isSel
+                  ? LinearGradient(
+                      colors: [accent.withValues(alpha: 0.6), accent.withValues(alpha: 0.1)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: !isSel ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)) : null,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSel ? accent : Colors.white.withValues(alpha: 0.05),
+                width: isSel ? 2 : 1,
+              ),
+              boxShadow: isSel
+                  ? [
+                      BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 15, spreadRadius: 1),
+                    ]
+                  : null,
             ),
-            const SizedBox(height: 8),
-            Text(
-              type,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
+            child: Center(
+              child: Text(
+                type,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
+                  color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            top: isSel ? -55 : 12,
+            child: isSel && imagePath != null
+                ? TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.4, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Image.asset(
+                          imagePath!,
+                          height: 110,
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
+                  )
+                : Icon(
+                    icon,
+                    color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
+                    size: 26,
+                  ),
+          ),
+        ],
       ),
     );
   }
