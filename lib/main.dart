@@ -2219,9 +2219,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         DateTime.now().month + (index - 1200),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
+            ),
                 _buildMonthlySummary(),
                 const SizedBox(height: 10),
                 SizedBox(
