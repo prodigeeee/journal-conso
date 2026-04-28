@@ -1957,14 +1957,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  double _getCalendarHeight() {
+  double _getCalendarHeight(double maxWidth) {
+    // On déduit les paddings du module (20 de marge ext + 16 de padding int)
+    final double availableWidth = maxWidth - 32;
+    final double cellWidth = (availableWidth - (6 * 8)) / 7;
+    final double cellHeight = cellWidth / 1.1;
+
     final daysInMonth =
         DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
     final firstDay =
         DateTime(_focusedMonth.year, _focusedMonth.month, 1).weekday - 1;
     final rows = ((firstDay + daysInMonth) / 7.0).ceil();
-    // 40px pour l'en-tête (Lun, Mar...) + environ 55px par ligne (cellule + espacement)
-    return 40.0 + (rows * 54.0);
+
+    // 45px pour l'en-tête (Lun, Mar...) + (Lignes * (Hauteur cellule + espacement))
+    return 50.0 + (rows * (cellHeight + 8));
   }
 
   Widget _buildPartyModeWidget() {
@@ -2193,11 +2199,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: _getCalendarHeight(),
-                  child: PageView.builder(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      height: _getCalendarHeight(constraints.maxWidth),
+                      child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) => setState(
                       () => _focusedMonth = DateTime(
@@ -2211,8 +2219,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         DateTime.now().month + (index - 1200),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
                 _buildMonthlySummary(),
                 const SizedBox(height: 10),
                 SizedBox(
