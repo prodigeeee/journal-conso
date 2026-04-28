@@ -74,6 +74,9 @@ flutter:
     - assets/images/terrasse_credits.jpg
     - assets/images/title.png
     - assets/images/beer.png
+    - assets/images/wine.png
+    - assets/images/whisky.png
+    - assets/images/water.png
     - assets/lang/
 
   # To add assets to your application, add an assets section, like this:
