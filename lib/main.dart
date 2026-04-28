@@ -20,6 +20,7 @@ import 'package:printing/printing.dart';
 
 // On n'importe dart:io que si on n'est PAS sur le web pour éviter les crashs de compilation
 import 'dart:io' if (dart.library.html) 'utils/web_stubs.dart' as io;
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'models/models.dart';
 import 'utils/helpers.dart';
@@ -5879,6 +5880,70 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   ];
   late FixedExtentScrollController _volumeCtrl;
   late FixedExtentScrollController _degreeCtrl;
+  
+  bool _isListening = false;
+  final stt.SpeechToText _speech = stt.SpeechToText();
+
+  void _listen() async {
+    if (!_isListening) {
+      try {
+        bool available = await _speech.initialize(
+          onStatus: (val) {
+            debugPrint('onStatus: $val');
+            if (val == 'done' || val == 'notListening') {
+              if (mounted) setState(() => _isListening = false);
+            }
+          },
+          onError: (val) {
+            debugPrint('onError: $val');
+            if (mounted) {
+              setState(() => _isListening = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Erreur dictée : ${val.errorMsg}")),
+              );
+            }
+          },
+        );
+        if (available) {
+          final locales = await _speech.locales();
+          // On cherche fr_FR ou fr-FR, sinon on prend le premier disponible
+          String? localeId;
+          try {
+            localeId = locales.firstWhere(
+              (l) => l.localeId.contains('fr'),
+            ).localeId;
+          } catch (e) {
+            localeId = null; // Laisser le système décider
+          }
+
+          if (mounted) setState(() => _isListening = true);
+          _speech.listen(
+            onResult: (val) {
+              if (mounted) {
+                setState(() {
+                  _contextCtrl.text = val.recognizedWords;
+                });
+              }
+            },
+            localeId: localeId,
+            cancelOnError: true,
+            listenMode: stt.ListenMode.dictation,
+          );
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Dictée vocale non disponible sur cet appareil")),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint("Speech init error: $e");
+      }
+    } else {
+      if (mounted) setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
 
   @override
   void initState() {
@@ -5922,122 +5987,144 @@ class _SaisieSheetState extends State<_SaisieSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final Color effectiveAccent = widget.accentColor;
+    final Color effectiveAccent = const Color(0xFFFF7B00);
     final bool isDark = widget.isDarkMode;
 
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0D1014) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-        boxShadow: [
-          if (isDark)
-            BoxShadow(
-              color: effectiveAccent.withValues(alpha: 0.08),
-              blurRadius: 40,
-              spreadRadius: 10,
-              offset: const Offset(0, -10),
-            ),
-        ],
+      height: MediaQuery.of(context).size.height,
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle de fermeture premium
-          Container(
-            width: 36,
-            height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 20),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+          child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white10 : Colors.black12,
-              borderRadius: BorderRadius.circular(2),
+              color: isDark
+                  ? const Color(0xFF0A0C10).withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
+              ),
+              boxShadow: [
+                if (isDark)
+                  BoxShadow(
+                    color: effectiveAccent.withValues(alpha: 0.08),
+                    blurRadius: 40,
+                    spreadRadius: 10,
+                    offset: const Offset(0, -10),
+                  ),
+              ],
+            ),
+            child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.arrow_back_ios_new_rounded, color: effectiveAccent, size: 16),
+                  ),
+                ),
+                Column(
+                  children: [
+                    Text(
+                      'Nouvelle consommation',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: effectiveAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: effectiveAccent.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.wb_sunny_rounded, color: effectiveAccent, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.moment.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: effectiveAccent,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 40),
+              ],
             ),
           ),
-
+          
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                0,
-                24,
-                MediaQuery.of(context).viewInsets.bottom + 40,
-              ),
+              padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(context).viewInsets.bottom),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    L10n.s('entry.title').toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.5,
-                      fontSize: 13,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: effectiveAccent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      widget.moment.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: effectiveAccent,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Champ Contexte Premium (Slick)
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF161A20)
-                          : Colors.black.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.05),
-                        width: 1,
-                      ),
+                      color: isDark ? const Color(0xFF161A20).withValues(alpha: 0.6) : Colors.black.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: effectiveAccent, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: effectiveAccent.withValues(alpha: 0.2),
+                          blurRadius: 12,
+                        ),
+                      ],
                     ),
                     child: TextField(
                       controller: _contextCtrl,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                        hintText: L10n.s('journal.add_context'),
-                        hintStyle: TextStyle(
-                          color: isDark ? Colors.white24 : Colors.black26,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.edit_note_rounded,
-                          color: effectiveAccent.withValues(alpha: 0.6),
-                          size: 22,
+                        hintText: "Ajouter un contexte...",
+                        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                        prefixIcon: Icon(Icons.edit, color: effectiveAccent, size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(_isListening ? Icons.mic_rounded : Icons.mic_none_rounded, 
+                                     color: _isListening ? effectiveAccent : (isDark ? Colors.white38 : Colors.black38)),
+                          onPressed: _listen,
                         ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 18,
-                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  Text(
+                    "TYPE DE CONSOMMATION",
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? Colors.white38 : Colors.black38, letterSpacing: 1.2),
+                  ),
+                  const SizedBox(height: 12),
 
-                  // Sélecteur de Type (Premium Grid)
                   Row(
                     children: [
                       L10n.s('common.beer'),
@@ -6049,8 +6136,8 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                       String type = entry.value;
                       return Expanded(
                         child: Padding(
-                          padding: EdgeInsets.only(right: idx < 3 ? 10 : 0),
-                          child: _buildTypeCard(type),
+                          padding: EdgeInsets.only(right: idx < 3 ? 8 : 0),
+                          child: _buildTypeCard(type, effectiveAccent),
                         ),
                       );
                     }).toList(),
@@ -6058,56 +6145,61 @@ class _SaisieSheetState extends State<_SaisieSheet> {
 
                   const SizedBox(height: 32),
 
-                  // Sélecteurs Carrousel (Unified & Slick)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildWheelSelector(
-                          L10n.s('entry.volume').toUpperCase(),
-                          _volumeCtrl,
-                          _volumes,
-                          _v,
-                          Icons.water_drop_rounded,
-                          (idx) => setState(() => _v = _volumes[idx]),
-                          isVolume: true,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildWheelSelector(
+                            "VOLUME",
+                            _volumeCtrl,
+                            _volumes,
+                            _v,
+                            Icons.water_drop_rounded,
+                            (idx) => setState(() => _v = _volumes[idx]),
+                            effectiveAccent,
+                            isVolume: true,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: _buildWheelSelector(
-                          "DEGRÉ".toUpperCase(),
-                          _degreeCtrl,
-                          List.generate(51, (i) => "$i%"),
-                          "${_d.toInt()}%",
-                          Icons.local_fire_department_rounded,
-                          (idx) => setState(() => _d = idx.toDouble()),
+                        Container(width: 1, height: 120, color: Colors.white.withValues(alpha: 0.1)),
+                        Expanded(
+                          child: _buildWheelSelector(
+                            "DEGRÉ D'ALCOOL",
+                            _degreeCtrl,
+                            List.generate(51, (i) => "$i%"),
+                            "${_d.toInt()}%",
+                            Icons.water_drop,
+                            (idx) => setState(() => _d = idx.toDouble()),
+                            effectiveAccent,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
-                  // Date & Heure (Premium Blocks like car interface)
                   Row(
                     children: [
                       Expanded(
                         child: _buildPremiumDateTimeBlock(
                           "DATE",
-                          DateFormat('dd/MM').format(_selectedDate),
+                          DateFormat('dd/MM/yyyy').format(_selectedDate),
+                          DateFormat('EEEE', 'fr_FR').format(_selectedDate),
                           Icons.calendar_today_rounded,
-                          const Color(0xFF6366F1), // Indigo/Blue
+                          effectiveAccent,
                           () async {
                             final d = await showDatePicker(
                               context: context,
                               initialDate: _selectedDate,
                               firstDate: DateTime(2000),
                               lastDate: DateTime.now(),
-                              builder: (context, child) => _buildThemePicker(
-                                context,
-                                child,
-                                const Color(0xFF6366F1),
-                              ),
+                              builder: (context, child) => _buildThemePicker(context, child, effectiveAccent),
                             );
                             if (d != null) setState(() => _selectedDate = d);
                           },
@@ -6118,17 +6210,14 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         child: _buildPremiumDateTimeBlock(
                           "HEURE",
                           "${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}",
-                          Icons.access_time_filled_rounded,
-                          const Color(0xFF10B981), // Emerald/Green
+                          "",
+                          Icons.access_time_rounded,
+                          effectiveAccent,
                           () async {
                             final t = await showTimePicker(
                               context: context,
                               initialTime: _time,
-                              builder: (context, child) => _buildThemePicker(
-                                context,
-                                child,
-                                const Color(0xFF10B981),
-                              ),
+                              builder: (context, child) => _buildThemePicker(context, child, effectiveAccent),
                             );
                             if (t != null) setState(() => _time = t);
                           },
@@ -6137,9 +6226,8 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     ],
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
-                  // Bouton Enregistrer (Vibrant Glow Button)
                   GestureDetector(
                     onTap: _handleSave,
                     child: Container(
@@ -6149,38 +6237,56 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                         gradient: LinearGradient(
                           colors: [
                             effectiveAccent,
-                            effectiveAccent.withValues(alpha: 0.8),
+                            const Color(0xFFD96300),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: effectiveAccent.withValues(alpha: 0.4),
-                            blurRadius: 20,
+                            color: effectiveAccent.withValues(alpha: 0.5),
+                            blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      child: Center(
-                        child: Text(
-                          L10n.s('entry.save').toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            letterSpacing: 2.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Spacer(),
+                          Text(
+                            "ENREGISTRER",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              letterSpacing: 2.0,
+                            ),
                           ),
-                        ),
+                          const Spacer(),
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
         ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -6240,9 +6346,8 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     Navigator.pop(context);
   }
 
-  Widget _buildTypeCard(String type) {
+  Widget _buildTypeCard(String type, Color accent) {
     final bool isDark = widget.isDarkMode;
-    final Color accent = widget.accentColor;
     bool isSel =
         _t == type ||
         (_t == L10n.s('entry.types.no_alcohol') &&
@@ -6282,30 +6387,24 @@ class _SaisieSheetState extends State<_SaisieSheet> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        // Retiré width fixe pour laisser Expanded gérer l'espace
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSel
-              ? accent.withValues(alpha: 0.15)
-              : (isDark
-                    ? const Color(0xFF161A20)
-                    : Colors.black.withValues(alpha: 0.03)),
-          borderRadius: BorderRadius.circular(20),
+          gradient: isSel
+              ? LinearGradient(
+                  colors: [accent.withValues(alpha: 0.6), accent.withValues(alpha: 0.1)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: !isSel ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)) : null,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSel
-                ? accent.withValues(alpha: 0.8)
-                : (isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05)),
+            color: isSel ? accent : Colors.white.withValues(alpha: 0.05),
             width: isSel ? 2 : 1,
           ),
           boxShadow: isSel
               ? [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.2),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
+                  BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 15, spreadRadius: 1),
                 ]
               : null,
         ),
@@ -6313,20 +6412,16 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           children: [
             Icon(
               icon,
-              color: isSel
-                  ? accent
-                  : (isDark ? Colors.white38 : Colors.black38),
+              color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
               size: 28,
             ),
             const SizedBox(height: 8),
             Text(
               type,
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSel ? FontWeight.w900 : FontWeight.w600,
-                color: isSel
-                    ? accent
-                    : (isDark ? Colors.white38 : Colors.black38),
+                fontSize: 11,
+                fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                color: isSel ? Colors.white : (isDark ? Colors.white60 : Colors.black38),
               ),
             ),
           ],
@@ -6341,83 +6436,106 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     List<String> items,
     String current,
     IconData icon,
-    Function(int) onSelected, {
+    Function(int) onSelected,
+    Color accent, {
     bool isVolume = false,
   }) {
     final bool isDark = widget.isDarkMode;
+    
+    String valNum = current.replaceAll(RegExp(r'[^0-9.]'), '');
+    String valUnit = current.replaceAll(RegExp(r'[0-9.]'), '');
+    
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-            color: isDark ? Colors.white38 : Colors.black38,
-            letterSpacing: 1.5,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 12, color: isDark ? Colors.white54 : Colors.black54),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white54 : Colors.black54,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 150,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              valNum,
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w900,
+                color: accent,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              valUnit,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: accent,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 120,
+          width: 100,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Focus highlight slick
-              Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: widget.accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: widget.accentColor.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.accentColor.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(height: 1, width: double.infinity, decoration: BoxDecoration(
+                    boxShadow: [BoxShadow(color: accent, blurRadius: 4, spreadRadius: 1)],
+                    color: accent.withValues(alpha: 0.8),
+                  )),
+                  const SizedBox(height: 38),
+                  Container(height: 1, width: double.infinity, decoration: BoxDecoration(
+                    boxShadow: [BoxShadow(color: accent, blurRadius: 4, spreadRadius: 1)],
+                    color: accent.withValues(alpha: 0.8),
+                  )),
+                ],
               ),
               ListWheelScrollView.useDelegate(
                 controller: ctrl,
-                itemExtent: 50,
-                perspective: 0.008,
-                diameterRatio: 1.2,
+                itemExtent: 38,
+                perspective: 0.01,
+                diameterRatio: 1.5,
                 physics: const FixedExtentScrollPhysics(),
                 onSelectedItemChanged: onSelected,
                 childDelegate: ListWheelChildBuilderDelegate(
                   childCount: items.length,
                   builder: (context, index) {
                     String display = items[index];
-                    if (isVolume && widget.unitMl && display.contains('cl')) {
-                      double val =
-                          double.tryParse(display.replaceAll('cl', '')) ?? 0;
-                      display = "${(val * 10).toInt()}ml";
-                    }
+                    String dispNum = display.replaceAll(RegExp(r'[^0-9.]'), '');
                     bool isSel = current == display;
                     return Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isSel)
-                            Icon(icon, size: 14, color: widget.accentColor),
-                          if (isSel) const SizedBox(width: 8),
-                          Text(
-                            display,
-                            style: TextStyle(
-                              fontSize: isSel ? 20 : 14,
-                              fontWeight: isSel
-                                  ? FontWeight.w900
-                                  : FontWeight.w500,
-                              color: isSel
-                                  ? Colors.white
-                                  : (isDark ? Colors.white24 : Colors.black26),
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        dispNum,
+                        style: TextStyle(
+                          fontSize: isSel ? 22 : 16,
+                          fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
+                          color: isSel ? Colors.white : (isDark ? Colors.white38 : Colors.black38),
+                        ),
                       ),
                     );
                   },
@@ -6433,60 +6551,69 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   Widget _buildPremiumDateTimeBlock(
     String label,
     String value,
+    String subValue,
     IconData icon,
-    Color color,
+    Color accent,
     VoidCallback onTap,
   ) {
     final bool isDark = widget.isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF161A20)
-              : Colors.black.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(24),
+          color: isDark ? const Color(0xFF161A20).withValues(alpha: 0.8) : Colors.black.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
           ),
-          boxShadow: [
-            if (isDark)
-              BoxShadow(
-                color: color.withValues(alpha: 0.05),
-                blurRadius: 20,
-                spreadRadius: 0,
-              ),
-          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 14, color: color),
+                Icon(icon, size: 14, color: accent),
                 const SizedBox(width: 8),
                 Text(
                   label,
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white54 : Colors.black54,
                     letterSpacing: 1.2,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, size: 12, color: isDark ? Colors.white38 : Colors.black38),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 20,
+              child: subValue.isNotEmpty 
+                ? Text(
+                    subValue,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                  )
+                : const SizedBox.shrink(),
             ),
           ],
         ),
