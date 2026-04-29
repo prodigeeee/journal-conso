@@ -106,7 +106,7 @@
         /* CHARTS */
         .chart-container {
             width: 100%;
-            height: 100%;
+            height: 300px;
             position: relative;
         }
 
@@ -405,7 +405,6 @@
                 <div style="display: flex; align-items: center;">
                     <div class="nav-tabs">
                         <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
-                        <button class="tab-btn" data-tab="identities">IDENTITIES</button>
                         <button class="tab-btn" data-tab="content">CONTENT</button>
                     </div>
                     <button id="btn-logout" class="logout-btn">DISCONNECT</button>
@@ -457,19 +456,32 @@
                     </div>
 
                     <!-- Widget: Recent Access List -->
-                    <div class="widget span-2 row-2" style="background: rgba(0,0,0,0.3);">
+                    <div class="widget span-2" style="background: rgba(0,0,0,0.3); height: 400px; overflow-y: auto;">
                         <div class="widget-title">DERNIÈRES CONNEXIONS</div>
                         <table class="data-table">
                             <thead>
                                 <tr>
                                     <th>HEURE</th>
-                                    <th>ADRESSE IP</th>
-                                    <th>APPAREIL</th>
+                                    <th>IP</th>
+                                    <th>DEVICE</th>
                                 </tr>
                             </thead>
-                            <tbody id="recent-access-list">
-                                <!-- JS Injected -->
-                            </tbody>
+                            <tbody id="recent-access-list"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Widget: Identities (Merged) -->
+                    <div class="widget span-2" style="height: 400px; overflow-y: auto;">
+                        <div class="widget-title">DERNIERS INSCRITS</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>NOM</th>
+                                    <th>EMAIL</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="identities-summary"></tbody>
                         </table>
                     </div>
 
@@ -496,14 +508,6 @@
                 </div>
             </div>
 
-            <!-- IDENTITIES TAB -->
-            <div id="tab-identities" style="display:none;">
-                <div class="widget" style="margin-bottom: 20px;">
-                    <div class="widget-title">RECHERCHE UTILISATEUR</div>
-                    <input type="text" id="search-input" class="login-input" placeholder="NOM, EMAIL, ID..." oninput="filterProfiles()">
-                </div>
-                <div id="identities-container"></div>
-            </div>
 
             <!-- CONTENT TAB -->
             <div id="tab-content" style="display:none;">
@@ -528,10 +532,8 @@
                 btn.classList.add('active');
                 const tab = btn.dataset.tab;
                 document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
-                document.getElementById('tab-identities').style.display = tab === 'identities' ? 'block' : 'none';
                 document.getElementById('tab-content').style.display = tab === 'content' ? 'block' : 'none';
                 if (tab === 'content') loadCMS();
-                if (tab === 'identities') loadAppData();
             };
         });
 
@@ -569,12 +571,13 @@
                 if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
 
                 // 2. App Data Stats
-                const { data: profiles } = await sb.from('profiles').select('*');
+                const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
                 const { data: consos } = await sb.from('consumptions').select('*');
                 if (profiles) {
                     document.getElementById('stat-profiles').innerText = profiles.length;
                     const uniqueAccounts = new Set(profiles.map(p => p.owner_id)).size;
                     document.getElementById('stat-accounts').innerText = uniqueAccounts;
+                    renderIdentitiesSummary(profiles.slice(0, 50));
                 }
                 if (consos) document.getElementById('stat-events').innerText = consos.length;
 
@@ -649,49 +652,15 @@
             });
         }
 
-        async function loadAppData() {
-            const container = document.getElementById('identities-container');
-            container.innerHTML = '<p style="padding:20px; text-align:center; opacity:0.5;">Chargement des identités...</p>';
-            try {
-                const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                window.allProfiles = profiles;
-                renderIdentities(profiles);
-            } catch(e) { console.error(e); }
-        }
-
-        function filterProfiles() {
-            const q = document.getElementById('search-input').value.toLowerCase();
-            const filtered = window.allProfiles.filter(p => 
-                (p.name || '').toLowerCase().includes(q) || 
-                (p.email || '').toLowerCase().includes(q)
-            );
-            renderIdentities(filtered);
-        }
-
-        function renderIdentities(profiles) {
-            const container = document.getElementById('identities-container');
-            container.innerHTML = `
-                <table class="data-table widget">
-                    <thead>
-                        <tr>
-                            <th>IDENTITÉ</th>
-                            <th>EMAIL</th>
-                            <th>AGE/POIDS</th>
-                            <th>CRÉATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${profiles.map(p => `
-                            <tr>
-                                <td><b style="color:var(--accent)">${p.name || 'ANON'}</b></td>
-                                <td>${p.email || '<span style="opacity:0.3">N/A</span>'}</td>
-                                <td>${p.age || '?'} ans • ${p.weight || '?'} kg</td>
-                                <td><span style="opacity:0.5">${new Date(p.created_at).toLocaleDateString()}</span></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        function renderIdentitiesSummary(profiles) {
+            const container = document.getElementById('identities-summary');
+            container.innerHTML = profiles.map(p => `
+                <tr>
+                    <td><b style="color:var(--accent)">${p.name || 'ANON'}</b></td>
+                    <td>${p.email || '---'}</td>
+                    <td><span style="opacity:0.5">${new Date(p.created_at).toLocaleDateString()}</span></td>
+                </tr>
+            `).join('');
         }
 
         async function loadCMS() {
