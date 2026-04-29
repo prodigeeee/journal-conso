@@ -2670,9 +2670,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return LongPressDraggable<Consumption>(
       data: c,
-      feedback: Opacity(
-        opacity: 0.8,
-        child: _consoCard(c, drinkColor, imagePath, isDragging: true),
+      feedback: Material(
+        color: Colors.transparent,
+        child: Opacity(
+          opacity: 0.8,
+          child: _consoCard(c, drinkColor, imagePath, isDragging: true),
+        ),
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
