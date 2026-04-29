@@ -2679,10 +2679,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _consoCard(c, drinkColor, imagePath),
       ),
       child: GestureDetector(
-        onLongPress: () {
-          HapticFeedback.heavyImpact();
-          widget.onDelete(c.id);
-        },
         onTap: () {
            HapticFeedback.selectionClick();
            _showSaisie(c.moment, existingConso: c);
@@ -2781,10 +2777,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     // Bouton supprimer (plus discret)
                     InkWell(
-                      onTap: () {
-                        HapticFeedback.heavyImpact();
-                        widget.onDelete(c.id);
-                      },
+                      onTap: () => _confirmDeletion(c.id),
                       child: const Icon(Icons.close, size: 16, color: Colors.white38),
                     ),
                   ],
@@ -2805,6 +2798,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _confirmDeletion(String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: widget.isDarkMode ? const Color(0xFF1A1F26) : Colors.white,
+        title: Text(L10n.s('common.delete')),
+        content: const Text("Voulez-vous vraiment supprimer cette consommation ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.s('common.cancel')),
+          ),
+          TextButton(
+            onPressed: () {
+              HapticFeedback.heavyImpact();
+              widget.onDelete(id);
+              Navigator.pop(ctx);
+            },
+            child: Text(
+              L10n.s('common.delete'),
+              style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
