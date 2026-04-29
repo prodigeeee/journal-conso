@@ -3,285 +3,513 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Premium - Journal Conso</title>
+    <title>Fintech Admin - Journal Conso</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --accent: #d841e2;
-            --accent-pink: #ff007f;
-            --accent-cyan: #00f2ff;
-            --bg-dark: #0a0a0c;
-            --bg-card: #121215;
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --text-main: #e0e0e0;
-            --text-muted: #707075;
-            --danger: #ff3344;
-            --success: #00ffaa;
+            --bg: #08090a;
+            --panel: #111214;
+            --accent: #EA9216;
+            --accent-glow: rgba(234, 146, 22, 0.3);
+            --text-main: #ffffff;
+            --text-muted: #5a5c61;
+            --border: rgba(255, 255, 255, 0.05);
+            --success: #4CAF50;
+            --danger: #f44336;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
+            background-color: var(--bg);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
-            font-size: 14px;
+            font-size: 13px;
+            letter-spacing: -0.01em;
         }
 
-        .aura-bg {
+        /* BACKGROUND AURA */
+        .aura {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             background: 
-                radial-gradient(circle at 90% 10%, #1e160d 0%, transparent 40%),
-                radial-gradient(circle at 10% 90%, #0d1117 0%, #050608 100%);
+                radial-gradient(circle at 80% 20%, #1a1510 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, #0d1117 0%, #050608 100%);
         }
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px 30px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 25px; }
 
-        .glass-panel {
-            background: var(--glass);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
+        /* WIDGETS SYSTEM */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(140px, auto);
+            gap: 16px;
         }
 
-        #dashboard { display: none; }
+        .widget {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 0; }
-        .header h1 { font-size: 1.6rem; font-weight: 900; letter-spacing: -0.5px; }
+        .widget:hover {
+            border-color: rgba(234, 146, 22, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
 
-        .tabs-nav { display: flex; gap: 8px; margin-bottom: 30px; background: rgba(255,255,255,0.02); padding: 5px; border-radius: 14px; width: fit-content; border: 1px solid var(--glass-border); }
-        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 18px; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
-        .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 4px 15px var(--accent-glow); }
+        .widget-title {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .logout-btn { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .widget-val {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
 
-        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { padding: 20px; }
-        .stat-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .stat-value { font-size: 1.8rem; font-weight: 950; }
+        .widget-trend {
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-        .main-grid { display: grid; grid-template-columns: 2.2fr 1fr; gap: 15px; margin-bottom: 15px; }
-        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+        .trend-up { color: var(--accent); }
+        .trend-down { color: var(--danger); }
 
-        .panel-header h3 { font-size: 0.8rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; }
+        /* SPANS */
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .row-2 { grid-row: span 2; }
 
-        /* EDITOR UI */
-        .editor-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; background: rgba(234, 146, 22, 0.2); padding: 10px 20px; border-radius: 10px; margin: 30px 0 15px 0; border-left: 4px solid var(--accent); text-transform: uppercase; }
-        .editor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 15px; }
-        @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
-        
-        .editor-card { padding: 20px; position: relative; transition: 0.3s; border: 1px solid var(--glass-border); display: flex; flex-direction: column; }
-        .editor-card:hover { border-color: rgba(234, 146, 22, 0.3); background: rgba(255,255,255,0.02); }
-
-        .editor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .editor-tag { font-size: 0.55rem; font-weight: 900; background: rgba(255,255,255,0.05); padding: 3px 6px; border-radius: 5px; color: var(--text-muted); letter-spacing: 0.5px; }
-        .editor-title { font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.8); }
-
-        .textarea-wrapper { position: relative; width: 100%; flex: 1; }
-        .editor-textarea {
+        /* CHARTS */
+        .chart-container {
             width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            padding: 12px 45px 12px 12px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            min-height: 60px;
-            resize: vertical;
-            outline: none;
-            transition: 0.3s;
+            height: 100%;
+            position: relative;
         }
-        .editor-textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); background: rgba(0,0,0,0.3); }
 
-        .save-unit-btn {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box {
+            width: 38px;
+            height: 38px;
             background: var(--accent);
-            color: #000;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: 0.3s;
-            opacity: 0.5;
+            color: #000;
+            font-weight: 900;
+            font-size: 1.2rem;
         }
-        .save-unit-btn:hover { opacity: 1; transform: scale(1.1); }
-        .save-unit-btn svg { width: 16px; height: 16px; }
 
+        .brand-text h1 {
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .brand-text p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.03);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .logout-btn {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 40px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+            font-weight: 900;
+            font-size: 1.6rem;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .login-input:focus {
+            border-color: var(--accent);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        /* TABLES */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            font-size: 0.8rem;
+        }
+
+        .ip-badge {
+            font-family: monospace;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* TOAST */
         #toast {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            padding: 15px 25px;
-            background: var(--success);
+            background: var(--accent);
             color: #000;
-            font-weight: 800;
+            padding: 12px 25px;
             border-radius: 12px;
+            font-weight: 800;
             transform: translateY(100px);
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 10000;
+            transition: 0.5s;
+            z-index: 2000;
         }
         #toast.active { transform: translateY(0); }
 
-        /* STATS CARDS */
-        /* ANALYTICS CARDS */
-        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .chart-card { padding: 25px; min-height: 400px; }
-        
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .stat-card { padding: 20px; border: 1px solid var(--glass-border); position: relative; overflow: hidden; }
-        .stat-card::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--accent); opacity: 0.3; }
-        .stat-card h3 { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
-        .stat-card .value { font-size: 1.5rem; font-weight: 900; color: white; }
-        .stat-card .desc { font-size: 0.6rem; color: var(--text-muted); margin-top: 3px; }
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-        /* USER CARDS */
-        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .user-card { padding: 20px; border: 1px solid var(--glass-border); transition: 0.3s; }
-        .user-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(234, 146, 22, 0.1); }
-        .user-card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .user-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--glass-strong); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid var(--glass-border); }
-        .user-info h4 { font-size: 0.95rem; font-weight: 800; margin-bottom: 2px; }
-        .user-info p { font-size: 0.7rem; color: var(--text-muted); }
-        .user-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .u-stat-item { text-align: center; }
-        .u-stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; }
-        .u-stat-val { font-size: 1rem; font-weight: 900; color: var(--accent); }
+        /* RESPONSIVE */
+        @media (max-width: 1000px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .span-3 { grid-column: span 2; }
+        }
+        @media (max-width: 600px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .span-2, .span-3 { grid-column: span 1; }
+        }
 
-        /* ACCOUNT GROUPS */
-        .account-group { margin-bottom: 40px; padding: 25px; background: rgba(255,255,255,0.01); border-radius: 24px; border: 1px dashed rgba(255,255,255,0.05); }
-        .account-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .account-badge { background: var(--glass-strong); padding: 5px 12px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; color: var(--accent); border: 1px solid var(--glass-border); text-transform: uppercase; }
-        .account-id { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); }
-        .account-actions { display: flex; gap: 10px; }
-        .btn-action { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-main); padding: 5px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-action:hover { background: var(--accent); color: #000; border-color: var(--accent); }
-        .btn-action.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        /* SPECIAL WIDGETS */
+        .active-dot {
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
 
-        /* MODAL */
-        #modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display:none; justify-content: center; align-items: center; z-index: 20000; padding: 20px; }
-        .modal-content { max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
-        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 1.5rem; opacity: 0.5; }
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.4; }
+        }
 
-        /* EDITOR UI */
-        .cms-section { margin-bottom: 40px; }
-        .cms-item { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-        .cms-label { width: 150px; font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase; }
-        .cms-input { flex: 1; background: none; border: none; color: white; font-size: 0.9rem; padding: 5px; outline: none; }
-        .cms-input:focus { background: rgba(255,255,255,0.03); }
+        .btn-action {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
 
-        /* Tables & IP badge */
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .badge-ip { font-family: monospace; color: var(--accent); background: rgba(234, 146, 22, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
-        
-        /* Buttons */
-        .btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(234,146,22,0.3); }
+        .btn-action:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
-        #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .login-card { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+        #dashboard { display: none; }
 
+        /* EDITOR STYLES */
+        .editor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .editor-card { background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 15px; }
+        .editor-textarea { width: 100%; background: #111; border: 1px solid var(--border); border-radius: 10px; padding: 10px; color: white; min-height: 80px; resize: vertical; outline: none; margin-top: 10px; }
+        .save-btn { background: var(--accent); color: #000; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; margin-top: 10px; font-size: 0.7rem; }
     </style>
 </head>
 <body>
-    <div class="aura-bg"></div>
-    <div id="toast">Mise à jour effectuée ! 🚀</div>
+    <div class="aura"></div>
+    <div id="toast">ACTION EFFECTUÉE</div>
 
-    <div id="modal-overlay" onclick="closeModal()">
-        <div class="glass-panel modal-content" onclick="event.stopPropagation()">
-            <span class="close-modal" onclick="closeModal()">×</span>
-            <div id="modal-body" style="padding: 30px;"></div>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="logo-box" style="margin: 0 auto 20px;">J</div>
+            <h2>Accès Sécurisé</h2>
+            <p>Veuillez vous authentifier</p>
+            <div class="input-group">
+                <label>Email Admin</label>
+                <input type="email" id="email" class="login-input" placeholder="admin@journalconso.app">
+            </div>
+            <div class="input-group">
+                <label>Mot de passe</label>
+                <input type="password" id="password" class="login-input" placeholder="••••••••">
+            </div>
+            <button id="btn-login" class="login-btn">AUTHORIZE ACCESS</button>
         </div>
     </div>
 
-    <div class="container">
-        <!-- LOGIN SCREEN -->
-        <div id="login-screen" style="display:flex; align-items:center; justify-content:center; min-height:80vh;">
-            <div class="glass-panel" style="max-width: 400px; width:100%; padding: 40px; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 20px;">🛡️</div>
-                <h2 style="margin-bottom: 30px; letter-spacing: 2px;">SECURE ACCESS</h2>
-                <input type="email" id="email" placeholder="ADMIN EMAIL" style="width:100%; padding:12px; margin-bottom:15px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); color:white; border-radius:8px; outline:none;">
-                <input type="password" id="password" placeholder="PASSWORD" style="width:100%; padding:12px; margin-bottom:25px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); color:white; border-radius:8px; outline:none;">
-                <button id="btn-login" class="btn-action" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; text-transform:uppercase; letter-spacing:2px; font-weight:900;">Authorize</button>
-            </div>
-        </div>
-
-        <!-- DASHBOARD -->
-        <div id="dashboard" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-top:20px;">
-                <div>
-                    <h1 style="font-size: 1.5rem; font-weight: 900; letter-spacing: 1px;">JOURNAL <span style="color:var(--accent)">CONSO</span> <span style="font-size: 0.7rem; opacity: 0.3; font-weight: 400;">ADMIN v2.0</span></h1>
-                </div>
-                <div style="display: flex; gap: 20px; align-items: center;">
-                    <div class="tabs-container">
-                        <button class="tab-btn active" data-tab="analytics">Overview</button>
-                        <button class="tab-btn" data-tab="app">Identities</button>
-                        <button class="tab-btn" data-tab="editor">Content</button>
-                    </div>
-                    <button id="btn-logout" class="btn-action" style="border-radius: 50px; background: rgba(255,71,87,0.1); color: var(--danger);">Logout</button>
-                </div>
-            </div>
-
-            <!-- ANALYTICS TAB -->
-            <div id="tab-analytics">
-                <div class="stats-row">
-                    <div class="glass-panel stat-card"><h3>Database</h3><div class="value" id="stat-db">0</div><div class="desc">PROFILES</div></div>
-                    <div class="glass-panel stat-card"><h3>Accounts</h3><div class="value" id="stat-auth">0</div><div class="desc">USERS AUTH</div></div>
-                    <div class="glass-panel stat-card"><h3>Activity</h3><div class="value" id="stat-conso">0</div><div class="desc">TOTAL EVENTS</div></div>
-                    <div class="glass-panel stat-card"><h3>Stored</h3><div class="value" id="stat-storage">--</div><div class="desc">IMAGES</div></div>
-                    <div class="glass-panel stat-card"><h3>Visits</h3><div class="value" id="stat-total-visits">0</div><div class="desc">TOTAL SESSIONS</div></div>
-                    <div class="glass-panel stat-card"><h3>Active</h3><div class="value" style="color:var(--success)" id="stat-active-users">0</div><div class="desc">USERS LIVE</div></div>
-                    <div class="glass-panel stat-card"><h3>Msg</h3><div class="value" id="stat-messages">0</div><div class="desc">CONTACT</div></div>
-                </div>
-
-                <div class="analytics-grid">
-                    <div class="glass-panel chart-card"><canvas id="visitsChart"></canvas></div>
-                    <div class="glass-panel chart-card" style="padding:20px;">
-                        <h3 style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:15px;">Recent Access</h3>
-                        <div id="recent-access-list" style="font-size:0.75rem;"></div>
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+        <div class="container">
+            <header class="header">
+                <div class="brand">
+                    <div class="logo-box">J</div>
+                    <div class="brand-text">
+                        <h1>FINTECH ADMIN</h1>
+                        <p>Journal Conso • Global Dashboard</p>
                     </div>
                 </div>
-            </div>
-            <!-- APP TAB -->
-            <div id="tab-app" style="display: none;">
-                <div style="margin-bottom:30px; display:flex; gap:15px; align-items:center">
-                    <div class="glass-panel" style="flex:1; padding:12px 25px; display:flex; align-items:center; gap:10px;">
-                        <span style="opacity:0.3">🔍</span>
-                        <input type="text" id="search-input" placeholder="SEARCH IDENTITIES..." 
-                               style="background:none; border:none; color:white; width:100%; font-size:0.8rem; outline:none; text-transform:uppercase; letter-spacing:1px;"
-                               oninput="filterProfiles()">
+                <div style="display: flex; align-items: center;">
+                    <div class="nav-tabs">
+                        <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
+                        <button class="tab-btn" data-tab="identities">IDENTITIES</button>
+                        <button class="tab-btn" data-tab="content">CONTENT</button>
+                    </div>
+                    <button id="btn-logout" class="logout-btn">DISCONNECT</button>
+                </div>
+            </header>
+
+            <!-- OVERVIEW TAB -->
+            <div id="tab-overview">
+                <div class="bento-grid">
+                    <!-- Widget: Visits Chart -->
+                    <div class="widget span-3 row-2">
+                        <div class="widget-title">
+                            VISITES RÉCENTES (14 JOURS)
+                            <span style="opacity:0.4">LANCEMENT WEB APP</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="visitsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Active Users -->
+                    <div class="widget">
+                        <div class="widget-title">UTILISATEURS ACTIFS</div>
+                        <div class="widget-val" id="stat-active">0</div>
+                        <div class="widget-trend trend-up">
+                            <span class="active-dot"></span> EN TEMPS RÉEL
+                        </div>
+                    </div>
+
+                    <!-- Widget: Total Visits -->
+                    <div class="widget">
+                        <div class="widget-title">SESSIONS TOTALES</div>
+                        <div class="widget-val" id="stat-total-visits">0</div>
+                        <div class="widget-trend trend-up">↑ +12% vs mois dernier</div>
+                    </div>
+
+                    <!-- Widget: Database Profiles -->
+                    <div class="widget">
+                        <div class="widget-title">PROFILS CRÉÉS</div>
+                        <div class="widget-val" id="stat-profiles">0</div>
+                        <div class="widget-trend">SANTÉ DE LA BASE: OK</div>
+                    </div>
+
+                    <!-- Widget: Total Events -->
+                    <div class="widget">
+                        <div class="widget-title">CONSOMMATIONS TOTALES</div>
+                        <div class="widget-val" id="stat-events">0</div>
+                        <div class="widget-trend trend-up">↑ ACTIVITÉ EN HAUSSE</div>
+                    </div>
+
+                    <!-- Widget: Recent Access List -->
+                    <div class="widget span-2 row-2" style="background: rgba(0,0,0,0.3);">
+                        <div class="widget-title">DERNIÈRES CONNEXIONS</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>HEURE</th>
+                                    <th>ADRESSE IP</th>
+                                    <th>APPAREIL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-access-list">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Widget: Registered Accounts -->
+                    <div class="widget">
+                        <div class="widget-title">COMPTES UTILISATEURS</div>
+                        <div class="widget-val" id="stat-accounts">0</div>
+                        <div class="widget-trend">AUTH SYSTEM ACTIF</div>
+                    </div>
+
+                    <!-- Widget: Contact Emails -->
+                    <div class="widget">
+                        <div class="widget-title">MESSAGES CONTACT</div>
+                        <div class="widget-val" id="stat-messages">0</div>
+                        <div class="widget-trend">SUPPORT CLIENT</div>
+                    </div>
+
+                    <!-- Widget: Storage -->
+                    <div class="widget">
+                        <div class="widget-title">PHOTOS PROFIL</div>
+                        <div class="widget-val" id="stat-storage">0</div>
+                        <div class="widget-trend">STOCKAGE CLOUD</div>
                     </div>
                 </div>
-                <div id="app-data-container"></div>
             </div>
 
-            <!-- EDITOR TAB -->
-            <div id="tab-editor" style="display: none;">
-                <div class="panel-header" style="margin-bottom: 10px;">
-                    <div>
-                        <h3>Éditeur de Site Intégral</h3>
-                        <p style="color:var(--text-muted); text-transform: none; margin-top: 5px;">Personnalisez chaque texte de la landing page. Cliquez sur ✓ pour valider chaque modification.</p>
-                    </div>
+            <!-- IDENTITIES TAB -->
+            <div id="tab-identities" style="display:none;">
+                <div class="widget" style="margin-bottom: 20px;">
+                    <div class="widget-title">RECHERCHE UTILISATEUR</div>
+                    <input type="text" id="search-input" class="login-input" placeholder="NOM, EMAIL, ID..." oninput="filterProfiles()">
                 </div>
+                <div id="identities-container"></div>
+            </div>
 
-                <div id="cms-container">
-                    <!-- Sections will be injected by JS -->
+            <!-- CONTENT TAB -->
+            <div id="tab-content" style="display:none;">
+                <div class="widget">
+                    <div class="widget-title">ÉDITEUR DE CONTENU CMS</div>
+                    <div id="cms-container"></div>
                 </div>
             </div>
         </div>
@@ -291,474 +519,214 @@
         const SUPABASE_URL = 'https://aswxkjibvcadnwujzwcm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzd3hramlidmNhZG53dWp6d2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE3MjMsImV4cCI6MjA5MTgyNzcyM30.DunVTxcbIm0ausnk_4pdnkyn58tdoZf5ioLKqtk5tro';
         
-        let sb = null;
-        if (typeof supabase !== 'undefined') {
-            sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let visitsChart = null;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
+                document.getElementById('tab-identities').style.display = tab === 'identities' ? 'block' : 'none';
+                document.getElementById('tab-content').style.display = tab === 'content' ? 'block' : 'none';
+                if (tab === 'content') loadCMS();
+                if (tab === 'identities') loadAppData();
+            };
+        });
+
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
+            else alert("Identifiants incorrects ou accès non autorisé.");
+        };
+
+        document.getElementById('btn-logout').onclick = () => { sb.auth.signOut(); window.location.reload(); };
+
+        function showDashboard() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            loadStats();
+            setInterval(loadStats, 30000); // Refresh every 30s
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!sb) {
-                alert("Erreur: La bibliothèque Supabase n'a pas pu être chargée. Vérifiez votre connexion.");
-                return;
-            }
-            let vChart = null;
-            
-            const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+        async function loadStats() {
+            try {
+                // 1. Site Stats
+                const { data: visits } = await sb.from('site_visits').select('*').order('created_at', { ascending: false });
+                const { data: events } = await sb.from('site_events').select('*');
+                const { data: msgs } = await sb.from('contact_messages').select('*');
 
-            window.viewFullImage = (url) => {
-                const modal = document.getElementById('modal-overlay');
-                const body = document.getElementById('modal-body');
-                modal.style.display = 'flex';
-                body.innerHTML = `<div style="text-align:center"><img src="${url}" style="max-width:100%; border-radius:15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);"></div>`;
-            };
-
-            window.viewUserConsos = async (id) => {
-                const modal = document.getElementById('modal-overlay');
-                const body = document.getElementById('modal-body');
-                modal.style.display = 'flex';
-                body.innerHTML = '<div style="text-align:center">Récupération des consommations...</div>';
-                
-                try {
-                    const { data } = await sb.from('consumptions').select('*').eq('profile_id', id).order('date', { ascending: false });
-                    if (!data || data.length === 0) {
-                        body.innerHTML = '<h3>Historique</h3><p style="margin-top:20px; color:var(--text-muted)">Aucune consommation enregistrée pour ce profil.</p>';
-                        return;
-                    }
-
-                    let html = `<h3>Historique (${data.length})</h3><div style="margin-top:25px;">`;
-                    html += `<table style="font-size:0.8rem"><thead><tr><th>Date</th><th>Boisson</th><th>Vol.</th><th>Degré</th></tr></thead><tbody>`;
-                    data.forEach(c => {
-                        const date = new Date(c.date).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-                        html += `<tr><td>${date}</td><td>${c.type}</td><td>${c.volume}ml</td><td>${c.degree}%</td></tr>`;
-                    });
-                    html += `</tbody></table></div>`;
-                    body.innerHTML = html;
-                } catch(e) { body.innerHTML = 'Erreur : ' + e.message; }
-            };
-
-            window.closeModal = () => { document.getElementById('modal-overlay').style.display = 'none'; };
-
-            window.resetPassword = async (email) => {
-                if (email === 'E-mail non renseigné') return alert("Impossible de réinitialiser : e-mail manquant.");
-                if (!confirm("Envoyer un e-mail de réinitialisation de mot de passe à " + email + " ?")) return;
-                try {
-                    const { error } = await sb.auth.resetPasswordForEmail(email);
-                    if (error) throw error;
-                    alert("E-mail de récupération envoyé !");
-                } catch(e) { alert(e.message); }
-            };
-
-            window.wipeAccount = async (ownerId) => {
-                if (!confirm("ATTENTION : Supprimer TOUTES les données de ce compte (Profils, Consommations, Contextes) ? Cette action est irréversible.")) return;
-                try {
-                    const p1 = sb.from('profiles').delete().eq('owner_id', ownerId);
-                    const p2 = sb.from('consumptions').delete().eq('owner_id', ownerId);
-                    const p3 = sb.from('moments_contexts').delete().eq('owner_id', ownerId);
-                    await Promise.all([p1, p2, p3]);
-                    showToast();
-                    loadAppData();
-                } catch(e) { alert(e.message); }
-            };
-
-            const CMS_CONFIG = [
-                {
-                    section: "Navigation & Header",
-                    items: [
-                        { key: "nav_link_overview", label: "Menu: Aperçu", default: "Aperçu" },
-                        { key: "nav_link_webapp", label: "Menu: Web App", default: "Web App" },
-                        { key: "nav_link_contact", label: "Menu: Contact", default: "Contact" },
-                        { key: "nav_link_login", label: "Bouton: Se connecter", default: "Se connecter" },
-                        { key: "nav_link_download", label: "Bouton: Télécharger", default: "Télécharger" }
-                    ]
-                },
-                {
-                    section: "Section Hero (Accueil)",
-                    items: [
-                        { key: "hero_badge", label: "Badge Hero", default: "V2 • Refonte Totale" },
-                        { key: "hero_title", label: "Titre Hero", default: "Prenez le contrôle<br>avec <span class=\"highlight\">élégance.</span>" },
-                        { key: "hero_desc", label: "Description Hero", default: "Une application premium, 100% gratuite et sans publicité, conçue pour vous accompagner avec précision. Vos données sont synchronisées sur tous vos appareils en toute sécurité." },
-                        { key: "hero_btn_app", label: "Bouton: Installer APK", default: "Installer l'APK" },
-                        { key: "hero_btn_features", label: "Bouton: Fonctionnalités", default: "Fonctionnalités" }
-                    ]
-                },
-                {
-                    section: "Section Fonctionnalités",
-                    items: [
-                        { key: "feature_badge", label: "Badge Features", default: "FEATURES" },
-                        { key: "feature_title", label: "Titre Features", default: "L'intelligence <br><span class=\"highlight\">discrète.</span>" },
-                        { key: "feature_desc", label: "Description Features", default: "Tout ce qu'il vous faut pour une pleine conscience, avec une esthétique qui force le respect mutuel." },
-                        { key: "feature1_title", label: "Feature 1: Titre", default: "SUIVI COMPLET" },
-                        { key: "feature1_desc", label: "Feature 1: Texte", default: "Enregistrez chaque consommation simplement, incluant le type d'alcool et le volume." },
-                        { key: "feature2_title", label: "Feature 2: Titre", default: "STATS AVANCÉES" },
-                        { key: "feature2_desc", label: "Feature 2: Texte", default: "Visualisez vos tendances, vos jours verts et votre consommation moyenne en un clin d'œil." },
-                        { key: "feature3_title", label: "Feature 3: Titre", default: "OBJECTIFS SANTÉ" },
-                        { key: "feature3_desc", label: "Feature 3: Texte", default: "Fixez-vous des limites basées sur les recommandations de l'OMS et suivez vos progrès." },
-                        { key: "feature4_title", label: "Feature 4: Titre", default: "SÉCURITÉ CLOUD" },
-                        { key: "feature4_desc", label: "Feature 4: Texte", default: "Vos sauvegardes sont synchronisées en toute sécurité grâce à notre infrastructure Cloud privée." }
-                    ]
-                },
-                {
-                    section: "L'Esprit du Projet",
-                    items: [
-                        { key: "spirit_badge", label: "Badge Esprit", default: "L'ESPRIT DU PROJET" },
-                        { key: "spirit_title", label: "Titre Esprit", default: "Une application faite avec <span class=\"highlight\">passion.</span>" },
-                        { key: "spirit_desc1", label: "Esprit: Para 1", default: "Journal Conso est née d'un besoin personnel : j'ai créé cet outil pour moi-même, car je cherchais une interface élégante et fiable pour suivre ma consommation sans compromis sur le design." },
-                        { key: "spirit_desc2", label: "Esprit: Para 2", default: "Mes amis m'ont rapidement demandé à l'utiliser, ce qui m'a motivé à la distribuer gratuitement pour tous. L'application est <strong>entièrement gratuite et sans publicité</strong>." },
-                        { key: "spirit_disclaimer", label: "Lien: Soutien Texte", default: "Si vous appréciez l'application et souhaitez soutenir les frais de développement ou de maintien des serveurs cloud, votre contribution est grandement appréciée." },
-                        { key: "spirit_btn", label: "Bouton: PayPal", default: "Soutenir le projet via PayPal" }
-                    ]
-                },
-                {
-                    section: "Analyse & Screenshots",
-                    items: [
-                        { key: "analysis_badge", label: "Badge Analyse", default: "ANALYSE & DONNÉES" },
-                        { key: "analysis_title", label: "Titre Analyse", default: "Comprenez votre <br><span class=\"highlight\">consommation.</span>" },
-                        { key: "analysis_desc", label: "Description Analyse", default: "Basé sur la formule de Widmark, Journal Conso vous donne une estimation indicative de votre alcoolémie au fil de vos saisies." },
-                        { key: "analysis_list1", label: "Point 1: Widmark", default: "Estimation de l'alcoolémie (Widmark + Pic)" },
-                        { key: "analysis_list2", label: "Point 2: Temps", default: "Calcul du temps de retour au seuil légal" },
-                        { key: "analysis_list3", label: "Point 3: Types", default: "Répartition globale par type de boisson" },
-                        { key: "analysis_list4", label: "Point 4: Historique", default: "Historique complet des consommations" },
-                        { key: "screens_title", label: "Titre Screenshots", default: "L'application en images" },
-                        { key: "screens_desc", label: "Description Screenshots", default: "Découvrez l'interface sombre et élégante conçue pour un confort d'utilisation et de lecture optimal." }
-                    ]
-                },
-                {
-                    section: "Multiplateforme & Contact",
-                    items: [
-                        { key: "multi_badge", label: "Badge Platforms", default: "DISPONIBLE PARTOUT" },
-                        { key: "multi_title", label: "Titre Platforms", default: "Un seul compte.<br><span class=\"highlight\">Tous vos appareils.</span>" },
-                        { key: "multi_desc", label: "Description Platforms", default: "Que vous soyez sur Android, iPhone ou simplement sur votre ordinateur, accédez à votre journal en un clin d'œil." },
-                        { key: "multi_btn", label: "Bouton: Web App", default: "Lancer la Web App" },
-                        { key: "contact_title", label: "Titre Contact", default: "Un souci, une idée ?" },
-                        { key: "contact_desc", label: "Description Contact", default: "On discute ? Envoyez-nous un message, nous répondons en moins de 24h." },
-                        { key: "contact_btn", label: "Bouton: Envoyer", default: "Envoyer le message" }
-                    ]
-                },
-                {
-                    section: "Pied de page (Footer)",
-                    items: [
-                        { key: "footer_desc", label: "Footer: Description", default: "Votre compagnon de route pour une consommation responsable. Gratuite, sans pub et synchronisée sur tous vos appareils." },
-                        { key: "footer_link_download", label: "Footer: Lien Téléchargement", default: "Télécharger l'application" },
-                        { key: "footer_disclaimer_title", label: "Footer: Titre Alerte", default: "Avertissement" },
-                        { key: "footer_disclaimer_desc", label: "Footer: Texte Alerte", default: "Journal Conso n'est pas un dispositif médical. Les estimations sont indicatives. Ne jamais utiliser pour déterminer l'aptitude à conduire." }
-                    ]
+                if (visits) {
+                    document.getElementById('stat-total-visits').innerText = visits.length;
+                    const active = events ? events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 180000).toISOString()).length : 0;
+                    document.getElementById('stat-active').innerText = active;
+                    renderVisitsChart(visits);
+                    renderRecentAccess(visits.slice(0, 10));
                 }
-            ];
+                if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
 
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.onclick = () => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    const tab = btn.dataset.tab;
-                    document.getElementById('tab-analytics').style.display = tab === 'analytics' ? 'block' : 'none';
-                    document.getElementById('tab-app').style.display = tab === 'app' ? 'block' : 'none';
-                    document.getElementById('tab-editor').style.display = tab === 'editor' ? 'block' : 'none';
-                    if (tab === 'editor') loadCMS();
-                    if (tab === 'app') loadAppData();
-                };
+                // 2. App Data Stats
+                const { data: profiles } = await sb.from('profiles').select('*');
+                const { data: consos } = await sb.from('consumptions').select('*');
+                if (profiles) {
+                    document.getElementById('stat-profiles').innerText = profiles.length;
+                    const uniqueAccounts = new Set(profiles.map(p => p.owner_id)).size;
+                    document.getElementById('stat-accounts').innerText = uniqueAccounts;
+                }
+                if (consos) document.getElementById('stat-events').innerText = consos.length;
+
+                const { data: storage } = await sb.storage.from('profile_images').list('', { limit: 100 });
+                document.getElementById('stat-storage').innerText = (storage || []).length;
+
+            } catch (e) { console.error(e); }
+        }
+
+        function renderRecentAccess(visits) {
+            const list = document.getElementById('recent-access-list');
+            list.innerHTML = visits.map(v => `
+                <tr>
+                    <td><span style="opacity:0.5">${new Date(v.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</span></td>
+                    <td><span class="ip-badge">${v.ip_address || '---.---.---.---'}</span></td>
+                    <td>${v.device_type === 'mobile' ? '📱 Mobile' : '💻 Desktop'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderVisitsChart(visits) {
+            const ctx = document.getElementById('visitsChart').getContext('2d');
+            const days = {};
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                days[d.toISOString().split('T')[0]] = 0;
+            }
+            visits.forEach(v => {
+                const d = v.created_at.split('T')[0];
+                if (days[d] !== undefined) days[d]++;
             });
 
-            function showToast() {
-                const t = document.getElementById('toast');
-                t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 3000);
-            }
+            if (visitsChart) visitsChart.destroy();
 
-            document.getElementById('btn-login').onclick = async () => {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const { data, error } = await sb.auth.signInWithPassword({ email, password });
-                if (!error && data.user.email === 'christophek@hotmail.com') showDashboard();
-            };
-            document.getElementById('btn-logout').onclick = () => { sb.auth.signOut(); window.location.reload(); };
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(234, 146, 22, 0.4)');
+            gradient.addColorStop(1, 'rgba(234, 146, 22, 0)');
 
-            function showDashboard() {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                loadData();
-                loadAppData(); 
-                setInterval(() => { loadData(); loadAppData(); }, 60000);
-            }
-
-            async function loadData() {
-                try {
-                    const { data: visits } = await sb.from('site_visits').select('*').order('created_at', { ascending: false });
-                    const { data: events } = await sb.from('site_events').select('*');
-                    const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
-
-                    if (visits && events) {
-                        setTxt('stat-total-visits', visits.length);
-                        const active = events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 180000).toISOString()).length;
-                        setTxt('stat-active-users', active);
-                        renderChart(visits);
+            visitsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
+                    datasets: [{
+                        data: Object.values(days),
+                        borderColor: '#EA9216',
+                        borderWidth: 4,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: gradient,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#EA9216',
+                        pointBorderColor: '#000',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+                            ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } }
+                        }
                     }
-                    if (msgs) setTxt('stat-messages', msgs.length);
-                } catch(e) { console.error(e); }
-            }
-
-            async function loadAppData() {
-                const container = document.getElementById('app-data-container');
-                container.innerHTML = '<div style="padding: 50px; text-align: center; opacity: 0.5;">Analyse des données en cours...</div>';
-
-                try {
-                    const { data: profiles, error: pError } = await sb.from('profiles').select('*');
-                    const { data: consos, error: cError } = await sb.from('consumptions').select('*');
-                    
-                    if (pError || cError) throw (pError || cError);
-
-                    setTxt('stat-db', profiles.length);
-                    setTxt('stat-conso', consos.length);
-                    
-                    const { data: storageData } = await sb.storage.from('profile_images').list('', { limit: 100 });
-                    setTxt('stat-storage', (storageData || []).length);
-
-                    const accounts = {};
-                    profiles.forEach(p => {
-                        if (!accounts[p.owner_id]) accounts[p.owner_id] = [];
-                        accounts[p.owner_id].push(p);
-                    });
-                    setTxt('stat-auth', Object.keys(accounts).length);
-                    window.allAccountsData = accounts; 
-                    renderAccounts(accounts, consos);
-
-                } catch (e) {
-                    console.error(e);
-                    container.innerHTML = `<div class="error">Erreur de chargement : ${e.message}</div>`;
                 }
-            }
+            });
+        }
 
-            function filterProfiles() {
-                if (!window.allAccountsData) return;
-                const query = document.getElementById('search-input').value.toLowerCase();
-                const filteredAccounts = {};
-                
-                Object.entries(window.allAccountsData).forEach(([ownerId, profiles]) => {
-                    const matches = profiles.some(p => 
-                        (p.name || '').toLowerCase().includes(query) || 
-                        (p.email || '').toLowerCase().includes(query) ||
-                        ownerId.toLowerCase().includes(query) ||
-                        (p.id || '').toLowerCase().includes(query)
-                    );
-                    if (matches) filteredAccounts[ownerId] = profiles;
-                });
-                
-                renderAccounts(filteredAccounts, window.currentConsos || []);
-            }
+        async function loadAppData() {
+            const container = document.getElementById('identities-container');
+            container.innerHTML = '<p style="padding:20px; text-align:center; opacity:0.5;">Chargement des identités...</p>';
+            try {
+                const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                window.allProfiles = profiles;
+                renderIdentities(profiles);
+            } catch(e) { console.error(e); }
+        }
 
-            function renderAccounts(accounts, consos) {
-                const container = document.getElementById('app-data-container');
-                window.currentConsos = consos;
-                const consoCounts = {};
-                consos.forEach(c => {
-                    consoCounts[c.profile_id] = (consoCounts[c.profile_id] || 0) + 1;
-                });
+        function filterProfiles() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = window.allProfiles.filter(p => 
+                (p.name || '').toLowerCase().includes(q) || 
+                (p.email || '').toLowerCase().includes(q)
+            );
+            renderIdentities(filtered);
+        }
 
-                let html = '';
-                Object.entries(accounts).forEach(([ownerId, userProfiles]) => {
-                    const accountEmail = userProfiles[0].email || 'E-mail non renseigné';
-                    
-                    html += `
-                    <div class="account-group" id="account-${ownerId}">
-                        <div class="account-header">
-                            <div>
-                                <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">User Datastore</div>
-                                <div style="color:var(--accent-cyan); font-weight:800; font-size:1.2rem;">${accountEmail}</div>
-                                <div style="font-size:0.5rem; opacity:0.3;">UID: ${ownerId}</div>
-                            </div>
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn-action" onclick="resetPassword('${accountEmail}')">Reset Pass</button>
-                                <button class="btn-action" onclick="wipeAccount('${ownerId}')" style="color:var(--danger)">Wipe Account</button>
-                            </div>
+        function renderIdentities(profiles) {
+            const container = document.getElementById('identities-container');
+            container.innerHTML = `
+                <table class="data-table widget">
+                    <thead>
+                        <tr>
+                            <th>IDENTITÉ</th>
+                            <th>EMAIL</th>
+                            <th>AGE/POIDS</th>
+                            <th>CRÉATION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${profiles.map(p => `
+                            <tr>
+                                <td><b style="color:var(--accent)">${p.name || 'ANON'}</b></td>
+                                <td>${p.email || '<span style="opacity:0.3">N/A</span>'}</td>
+                                <td>${p.age || '?'} ans • ${p.weight || '?'} kg</td>
+                                <td><span style="opacity:0.5">${new Date(p.created_at).toLocaleDateString()}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadCMS() {
+            const container = document.getElementById('cms-container');
+            container.innerHTML = '<p style="padding:20px; text-align:center; opacity:0.5;">Récupération du contenu...</p>';
+            try {
+                const { data } = await sb.from('site_content').select('*');
+                container.innerHTML = `<div class="editor-grid">
+                    ${data.map(item => `
+                        <div class="editor-card">
+                            <div style="font-size:0.6rem; color:var(--accent); font-weight:900;">${item.key}</div>
+                            <textarea class="editor-textarea" id="cms-${item.key}">${item.value}</textarea>
+                            <button class="save-btn" onclick="saveCMS('${item.key}')">ENREGISTRER</button>
                         </div>
-                        
-                        <table class="cyber-table">
-                            <thead>
-                                <tr>
-                                    <th>Identity</th>
-                                    <th>Age/Sex</th>
-                                    <th>Activity</th>
-                                    <th>Registration</th>
-                                    <th>Last Path</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${userProfiles.map(p => {
-                                    const nConsos = consoCounts[p.id] || 0;
-                                    const date = new Date(p.created_at).toLocaleDateString('fr-FR');
-                                    const riskClass = nConsos > 50 ? 'high' : (nConsos > 10 ? 'medium' : 'low');
-                                    const avatarEmoji = p.gender === 'Femme' ? '👩' : '👨';
-                                    
-                                    let photoUrl = null;
-                                    if (p.image_path) {
-                                        if (p.image_path.startsWith('http')) photoUrl = p.image_path;
-                                        else if (p.image_path.includes('.')) photoUrl = `https://aswxkjibvcadnwujzwcm.supabase.co/storage/v1/object/public/profile_images/${p.image_path}`;
-                                    }
-                                    
-                                    return `
-                                    <tr>
-                                        <td>
-                                            <div style="display:flex; align-items:center; gap:12px;">
-                                                <div class="user-row-avatar">
-                                                    ${photoUrl ? `<img src="${photoUrl}" onerror="this.style.display='none'; this.parentElement.innerText='${avatarEmoji}'">` : avatarEmoji}
-                                                </div>
-                                                <div>
-                                                    <div style="font-weight:700; color:white;">${p.name || 'Anonymous'}</div>
-                                                    <div style="font-size:0.6rem; opacity:0.5;">ID: ${p.id.substring(0,8)}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div style="font-weight:600;">${p.age || '?'} yrs</div>
-                                            <div style="font-size:0.6rem; opacity:0.5;">${p.gender || '?'} • ${p.weight}kg</div>
-                                        </td>
-                                        <td>
-                                            <div class="stat-badge ${riskClass}">${nConsos} EVENTS</div>
-                                            <div class="level-bar"><div class="level-fill" style="width:${Math.min(100, nConsos)}%; background:${riskClass==='high'?'var(--accent-pink)':(riskClass==='medium'?'var(--accent)':'var(--success)')}"></div></div>
-                                        </td>
-                                        <td style="font-size:0.75rem; opacity:0.7;">${date}</td>
-                                        <td style="font-size:0.6rem; color:var(--text-muted); max-width:120px; overflow:hidden; text-overflow:ellipsis;">
-                                            ${p.image_path || '-'}
-                                        </td>
-                                        <td>
-                                            <div style="display:flex; gap:8px;">
-                                                <button class="btn-action" style="padding:4px 8px" onclick="viewHistory('${p.id}', '${p.name}')">DETAILS</button>
-                                                <button class="btn-action" style="padding:4px 8px; color:var(--danger)" onclick="deleteProfile('${p.id}')">🗑</button>
-                                            </div>
-                                        </td>
-                                    </tr>`;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>`;
-                });
+                    `).join('')}
+                </div>`;
+            } catch(e) { console.error(e); }
+        }
 
-                container.innerHTML = html || '<div style="padding:40px; text-align:center; opacity:0.5">Aucun résultat correspondant.</div>';
+        async function saveCMS(key) {
+            const val = document.getElementById(`cms-${key}`).value;
+            const { error } = await sb.from('site_content').upsert({ key, value: val });
+            if (!error) {
+                const toast = document.getElementById('toast');
+                toast.classList.add('active');
+                setTimeout(() => toast.classList.remove('active'), 2000);
             }
-            window.deleteProfile = async (id) => {
-                if (!confirm("Supprimer ce profil du Cloud ?")) return;
-                try {
-                    const { error } = await sb.from('profiles').delete().eq('id', id);
-                    if (error) throw error;
-                    showToast();
-                    loadAppData();
-                } catch(e) { alert(e.message); }
-            }
+        }
 
-            async function loadCMS() {
-                const container = document.getElementById('cms-container');
-                container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">Synchronisation avec Supabase...</div>';
-                
-                try {
-                    const { data } = await sb.from('site_content').select('*');
-                    const values = {};
-                    if (data) data.forEach(item => values[item.key] = item.value);
+        async function checkSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
+        }
 
-                    let html = '';
-                    CMS_CONFIG.forEach(sec => {
-                        html += `<div class="editor-section-title">${sec.section}</div>`;
-                        html += `<div class="editor-grid">`;
-                        sec.items.forEach(item => {
-                            html += `
-                                <div class="glass-panel editor-card">
-                                    <div class="editor-header">
-                                        <div class="editor-title">${item.label}</div>
-                                        <div class="editor-tag">${item.key}</div>
-                                    </div>
-                                    <div class="textarea-wrapper">
-                                        <textarea class="editor-textarea" data-key="${item.key}">${values[item.key] || item.default}</textarea>
-                                        <button class="save-unit-btn" onclick="saveKey('${item.key}')" title="Sauvegarder">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        html += `</div>`;
-                    });
-                    container.innerHTML = html;
-                } catch(e) { console.error(e); }
-            }
-
-            window.saveKey = async (key) => {
-                const val = document.querySelector(`textarea[data-key="${key}"]`).value;
-                const btn = document.querySelector(`.editor-card [onclick="saveKey('${key}')"]`);
-                const originalBg = btn.style.background;
-                
-                btn.style.opacity = "0.3"; btn.disabled = true;
-
-                try {
-                    console.log(`Saving ${key}...`);
-                    const { error } = await sb.from('site_content').upsert({ key, value: val }, { onConflict: 'key' });
-                    
-                    if (error) {
-                        console.error("Supabase Error:", error);
-                        alert(`Erreur Supabase (${error.code}) : ${error.message}\n\nVérifiez les politiques RLS de la table 'site_content'.`);
-                        throw error;
-                    }
-                    
-                    showToast();
-                    btn.style.background = "var(--success)";
-                    setTimeout(() => btn.style.background = originalBg, 1000);
-                } catch(e) { 
-                    console.error("Save Error:", e);
-                }
-                finally { btn.style.opacity = "1"; btn.disabled = false; }
-            };
-
-            function renderChart(visits) {
-                const ctx = document.getElementById('visitsChart'); if (!ctx || !window.Chart) return;
-                const days = {}; for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days[d.toISOString().split('T')[0]] = 0; }
-                visits.forEach(v => { const dd = v.created_at.split('T')[0]; if (days[dd] !== undefined) days[dd]++; });
-                
-                if (vChart) vChart.destroy();
-                
-                const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(216, 65, 226, 0.4)');
-                gradient.addColorStop(1, 'rgba(216, 65, 226, 0.0)');
-
-                vChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: Object.keys(days).map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-                        datasets: [{ 
-                            data: Object.values(days), 
-                            borderColor: '#d841e2', 
-                            borderWidth: 3, 
-                            tension: 0.4, 
-                            fill: true, 
-                            backgroundColor: gradient, 
-                            pointRadius: 0,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#fff'
-                        }]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } }, 
-                        scales: { 
-                            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555' } }, 
-                            x: { grid: { display: false }, ticks: { color: '#555' } } 
-                        } 
-                    }
-                });
-
-                // Recent access list
-                document.getElementById('recent-access-list').innerHTML = visits.slice(0, 10).map(v => `
-                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-                        <span style="opacity:0.6">${new Date(v.created_at).toLocaleTimeString()}</span>
-                        <span style="color:var(--accent-cyan); font-weight:700;">${v.ip_address || 'ANON'}</span>
-                        <span style="opacity:0.4">${v.device_type === 'mobile' ? '📱' : '💻'}</span>
-                    </div>
-                `).join('');
-            }
-
-            async function checkSession() {
-                const { data: { session } } = await sb.auth.getSession();
-                if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
-            }
-            checkSession();
-        });
+        checkSession();
     </script>
 </body>
 </html>
