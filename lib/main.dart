@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
@@ -898,59 +899,49 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
     for (String monthStr in monthsToPrint) {
       DateTime firstOfMonth = DateTime.parse("$monthStr-01");
-      int daysInMonth = DateTime(
-        firstOfMonth.year,
-        firstOfMonth.month + 1,
-        0,
-      ).day;
+      int daysInMonth = DateTime(firstOfMonth.year, firstOfMonth.month + 1, 0).day;
       int firstWeekday = firstOfMonth.weekday - 1;
+      
       var monthConsosTotal = userConsos
           .where((c) => DateFormat('yyyy-MM').format(c.date) == monthStr)
           .toList();
-      int totalB = monthConsosTotal
-          .where((c) => c.type == L10n.s('common.beer'))
-          .length;
-      int totalV = monthConsosTotal
-          .where((c) => c.type == L10n.s('common.wine'))
-          .length;
-      int totalS = monthConsosTotal
-          .where((c) => c.type == L10n.s('common.spirits'))
-          .length;
-      int totalSoft = monthConsosTotal
-          .where((c) => c.type == L10n.s('entry.types.no_alcohol'))
-          .length;
+          
+      int totalB = monthConsosTotal.where((c) => c.type == L10n.s('common.beer')).length;
+      int totalV = monthConsosTotal.where((c) => c.type == L10n.s('common.wine')).length;
+      int totalS = monthConsosTotal.where((c) => c.type == L10n.s('common.spirits')).length;
+      int totalSoft = monthConsosTotal.where((c) => c.type == L10n.s('entry.types.no_alcohol')).length;
 
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4.landscape,
+          margin: const pw.EdgeInsets.all(32),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                // Expert Header
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          L10n.s('pdf.journal_title', args: {'name': p.name}),
+                          "RAPPORT DE CONSOMMATION",
                           style: pw.TextStyle(
-                            fontSize: 12,
+                            fontSize: 10,
                             fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.grey700,
+                            color: PdfColors.grey600,
+                            letterSpacing: 2,
                           ),
                         ),
+                        pw.SizedBox(height: 4),
                         pw.Text(
-                          DateFormat(
-                            'MMMM yyyy',
-                            'fr_FR',
-                          ).format(firstOfMonth).toUpperCase(),
+                          DateFormat('MMMM yyyy', 'fr_FR').format(firstOfMonth).toUpperCase(),
                           style: pw.TextStyle(
-                            fontSize: 22,
+                            fontSize: 28,
                             fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.orange800,
+                            color: PdfColors.black,
                           ),
                         ),
                       ],
@@ -958,209 +949,144 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Row(
-                          children: [
-                            _legendItem(
-                              "B",
-                              L10n.s('common.beer'),
-                              PdfColors.orange800,
-                            ),
-                            pw.SizedBox(width: 10),
-                            _legendItem(
-                              "V",
-                              L10n.s('common.wine'),
-                              PdfColors.red800,
-                            ),
-                            pw.SizedBox(width: 10),
-                            _legendItem(
-                              "S",
-                              L10n.s('common.spirits'),
-                              PdfColors.purple800,
-                            ),
-                            pw.SizedBox(width: 10),
-                            _legendItem(
-                              "Ø",
-                              L10n.s('entry.types.no_alcohol'),
-                              PdfColors.green800,
-                            ),
-                          ],
-                        ),
-                        pw.SizedBox(height: 4),
                         pw.Text(
-                          "Total : $totalB B | $totalV V | $totalS S | $totalSoft Ø",
+                          p.name.toUpperCase(),
                           style: pw.TextStyle(
-                            fontSize: 9,
+                            fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.grey600,
+                            color: PdfColors.orange900,
                           ),
+                        ),
+                        pw.Text(
+                          "ID: ${p.id.substring(0, 8).toUpperCase()}",
+                          style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
                         ),
                       ],
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 15),
-                pw.Table(
-                  border: pw.TableBorder.all(
-                    color: PdfColors.grey300,
-                    width: 0.5,
-                  ),
+                pw.SizedBox(height: 20),
+                pw.Divider(color: PdfColors.grey300, thickness: 0.5),
+                pw.SizedBox(height: 20),
+
+                // Summary Statistics Box
+                pw.Row(
                   children: [
-                    pw.TableRow(
-                      children:
-                          [
-                                L10n.s('pdf.days.mon'),
-                                L10n.s('pdf.days.tue'),
-                                L10n.s('pdf.days.wed'),
-                                L10n.s('pdf.days.thu'),
-                                L10n.s('pdf.days.fri'),
-                                L10n.s('pdf.days.sat'),
-                                L10n.s('pdf.days.sun'),
-                              ]
-                              .map(
-                                (d) => pw.Container(
-                                  alignment: pw.Alignment.center,
-                                  padding: const pw.EdgeInsets.all(4),
-                                  decoration: const pw.BoxDecoration(
-                                    color: PdfColors.grey100,
-                                  ),
-                                  child: pw.Text(
-                                    d.toUpperCase(),
+                    _expertStatBox("BIÈRES", totalB, PdfColors.orange800),
+                    pw.SizedBox(width: 15),
+                    _expertStatBox("VINS", totalV, PdfColors.red800),
+                    pw.SizedBox(width: 15),
+                    _expertStatBox("SPIRITUEUX", totalS, PdfColors.purple800),
+                    pw.SizedBox(width: 15),
+                    _expertStatBox("SANS ALCOOL", totalSoft, PdfColors.green800),
+                    pw.Spacer(),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text(
+                          "TOTAL UNITÉS",
+                          style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600, fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          "${totalB + totalV + totalS}",
+                          style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 25),
+
+                // Calendar Table
+                pw.Expanded(
+                  child: pw.Table(
+                    border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
+                    children: [
+                      pw.TableRow(
+                        decoration: const pw.BoxDecoration(color: PdfColors.grey100),
+                        children: [
+                          "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"
+                        ].map((d) => pw.Container(
+                          padding: const pw.EdgeInsets.all(6),
+                          alignment: pw.Alignment.center,
+                          child: pw.Text(d, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                        )).toList(),
+                      ),
+                      ...List.generate(6, (weekIndex) {
+                        return pw.TableRow(
+                          children: List.generate(7, (dayIndex) {
+                            int currentDay = (weekIndex * 7) + dayIndex - firstWeekday + 1;
+                            if (currentDay <= 0 || currentDay > daysInMonth) {
+                              return pw.Container(constraints: const pw.BoxConstraints(minHeight: 50), color: PdfColors.grey50);
+                            }
+
+                            DateTime currentCalDay = DateTime(firstOfMonth.year, firstOfMonth.month, currentDay);
+                            var dayConsos = userConsos.where((c) => belongsToLogicalDay(c.date, currentCalDay)).toList();
+                            dayConsos.sort((a, b) => a.date.compareTo(b.date));
+
+                            return pw.Container(
+                              constraints: const pw.BoxConstraints(minHeight: 50),
+                              padding: const pw.EdgeInsets.all(4),
+                              color: dayConsos.isNotEmpty ? PdfColors.orange50 : null,
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text(
+                                    "$currentDay",
                                     style: pw.TextStyle(
+                                      fontSize: 8, 
                                       fontWeight: pw.FontWeight.bold,
-                                      fontSize: 8,
-                                      color: PdfColors.grey700,
+                                      color: dayConsos.isNotEmpty ? PdfColors.orange900 : PdfColors.grey400,
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                    ),
-                    ...List.generate(6, (weekIndex) {
-                      return pw.TableRow(
-                        children: List.generate(7, (dayIndex) {
-                          int currentDay =
-                              (weekIndex * 7) + dayIndex - firstWeekday + 1;
-                          if (currentDay <= 0 || currentDay > daysInMonth) {
-                            return pw.Container(
-                              constraints: const pw.BoxConstraints(
-                                minHeight: 60,
-                              ),
-                              decoration: const pw.BoxDecoration(
-                                color: PdfColors.grey50,
+                                  pw.SizedBox(height: 2),
+                                  ...dayConsos.map((c) => pw.Row(
+                                    children: [
+                                      pw.Container(width: 3, height: 3, decoration: pw.BoxDecoration(color: _getDrinkColor(c.type), shape: pw.BoxShape.circle)),
+                                      pw.SizedBox(width: 2),
+                                      pw.Text(
+                                        "${c.volume} (${DateFormat('HH:mm').format(c.date)})",
+                                        style: pw.TextStyle(fontSize: 5.5, fontWeight: pw.FontWeight.bold),
+                                      ),
+                                    ],
+                                  )),
+                                  // Restore Contexts in PDF
+                                  ...[
+                                    L10n.s('moments.morning'),
+                                    L10n.s('moments.noon'),
+                                    L10n.s('moments.afternoon'),
+                                    L10n.s('moments.evening'),
+                                    L10n.s('moments.night'),
+                                  ].where((m) {
+                                    final key = "${p.id}_${DateFormat('yyyyMMdd').format(currentCalDay)}_$m";
+                                    return _contexts.containsKey(key) && _contexts[key]!.isNotEmpty;
+                                  }).map((m) {
+                                    final key = "${p.id}_${DateFormat('yyyyMMdd').format(currentCalDay)}_$m";
+                                    return pw.Padding(
+                                      padding: const pw.EdgeInsets.only(top: 2),
+                                      child: pw.Text(
+                                        "${m[0]}: ${_contexts[key]}",
+                                        style: pw.TextStyle(fontSize: 4.5, fontStyle: pw.FontStyle.italic, color: PdfColors.blueGrey700),
+                                      ),
+                                    );
+                                  }),
+                                ],
                               ),
                             );
-                          }
+                          }),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
 
-                          DateTime currentCalDay = DateTime(
-                            firstOfMonth.year,
-                            firstOfMonth.month,
-                            currentDay,
-                          );
-                          String dayKey = DateFormat(
-                            'yyyyMMdd',
-                          ).format(currentCalDay);
-
-                          var dayConsos = userConsos
-                              .where(
-                                (c) =>
-                                    belongsToLogicalDay(c.date, currentCalDay),
-                              )
-                              .toList();
-
-                          // Tri chronologique
-                          dayConsos.sort((a, b) => a.date.compareTo(b.date));
-
-                          List<String> contextsOfDay = [];
-                          for (var m in [
-                            L10n.s('moments.morning'),
-                            L10n.s('moments.noon'),
-                            L10n.s('moments.afternoon'),
-                            L10n.s('moments.evening'),
-                            L10n.s('moments.night'),
-                          ]) {
-                            String cKey = "${p.id}_${dayKey}_$m";
-                            if (_contexts.containsKey(cKey) &&
-                                _contexts[cKey]!.isNotEmpty) {
-                              contextsOfDay.add("${m[0]}: ${_contexts[cKey]}");
-                            }
-                          }
-
-                          return pw.Container(
-                            constraints: const pw.BoxConstraints(minHeight: 60),
-                            padding: const pw.EdgeInsets.all(3),
-                            color:
-                                (dayConsos.isNotEmpty ||
-                                    contextsOfDay.isNotEmpty)
-                                ? PdfColors.orange50
-                                : null,
-                            child: pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                pw.Row(
-                                  mainAxisAlignment:
-                                      pw.MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    pw.Text(
-                                      "$currentDay",
-                                      style: pw.TextStyle(
-                                        fontWeight: pw.FontWeight.bold,
-                                        fontSize: 9,
-                                        color: (dayConsos.isNotEmpty)
-                                            ? PdfColors.orange900
-                                            : PdfColors.grey800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                pw.SizedBox(height: 2),
-                                ...dayConsos.map((c) {
-                                  final color = _getDrinkColor(c.type);
-                                  String initial =
-                                      (c.type ==
-                                          L10n.s('entry.types.no_alcohol'))
-                                      ? "Ø"
-                                      : (c.type == L10n.s('common.beer'))
-                                      ? "B"
-                                      : (c.type == L10n.s('common.wine'))
-                                      ? "V"
-                                      : (c.type == L10n.s('common.spirits'))
-                                      ? "S"
-                                      : c.type[0];
-
-                                  String timeStr =
-                                      "${c.date.hour.toString().padLeft(2, '0')}:${c.date.minute.toString().padLeft(2, '0')}";
-
-                                  return pw.Padding(
-                                    padding: const pw.EdgeInsets.only(
-                                      bottom: 1,
-                                    ),
-                                    child: pw.Text(
-                                      "$timeStr $initial ${c.volume}",
-                                      style: pw.TextStyle(
-                                        fontSize: 5.5,
-                                        fontWeight: pw.FontWeight.bold,
-                                        color: color,
-                                      ),
-                                    ),
-                                  );
-                                }),
-                                if (contextsOfDay.isNotEmpty) ...[
-                                  pw.SizedBox(height: 2),
-                                  pw.Text(
-                                    cleanDisplay(contextsOfDay.join(" / ")),
-                                    style: pw.TextStyle(
-                                      fontSize: 4.5,
-                                      fontStyle: pw.FontStyle.italic,
-                                      color: PdfColors.grey700,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          );
-                        }),
-                      );
-                    }),
+                // Footer
+                pw.SizedBox(height: 10),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text("Généré par Alcohol Tracker - Journal Conso", style: pw.TextStyle(fontSize: 7, color: PdfColors.grey500, fontStyle: pw.FontStyle.italic)),
+                    pw.Text("Page ${context.pageNumber} / ${context.pagesCount}", style: pw.TextStyle(fontSize: 7, color: PdfColors.grey500)),
                   ],
                 ),
               ],
@@ -1178,7 +1104,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: const Text("Aperçu Impression"),
+            title: const Text("Rapport Expert"),
             backgroundColor: widget.isDarkMode
                 ? const Color(0xFF14191F)
                 : Colors.white,
@@ -1197,29 +1123,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   // Helper pour la légende PDF
-  pw.Widget _legendItem(String initial, String label, PdfColor color) {
-    return pw.Row(
-      children: [
-        pw.Container(
-          width: 10,
-          height: 10,
-          decoration: pw.BoxDecoration(color: color, shape: pw.BoxShape.circle),
-          child: pw.Center(
-            child: pw.Text(
-              initial,
-              style: pw.TextStyle(
-                fontSize: 6,
-                color: PdfColors.white,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        pw.SizedBox(width: 4),
-        pw.Text(label, style: const pw.TextStyle(fontSize: 8)),
-      ],
-    );
-  }
 
   PdfColor _getDrinkColor(String type) {
     if (type == L10n.s('common.beer')) return PdfColors.orange800;
@@ -1227,6 +1130,38 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     if (type == L10n.s('common.spirits')) return PdfColors.purple800;
     if (type == L10n.s('entry.types.no_alcohol')) return PdfColors.green800;
     return PdfColors.blue800;
+  }
+
+  pw.Widget _expertStatBox(String label, int count, PdfColor color) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        border: pw.Border.all(color: PdfColors.grey200, width: 0.5),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 6,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey500,
+            ),
+          ),
+          pw.Text(
+            "$count",
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -1308,21 +1243,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                         ),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Color(activeUser.colorValue),
-                              radius: 16,
-                              backgroundImage: getProfileImage(
-                                activeUser.imagePath,
+                            _StreakAura(
+                              streak: calculateSobrietyStreak(userConsos),
+                              child: CircleAvatar(
+                                backgroundColor: Color(activeUser.colorValue),
+                                radius: 16,
+                                backgroundImage: getProfileImage(
+                                  activeUser.imagePath,
+                                ),
+                                child:
+                                    (activeUser.imagePath == null ||
+                                        activeUser.imagePath!.isEmpty)
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 16,
+                                        color: Colors.white,
+                                      )
+                                    : null,
                               ),
-                              child:
-                                  (activeUser.imagePath == null ||
-                                      activeUser.imagePath!.isEmpty)
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 16,
-                                      color: Colors.white,
-                                    )
-                                  : null,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -1467,142 +1405,154 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                       onPageChanged: (index) =>
                           setState(() => _selectedIndex = index),
                       children: [
-                        HomeScreen(
-                          consumptions: userConsos,
-                          activeUserId: _activeUserId,
-                          contexts: _contexts,
-                          isDarkMode: widget.isDarkMode,
-                          accentColor: widget.accentColor,
-                          activeUser: activeUser,
-                          onDateSelected: (date) =>
-                              setState(() => _currentJournalDate = date),
-                          onAddOrUpdate: (c) async {
-                            setState(() {
-                              final i = _allConsumptions.indexWhere(
-                                (item) => item.id == c.id,
-                              );
-                              if (i != -1) {
-                                _allConsumptions[i] = c;
-                              } else {
-                                _allConsumptions.add(c);
-                              }
-                            });
-                            await _saveAll();
-
-                            final user =
-                                Supabase.instance.client.auth.currentUser;
-                            if (user != null) {
-                              try {
-                                await SupabaseService.syncConsumptions([
-                                  c,
-                                ], user.id);
-                              } catch (e) {
-                                debugPrint("Erreur synchro conso : $e");
-                              }
-                            }
-                          },
-                          onDelete: (id) async {
-                            setState(
-                              () => _allConsumptions.removeWhere(
-                                (c) => c.id == id,
-                              ),
-                            );
-                            final user =
-                                Supabase.instance.client.auth.currentUser;
-                            if (user != null) {
-                              await SupabaseService.deleteConsumption(
-                                id,
-                                user.id,
-                              );
-                            }
-                            _saveAll();
-                          },
-                          onUpdateContext: (key, val) async {
-                            setState(() {
-                              if (val.trim().isEmpty) {
-                                _contexts.remove(key);
-                              } else {
-                                _contexts[key] = val;
-                              }
-                            });
-                            await _saveAll();
-
-                            // Synchro immédiate si connecté (évite les pertes au restart/pull)
-                            final user =
-                                Supabase.instance.client.auth.currentUser;
-                            if (user != null) {
-                              try {
-                                if (val.trim().isEmpty) {
-                                  await SupabaseService.deleteContext(
-                                    key,
-                                    user.id,
-                                  );
+                        _PremiumPageWrapper(
+                          index: 0,
+                          controller: _pageController,
+                          child: HomeScreen(
+                            consumptions: userConsos,
+                            activeUserId: _activeUserId,
+                            contexts: _contexts,
+                            selectedJournalDate: _currentJournalDate, // New prop
+                            isDarkMode: widget.isDarkMode,
+                            accentColor: widget.accentColor,
+                            activeUser: activeUser,
+                            onDateSelected: (date) =>
+                                setState(() => _currentJournalDate = date),
+                            onAddOrUpdate: (c) async {
+                              setState(() {
+                                final i = _allConsumptions.indexWhere(
+                                  (item) => item.id == c.id,
+                                );
+                                if (i != -1) {
+                                  _allConsumptions[i] = c;
                                 } else {
-                                  await SupabaseService.syncSingleContext(
-                                    key,
-                                    val,
-                                    user.id,
-                                  );
+                                  _allConsumptions.add(c);
                                 }
-                              } catch (e) {
-                                debugPrint("Erreur synchro contexte : $e");
+                              });
+                              await _saveAll();
+
+                              final user =
+                                  Supabase.instance.client.auth.currentUser;
+                              if (user != null) {
+                                try {
+                                  await SupabaseService.syncConsumptions([
+                                    c,
+                                  ], user.id);
+                                } catch (e) {
+                                  debugPrint("Erreur synchro conso : $e");
+                                }
                               }
-                            }
-                          },
-                          onPrint: (m) =>
-                              _printProfile(activeUser, specificMonth: m),
-                          unitMl: widget.unitMl,
-                        ),
-                        StatsScreen(
-                          consumptions: userConsos,
-                          contexts: _contexts,
-                          isDarkMode: widget.isDarkMode,
-                          accentColor: widget.accentColor,
-                          activeUser: activeUser,
-                          isYoungDriver: widget.isYoungDriver,
-                        ),
-                        OptionsScreen(
-                          key: ValueKey(
-                            'opt_${_profiles.length}_$_activeUserId',
+                            },
+                            onDelete: (id) async {
+                              setState(
+                                () => _allConsumptions.removeWhere(
+                                  (c) => c.id == id,
+                                ),
+                              );
+                              final user =
+                                  Supabase.instance.client.auth.currentUser;
+                              if (user != null) {
+                                await SupabaseService.deleteConsumption(
+                                  id,
+                                  user.id,
+                                );
+                              }
+                              _saveAll();
+                            },
+                            onUpdateContext: (key, val) async {
+                              setState(() {
+                                if (val.trim().isEmpty) {
+                                  _contexts.remove(key);
+                                } else {
+                                  _contexts[key] = val;
+                                }
+                              });
+                              await _saveAll();
+
+                              final user =
+                                  Supabase.instance.client.auth.currentUser;
+                              if (user != null) {
+                                try {
+                                  if (val.trim().isEmpty) {
+                                    await SupabaseService.deleteContext(
+                                      key,
+                                      user.id,
+                                    );
+                                  } else {
+                                    await SupabaseService.syncSingleContext(
+                                      key,
+                                      val,
+                                      user.id,
+                                    );
+                                  }
+                                } catch (e) {
+                                  debugPrint("Erreur synchro contexte : $e");
+                                }
+                              }
+                            },
+                            onPrint: (m) =>
+                                _printProfile(activeUser, specificMonth: m),
+                            unitMl: widget.unitMl,
                           ),
-                          profiles: _profiles,
-                          onProfilesChanged: () async {
-                            await _saveAll();
-                            _pushToCloud(silent: true);
-                          },
-                          onReset: () {
-                            setState(() {
-                              _allConsumptions.clear();
-                              _contexts.clear();
-                            });
-                            _saveAll();
-                          },
-                          isDarkMode: widget.isDarkMode,
-                          accentColor: widget.accentColor,
-                          onThemeChanged: widget.onThemeChanged,
-                          onDeleteProfile: _deleteProfile,
-                          onExportProfile: _exportProfile,
-                          onImportProfile: _importToProfile,
-                          onPrintProfile: _printProfile,
-                          onImportFullProject: _importFullProject,
-                          onImportAsNew: _importAsNewProfile,
-                          onExportFullProject: _exportFullProject,
-                          isYoungDriver: widget.isYoungDriver,
-                          onYoungDriverChanged: widget.onYoungDriverChanged,
-                          unitMl: widget.unitMl,
-                          onUnitMlChanged: widget.onUnitMlChanged,
-                          onSyncCloud: () => _pullFromCloud(silent: false),
-                          onPushCloud: () => _pushToCloud(silent: false),
-                          onDeleteAccount: _deleteOnlineAccount,
-                          onLogout: () async {
-                            final session =
-                                Supabase.instance.client.auth.currentSession;
-                            if (session != null) {
-                              await Supabase.instance.client.auth.signOut();
-                            } else {
-                              widget.onOfflineLogout();
-                            }
-                          },
+                        ),
+                        _PremiumPageWrapper(
+                          index: 1,
+                          controller: _pageController,
+                          child: StatsScreen(
+                            consumptions: userConsos,
+                            contexts: _contexts,
+                            isDarkMode: widget.isDarkMode,
+                            accentColor: widget.accentColor,
+                            activeUser: activeUser,
+                            isYoungDriver: widget.isYoungDriver,
+                          ),
+                        ),
+                        _PremiumPageWrapper(
+                          index: 2,
+                          controller: _pageController,
+                          child: OptionsScreen(
+                            key: ValueKey(
+                              'opt_${_profiles.length}_$_activeUserId',
+                            ),
+                            profiles: _profiles,
+                            onProfilesChanged: () async {
+                              await _saveAll();
+                              _pushToCloud(silent: true);
+                            },
+                            onReset: () {
+                              setState(() {
+                                _allConsumptions.clear();
+                                _contexts.clear();
+                              });
+                              _saveAll();
+                            },
+                            isDarkMode: widget.isDarkMode,
+                            accentColor: widget.accentColor,
+                            onThemeChanged: widget.onThemeChanged,
+                            onDeleteProfile: _deleteProfile,
+                            onExportProfile: _exportProfile,
+                            onImportProfile: _importToProfile,
+                            onPrintProfile: _printProfile,
+                            onImportFullProject: _importFullProject,
+                            onImportAsNew: _importAsNewProfile,
+                            onExportFullProject: _exportFullProject,
+                            isYoungDriver: widget.isYoungDriver,
+                            onYoungDriverChanged: widget.onYoungDriverChanged,
+                            unitMl: widget.unitMl,
+                            onUnitMlChanged: widget.onUnitMlChanged,
+                            onSyncCloud: () => _pullFromCloud(silent: false),
+                            onPushCloud: () => _pushToCloud(silent: false),
+                            onDeleteAccount: _deleteOnlineAccount,
+                            onLogout: () async {
+                              final session =
+                                  Supabase.instance.client.auth.currentSession;
+                              if (session != null) {
+                                await Supabase.instance.client.auth.signOut();
+                              } else {
+                                widget.onOfflineLogout();
+                              }
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -1635,16 +1585,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         ],
       ),
       floatingActionButton: _selectedIndex == 0
-          ? LiquidGlassFAB(
+          ? _PulseWidget(
+              enabled: userConsos.every((c) => !belongsToLogicalDay(c.date, DateTime.now())),
               accentColor: widget.accentColor,
-              currentBac: calculateBACAt(
-                activeUser.gender,
-                activeUser.weight,
-                userConsos,
-                DateTime.now(),
-              ),
-              threshold: widget.isYoungDriver ? 0.2 : 0.5,
-              onPressed: () {
+              child: LiquidGlassFAB(
+                accentColor: widget.accentColor,
+                currentBac: calculateBACAt(
+                  activeUser.gender,
+                  activeUser.weight,
+                  userConsos,
+                  DateTime.now(),
+                ),
+                threshold: widget.isYoungDriver ? 0.2 : 0.5,
+                onPressed: () {
                 final now = DateTime.now();
                 String moment = 'Soir';
 
@@ -1701,7 +1654,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                   ),
                 );
               },
-            )
+            ),
+          )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: BottomNavigationBar(
@@ -1750,6 +1704,7 @@ class HomeScreen extends StatefulWidget {
   final bool isDarkMode;
   final Color accentColor;
   final UserProfile activeUser;
+  final DateTime selectedJournalDate;
   final Function(DateTime)? onDateSelected;
   final bool unitMl;
   const HomeScreen({
@@ -1764,6 +1719,7 @@ class HomeScreen extends StatefulWidget {
     required this.isDarkMode,
     required this.accentColor,
     required this.activeUser,
+    required this.selectedJournalDate,
     this.onDateSelected,
     required this.unitMl,
   });
@@ -1772,16 +1728,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PageController _pageController = PageController(initialPage: 1200);
   late DateTime _selectedDate;
   late DateTime _focusedMonth;
 
   @override
   void initState() {
     super.initState();
-    DateTime now = DateTime.now();
-    _selectedDate = now.hour < 6 ? now.subtract(const Duration(days: 1)) : now;
+    _selectedDate = widget.selectedJournalDate;
     _focusedMonth = DateTime(_selectedDate.year, _selectedDate.month);
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedJournalDate != widget.selectedJournalDate) {
+      setState(() {
+        _selectedDate = widget.selectedJournalDate;
+        _focusedMonth = DateTime(_selectedDate.year, _selectedDate.month);
+      });
+    }
   }
 
   void _showSetPartyGoalDialog() {
@@ -2238,7 +2203,11 @@ class _HomeScreenState extends State<HomeScreen> {
             'Après-midi',
             'Soir',
             'Soirée',
-          ].map((m) => _momentTile(m)),
+          ].asMap().entries.map((entry) => _EntranceFadedSlide(
+            key: ValueKey("${_selectedDate.toIso8601String()}_${entry.value}"),
+            index: entry.key,
+            child: _momentTile(entry.value),
+          )),
           const SizedBox(height: 40),
         ],
       ),
@@ -2319,8 +2288,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: isFuture
                   ? null
                   : () {
+                      HapticFeedback.selectionClick();
                       setState(() => _selectedDate = date);
                       widget.onDateSelected?.call(date);
+                      if (!hasC) {
+                        _triggerConfetti(context);
+                      }
                     },
               child: Opacity(
                 opacity: isFuture ? 0.25 : 1.0,
@@ -2462,27 +2435,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (imagePath != null)
-            Image.asset(imagePath, height: 36, fit: BoxFit.contain)
-          else
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          const SizedBox(width: 10),
-          Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: widget.isDarkMode ? Colors.white : Colors.black87,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (imagePath != null)
+                Image.asset(imagePath, height: 42, fit: BoxFit.contain)
+              else
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+              const SizedBox(width: 8),
+              Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: widget.isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
+          const SizedBox(height: 2),
           Text(
             label.toUpperCase(),
             style: TextStyle(
@@ -2517,6 +2495,7 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.consumptions
             .where(
               (c) =>
+                  c.userId == widget.activeUserId &&
                   c.moment == moment &&
                   belongsToLogicalDay(c.date, _selectedDate),
             )
@@ -2578,8 +2557,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     moment,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       color: widget.isDarkMode ? Colors.white : Colors.black87,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   onTap: () => _showSaisie(moment),
@@ -2648,9 +2628,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: momentConsos
-                        .map((c) => _consoDraggable(c))
-                        .toList(),
+                    children: momentConsos.asMap().entries.map((entry) {
+                      return _EntranceFadedSlide(
+                        index: entry.key,
+                        child: _consoDraggable(entry.value),
+                      );
+                    }).toList(),
                   ),
               ],
             ),
@@ -2685,111 +2668,143 @@ class _HomeScreenState extends State<HomeScreen> {
       imagePath = 'assets/images/water.png';
     }
 
-    final chip = Material(
-      color: Colors.transparent,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.centerLeft,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 20),
-            decoration: BoxDecoration(
-              color: drinkColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: drinkColor.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(width: 25), // Plus d'espace pour la grande icône
-                InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    final now = DateTime.now();
-                    DateTime logicalDate = c.date.hour < 6
-                        ? c.date.subtract(const Duration(days: 1))
-                        : c.date;
-
-                    DateTime targetPhysicalDate = now.hour < 6
-                        ? logicalDate.add(const Duration(days: 1))
-                        : logicalDate;
-
-                    final newDate = DateTime(
-                      targetPhysicalDate.year,
-                      targetPhysicalDate.month,
-                      targetPhysicalDate.day,
-                      now.hour,
-                      now.minute,
-                    );
-
-                    widget.onAddOrUpdate(
-                      Consumption(
-                        id: now.millisecondsSinceEpoch.toString(),
-                        date: newDate,
-                        moment: getMomentFromTime(TimeOfDay.fromDateTime(newDate)),
-                        type: c.type,
-                        volume: c.volume,
-                        degree: c.degree,
-                        userId: c.userId,
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-                    child: Icon(Icons.add_circle_outline_rounded, size: 18, color: drinkColor.withValues(alpha: 0.6)),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => _showSaisie(c.moment, existingConso: c),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    child: Text(
-                      '${c.type} ${_formatVol(c.volume)} (${DateFormat('HH:mm').format(c.date)})',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: widget.isDarkMode ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                InkWell(
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(22),
-                    bottomRight: Radius.circular(22),
-                  ),
-                  onTap: () => widget.onDelete(c.id),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(6, 12, 14, 12),
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 18,
-                      color: Colors.redAccent.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (imagePath != null)
-            Positioned(
-              left: -5,
-              child: Image.asset(
-                imagePath,
-                height: 50,
-                width: 50,
-                fit: BoxFit.contain,
-              ),
-            ),
-        ],
-      ),
-    );
     return LongPressDraggable<Consumption>(
       data: c,
-      feedback: Opacity(opacity: 0.8, child: chip),
-      childWhenDragging: Opacity(opacity: 0.3, child: chip),
-      child: chip,
+      feedback: Opacity(
+        opacity: 0.8,
+        child: _consoCard(c, drinkColor, imagePath, isDragging: true),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _consoCard(c, drinkColor, imagePath),
+      ),
+      child: GestureDetector(
+        onLongPress: () {
+          HapticFeedback.heavyImpact();
+          widget.onDelete(c.id);
+        },
+        onTap: () {
+           HapticFeedback.selectionClick();
+           _showSaisie(c.moment, existingConso: c);
+        },
+        child: _consoCard(c, drinkColor, imagePath),
+      ),
+    );
+  }
+
+  Widget _consoCard(Consumption c, Color drinkColor, String? imagePath, {bool isDragging = false}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // La Bulle Principale (Style Pill / Capture 2)
+        Container(
+          width: 170,
+          margin: const EdgeInsets.only(left: 20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: drinkColor.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(25),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(32, 8, 12, 8),
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode 
+                      ? Colors.white.withValues(alpha: 0.07)
+                      : Colors.white.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: drinkColor.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Bouton de duplication (Style Capture 2 mais blanc)
+                    InkWell(
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        final duplicated = Consumption(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          userId: c.userId,
+                          date: c.date.add(const Duration(seconds: 1)),
+                          moment: c.moment,
+                          type: c.type,
+                          volume: c.volume,
+                          degree: c.degree,
+                        );
+                        widget.onAddOrUpdate(duplicated);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white38, width: 1.5),
+                        ),
+                        child: const Icon(Icons.add, color: Colors.white, size: 14),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${c.type} ${c.volume}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            "(${DateFormat('HH:mm').format(c.date)})",
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Bouton supprimer (plus discret)
+                    InkWell(
+                      onTap: () {
+                        HapticFeedback.heavyImpact();
+                        widget.onDelete(c.id);
+                      },
+                      child: const Icon(Icons.close, size: 16, color: Colors.white38),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // L'icône qui dépasse (Style Capture 2)
+        Positioned(
+          left: -5,
+          top: -5,
+          bottom: -5,
+          child: Center(
+            child: imagePath != null
+                ? Image.asset(imagePath, height: 48, width: 48, fit: BoxFit.contain)
+                : Icon(Icons.local_bar, color: drinkColor, size: 30),
+          ),
+        ),
+      ],
     );
   }
 
@@ -2856,14 +2871,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _formatVol(String v) {
-    if (!widget.unitMl) return v;
-    if (v.contains('cl')) {
-      double val = double.tryParse(v.replaceAll('cl', '')) ?? 0;
-      return "${(val * 10).toInt()}ml";
-    }
-    return v;
-  }
 }
 
 class StatsScreen extends StatefulWidget {
@@ -3183,21 +3190,24 @@ class _StatsScreenState extends State<StatsScreen> {
                     SizedBox(
                       height: 110,
                       width: 110,
-                      child: CircularProgressIndicator(
-                        value: (currentBac / 1.5).clamp(0, 1),
-                        strokeWidth: 8,
-                        color: isDanger ? Colors.red : widget.accentColor,
-                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: (currentBac / 1.5).clamp(0, 1)),
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeOutExpo,
+                        builder: (context, value, child) => _LiquidCircularProgress(
+                          value: value,
+                          color: isDanger ? Colors.red : widget.accentColor,
+                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                        ),
                       ),
                     ),
-                    Text(
-                      currentBac.toStringAsFixed(2),
+                    _AnimatedCounter(
+                      value: currentBac,
+                      decimals: 2,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode
-                            ? Colors.white
-                            : Colors.black87,
+                        color: widget.isDarkMode ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
@@ -3506,14 +3516,12 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "$dryDays",
+                      _AnimatedCounter(
+                        value: dryDays,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: widget.isDarkMode
-                              ? Colors.white
-                              : Colors.black,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                       Text(
@@ -3547,14 +3555,12 @@ class _StatsScreenState extends State<StatsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "$unities",
+                      _AnimatedCounter(
+                        value: unities,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: widget.isDarkMode
-                              ? Colors.white
-                              : Colors.black,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                       Text(
@@ -3693,16 +3699,17 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  L10n.s('stats.trend'),
+                  "${L10n.s('stats.trend')} (VERRES)".toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: widget.accentColor,
+                    letterSpacing: 1.1,
                   ),
                 ),
                 const SizedBox(height: 15),
                 SizedBox(
-                  height: 200,
+                  height: 230,
                   child: Row(
                     children: [
                       SizedBox(width: 40, child: LineChart(_axisOnlyData())),
@@ -3966,7 +3973,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
       if (dayUnits > maxFound) maxFound = dayUnits;
     }
-    double sharedMaxY = maxFound < 5 ? 6 : maxFound + 2;
+    double sharedMaxY = maxFound < 5 ? 8 : maxFound + 4;
 
     return LineChartData(
       gridData: const FlGridData(show: false),
@@ -3974,7 +3981,7 @@ class _StatsScreenState extends State<StatsScreen> {
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 2,
+            interval: (sharedMaxY / 4).clamp(1, 10).toDouble(),
             reservedSize: 40,
             getTitlesWidget: (v, m) => Text(
               '${v.toInt()}',
@@ -4042,7 +4049,7 @@ class _StatsScreenState extends State<StatsScreen> {
       if (dayUnits > maxFound) maxFound = dayUnits;
       spots.add(FlSpot(i.toDouble(), dayUnits));
     }
-    double sharedMaxY = maxFound < 5 ? 6 : maxFound + 2;
+    double sharedMaxY = maxFound < 5 ? 8 : maxFound + 4;
 
     return LineChartData(
       minX: 0,
@@ -4068,7 +4075,7 @@ class _StatsScreenState extends State<StatsScreen> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 1,
+            interval: _period == 'Mois' ? 5 : 1,
             reservedSize: 40,
             getTitlesWidget: (v, m) {
               int idx = v.toInt();
@@ -4076,6 +4083,27 @@ class _StatsScreenState extends State<StatsScreen> {
               DateTime d = (_period == 'Année')
                   ? DateTime(today.year, today.month - (count - 1 - idx), 1)
                   : today.subtract(Duration(days: (count - 1) - idx));
+              
+              if (_period == 'Année') {
+                return Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      DateFormat('MMM', 'fr_FR').format(d).toUpperCase(),
+                      style: TextStyle(
+                        color: widget.accentColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "${d.year}",
+                      style: const TextStyle(color: Colors.blueGrey, fontSize: 7),
+                    ),
+                  ],
+                );
+              }
+              
               return Column(
                 children: [
                   const SizedBox(height: 8),
@@ -4095,6 +4123,27 @@ class _StatsScreenState extends State<StatsScreen> {
               );
             },
           ),
+        ),
+      ),
+      lineTouchData: LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          getTooltipColor: (spot) => widget.isDarkMode
+              ? const Color(0xFF263238)
+              : Colors.white,
+          getTooltipItems: (touchedSpots) {
+            return touchedSpots.map((spot) {
+              return LineTooltipItem(
+                "${spot.y.toStringAsFixed(1)} verres",
+                TextStyle(
+                  color: widget.accentColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              );
+            }).toList();
+          },
         ),
       ),
       borderData: FlBorderData(show: false),
@@ -4339,7 +4388,6 @@ class OptionsScreen extends StatefulWidget {
 
 class _OptionsScreenState extends State<OptionsScreen> {
   final ImagePicker _picker = ImagePicker();
-  bool _isUploading = false;
 
   Future<void> _pickImage(UserProfile p) async {
     final XFile? image = await _picker.pickImage(
@@ -4349,17 +4397,16 @@ class _OptionsScreenState extends State<OptionsScreen> {
       imageQuality: 70,
     );
     if (image != null) {
+      if (!mounted) return;
       String? cloudPath;
       if (Supabase.instance.client.auth.currentUser != null) {
-        setState(() => _isUploading = true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("🚀 Envoi de la photo sur le Cloud...")),
         );
 
         final result = await SupabaseService.uploadProfileImage(image);
+        if (!mounted) return;
         cloudPath = result['url'];
-
-        setState(() => _isUploading = false);
 
         if (cloudPath != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -4974,6 +5021,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SizedBox(height: 10),
         ReorderableListView.builder(
           shrinkWrap: true,
+          buildDefaultDragHandles: false,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.profiles.length,
           onReorder: (oldIndex, newIndex) {
@@ -4991,7 +5039,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
             return Padding(
               key: ValueKey(p.id),
               padding: const EdgeInsets.only(bottom: 12),
-              child: glassModule(
+              child: _PremiumTiltCard(
+                child: glassModule(
                 isDarkMode: widget.isDarkMode,
                 child: Column(
                   children: [
@@ -5107,7 +5156,8 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   ],
                 ),
               ),
-            );
+            ),
+          );
           },
         ),
         Row(
@@ -5907,6 +5957,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   ];
   late FixedExtentScrollController _volumeCtrl;
   late FixedExtentScrollController _degreeCtrl;
+  bool _spinning = false;
   
   bool _isListening = false;
   final stt.SpeechToText _speech = stt.SpeechToText();
@@ -5946,15 +5997,24 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           if (mounted) setState(() => _isListening = true);
           _speech.listen(
             onResult: (val) {
-              if (mounted) {
-                setState(() {
-                  _contextCtrl.text = val.recognizedWords;
-                });
+              if (mounted && val.recognizedWords.isNotEmpty) {
+                String newText = val.recognizedWords;
+                if (_contextCtrl.text != newText) {
+                  setState(() {
+                    _contextCtrl.text = newText;
+                    _contextCtrl.selection = TextSelection.fromPosition(
+                      TextPosition(offset: newText.length),
+                    );
+                  });
+                }
               }
             },
             localeId: localeId,
-            cancelOnError: true,
-            listenMode: stt.ListenMode.dictation,
+            listenOptions: stt.SpeechListenOptions(
+              cancelOnError: true,
+              partialResults: true,
+              listenMode: stt.ListenMode.dictation,
+            ),
           );
         } else {
           if (mounted) {
@@ -6203,6 +6263,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                             Icons.water_drop,
                             (idx) => setState(() => _d = idx.toDouble()),
                             effectiveAccent,
+                            enabled: _t != L10n.s('common.soft') || _spinning,
                           ),
                         ),
                       ],
@@ -6417,8 +6478,31 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           }
         });
         int vIdx = _volumes.indexOf(_v);
-        if (vIdx != -1) _volumeCtrl.jumpToItem(vIdx);
-        _degreeCtrl.jumpToItem(_d.round());
+        if (vIdx != -1) {
+          _volumeCtrl.animateToItem(
+            vIdx,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+          );
+        }
+
+        if (type == L10n.s('common.soft')) {
+          setState(() => _spinning = true);
+          _degreeCtrl.jumpToItem(50);
+          _degreeCtrl.animateToItem(
+            0,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.decelerate,
+          ).then((_) {
+            if (mounted) setState(() => _spinning = false);
+          });
+        } else {
+          _degreeCtrl.animateToItem(
+            _d.round(),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+          );
+        }
       },
       child: Stack(
         clipBehavior: Clip.none,
@@ -6499,8 +6583,10 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     Function(int) onSelected,
     Color accent, {
     bool isVolume = false,
+    bool enabled = true,
   }) {
     final bool isDark = widget.isDarkMode;
+    final Color displayAccent = enabled ? accent : (isDark ? Colors.white24 : Colors.black26);
     
     String valNum = current.replaceAll(RegExp(r'[^0-9.]'), '');
     String valUnit = current.replaceAll(RegExp(r'[0-9.]'), '');
@@ -6534,7 +6620,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
               style: TextStyle(
                 fontSize: 48,
                 fontWeight: FontWeight.w900,
-                color: accent,
+                color: displayAccent,
                 height: 1.0,
               ),
             ),
@@ -6544,7 +6630,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: accent,
+                color: displayAccent,
               ),
             ),
           ],
@@ -6575,30 +6661,35 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                   )),
                 ],
               ),
-              ListWheelScrollView.useDelegate(
-                controller: ctrl,
-                itemExtent: 38,
-                perspective: 0.01,
-                diameterRatio: 1.5,
-                physics: const FixedExtentScrollPhysics(),
-                onSelectedItemChanged: onSelected,
-                childDelegate: ListWheelChildBuilderDelegate(
-                  childCount: items.length,
-                  builder: (context, index) {
-                    String display = items[index];
-                    String dispNum = display.replaceAll(RegExp(r'[^0-9.]'), '');
-                    bool isSel = current == display;
-                    return Center(
-                      child: Text(
-                        dispNum,
-                        style: TextStyle(
-                          fontSize: isSel ? 22 : 16,
-                          fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
-                          color: isSel ? Colors.white : (isDark ? Colors.white38 : Colors.black38),
+              IgnorePointer(
+                ignoring: !enabled,
+                child: ListWheelScrollView.useDelegate(
+                  controller: ctrl,
+                  itemExtent: 38,
+                  perspective: 0.01,
+                  diameterRatio: 1.5,
+                  physics: const FixedExtentScrollPhysics(),
+                  onSelectedItemChanged: onSelected,
+                  childDelegate: ListWheelChildBuilderDelegate(
+                    childCount: items.length,
+                    builder: (context, index) {
+                      String display = items[index];
+                      String dispNum = display.replaceAll(RegExp(r'[^0-9.]'), '');
+                      bool isSel = current == display;
+                      return Center(
+                        child: Text(
+                          dispNum,
+                          style: TextStyle(
+                            fontSize: isSel ? 22 : 16,
+                            fontWeight: isSel ? FontWeight.w900 : FontWeight.w500,
+                            color: !enabled 
+                                ? (isDark ? Colors.white10 : Colors.black12)
+                                : (isSel ? Colors.white : (isDark ? Colors.white38 : Colors.black38)),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -6678,6 +6769,565 @@ class _SaisieSheetState extends State<_SaisieSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EntranceFadedSlide extends StatefulWidget {
+  final Widget child;
+  final int index;
+  const _EntranceFadedSlide({super.key, required this.child, required this.index});
+
+  @override
+  State<_EntranceFadedSlide> createState() => _EntranceFadedSlideState();
+}
+
+class _EntranceFadedSlideState extends State<_EntranceFadedSlide> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _opacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+    
+    Future.delayed(Duration(milliseconds: widget.index * 40), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacity.value,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - _opacity.value)),
+            child: Transform.scale(
+              scale: 0.95 + (0.05 * _opacity.value),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class _AnimatedCounter extends StatefulWidget {
+  final num value;
+  final TextStyle style;
+  final int decimals;
+  final String suffix;
+
+  const _AnimatedCounter({
+    super.key,
+    required this.value,
+    required this.style,
+    this.decimals = 0,
+    this.suffix = "",
+  });
+
+  @override
+  State<_AnimatedCounter> createState() => _AnimatedCounterState();
+}
+
+class _AnimatedCounterState extends State<_AnimatedCounter> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _anim = Tween<double>(begin: 0, end: widget.value.toDouble()).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutExpo),
+    );
+    _ctrl.forward();
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedCounter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _anim = Tween<double>(begin: _anim.value, end: widget.value.toDouble()).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutExpo),
+      );
+      _ctrl.reset();
+      _ctrl.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        String display = _anim.value.toStringAsFixed(widget.decimals);
+        return Text("$display${widget.suffix}", style: widget.style);
+      },
+    );
+  }
+}
+
+class _LiquidCircularProgress extends StatefulWidget {
+  final double value;
+  final Color color;
+  final Color backgroundColor;
+
+  const _LiquidCircularProgress({
+    super.key,
+    required this.value,
+    required this.color,
+    required this.backgroundColor,
+  });
+
+  @override
+  State<_LiquidCircularProgress> createState() => _LiquidCircularProgressState();
+}
+
+class _LiquidCircularProgressState extends State<_LiquidCircularProgress> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _LiquidPainter(
+        value: widget.value,
+        color: widget.color,
+        backgroundColor: widget.backgroundColor,
+        animationValue: _ctrl.value,
+      ),
+    );
+  }
+}
+
+class _LiquidPainter extends CustomPainter {
+  final double value;
+  final Color color;
+  final Color backgroundColor;
+  final double animationValue;
+
+  _LiquidPainter({
+    required this.value,
+    required this.color,
+    required this.backgroundColor,
+    required this.animationValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Background circle
+    final bgPaint = Paint()..color = backgroundColor;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Clip to circle
+    final path = Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+    canvas.save();
+    canvas.clipPath(path);
+
+    // Wave
+    final wavePaint = Paint()..color = color.withValues(alpha: 0.8);
+    final wavePath = Path();
+    
+    final yBase = size.height * (1 - value);
+    final waveHeight = 6.0;
+    
+    wavePath.moveTo(0, yBase);
+    for (double i = 0; i <= size.width; i++) {
+      wavePath.lineTo(i, yBase + waveHeight * math.sin((i / size.width * 2 * math.pi) + (animationValue * 2 * math.pi)));
+    }
+    wavePath.lineTo(size.width, size.height);
+    wavePath.lineTo(0, size.height);
+    wavePath.close();
+
+    canvas.drawPath(wavePath, wavePaint);
+    canvas.restore();
+    
+    // Border
+    final borderPaint = Paint()
+      ..color = color.withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(center, radius, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _LiquidPainter oldDelegate) => true;
+}
+
+void _triggerConfetti(BuildContext context) {
+  final overlay = Overlay.of(context);
+  late OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (context) => _ConfettiWidget(onFinished: () => entry.remove()),
+  );
+  overlay.insert(entry);
+}
+
+class _ConfettiWidget extends StatefulWidget {
+  final VoidCallback onFinished;
+  const _ConfettiWidget({required this.onFinished});
+
+  @override
+  State<_ConfettiWidget> createState() => _ConfettiWidgetState();
+}
+
+class _ConfettiWidgetState extends State<_ConfettiWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  final List<_ConfettiParticle> _particles = [];
+  final math.Random _rng = math.Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 4));
+    
+    // Create particles
+    for (int i = 0; i < 100; i++) {
+      final isGold = _rng.nextBool();
+      _particles.add(_ConfettiParticle(
+        x: 0.3 + _rng.nextDouble() * 0.4, // More concentrated center (0.3 to 0.7)
+        y: 1.0, // Start right at the bottom edge
+        vx: (_rng.nextDouble() - 0.5) * 0.03, // Tighter horizontal spread
+        vy: -0.05 - (_rng.nextDouble() * 0.1), // Lower upward shoot
+        size: 5 + _rng.nextDouble() * 10, // Slightly bigger
+        color: isGold 
+            ? [const Color(0xFFFFD700), const Color(0xFFEA9216), const Color(0xFFD4AF37)][_rng.nextInt(3)]
+            : const Color(0xFF1A1A1A),
+        rotation: _rng.nextDouble() * 2 * math.pi,
+        rotationSpeed: 0.05 + (_rng.nextDouble() * 0.1),
+      ));
+    }
+
+    _ctrl.addListener(() {
+      setState(() {
+        for (var p in _particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.002; // Very light gravity for a slow, dense rain
+          p.rotation += p.rotationSpeed;
+        }
+      });
+    });
+
+    _ctrl.forward().then((_) => widget.onFinished());
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: CustomPaint(
+        painter: _ConfettiPainter(_particles),
+        size: Size.infinite,
+      ),
+    );
+  }
+}
+
+class _ConfettiParticle {
+  double x, y, vx, vy, size, rotation, rotationSpeed;
+  Color color;
+  _ConfettiParticle({
+    required this.x, required this.y, required this.vx, required this.vy,
+    required this.size, required this.color, required this.rotation, required this.rotationSpeed,
+  });
+}
+
+class _ConfettiPainter extends CustomPainter {
+  final List<_ConfettiParticle> particles;
+  _ConfettiPainter(this.particles);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var p in particles) {
+      // Shimmer effect - higher base opacity for better visibility
+      final shine = (math.sin(p.rotation * 2).abs() * 0.3) + 0.7;
+      final paint = Paint()
+        ..color = p.color.withValues(alpha: shine)
+        ..style = PaintingStyle.fill;
+
+      canvas.save();
+      canvas.translate(p.x * size.width, p.y * size.height);
+      canvas.rotate(p.rotation);
+      
+      // Draw a more "confetti-like" shape (long rectangle)
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(-p.size / 2, -p.size / 4, p.size, p.size / 2),
+          const Radius.circular(1),
+        ),
+        paint,
+      );
+      
+      // Add a tiny highlight/sparkle for gold particles
+      if (p.color != const Color(0xFF1A1A1A) && shine > 0.9) {
+        final sparkPaint = Paint()..color = Colors.white.withValues(alpha: 0.8);
+        canvas.drawCircle(Offset.zero, 1.5, sparkPaint);
+      }
+      
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _PremiumTiltCard extends StatefulWidget {
+  final Widget child;
+  const _PremiumTiltCard({required this.child});
+
+  @override
+  State<_PremiumTiltCard> createState() => _PremiumTiltCardState();
+}
+
+class _PremiumTiltCardState extends State<_PremiumTiltCard> {
+  double _tiltX = 0.0;
+  double _tiltY = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onHover: (details) {
+        final box = context.findRenderObject() as RenderBox;
+        final pos = box.globalToLocal(details.position);
+        final centerX = box.size.width / 2;
+        final centerY = box.size.height / 2;
+        
+        setState(() {
+          _tiltY = (pos.dx - centerX) / centerX * 0.25;
+          _tiltX = (centerY - pos.dy) / centerY * 0.25;
+        });
+      },
+      onExit: (_) => setState(() { _tiltX = 0; _tiltY = 0; }),
+      child: Listener(
+        onPointerMove: (details) {
+          final box = context.findRenderObject() as RenderBox;
+          final pos = box.globalToLocal(details.position);
+          final centerX = box.size.width / 2;
+          final centerY = box.size.height / 2;
+          
+          setState(() {
+            _tiltY = (pos.dx - centerX) / centerX * 0.25;
+            _tiltX = (centerY - pos.dy) / centerY * 0.25;
+          });
+        },
+        onPointerUp: (_) => setState(() { _tiltX = 0; _tiltY = 0; }),
+        onPointerCancel: (_) => setState(() { _tiltX = 0; _tiltY = 0; }),
+        child: TweenAnimationBuilder<Matrix4>(
+          tween: Matrix4Tween(
+            begin: Matrix4.identity(),
+            end: Matrix4.identity()
+              ..setEntry(3, 2, 0.002) // Perspective
+              ..rotateX(_tiltX)
+              ..rotateY(_tiltY),
+          ),
+          duration: const Duration(milliseconds: 150),
+          builder: (context, matrix, child) {
+            return Transform(
+              transform: matrix,
+              alignment: Alignment.center,
+              child: child,
+            );
+          },
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumPageWrapper extends StatelessWidget {
+  final Widget child;
+  final int index;
+  final PageController controller;
+
+  const _PremiumPageWrapper({
+    required this.child,
+    required this.index,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        double value = 1.0;
+        if (controller.position.haveDimensions) {
+          value = (controller.page! - index).abs();
+        } else {
+          value = (controller.initialPage - index).abs().toDouble();
+        }
+        
+        final double opacity = (1 - (value * 1.0)).clamp(0.0, 1.0);
+        final double scale = (1 - (value * 0.25)).clamp(0.75, 1.0);
+        
+        return Opacity(
+          opacity: opacity,
+          child: Transform.scale(
+            scale: scale,
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+class _StreakAura extends StatefulWidget {
+  final Widget child;
+  final int streak;
+  const _StreakAura({required this.child, required this.streak});
+
+  @override
+  State<_StreakAura> createState() => _StreakAuraState();
+}
+
+class _StreakAuraState extends State<_StreakAura> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.streak < 3) return widget.child;
+    
+    final double intensity = (widget.streak / 10).clamp(0.5, 1.5);
+    
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFFD700).withValues(alpha: 0.3 * _ctrl.value * intensity),
+                blurRadius: 10 + (10 * _ctrl.value),
+                spreadRadius: 2 + (4 * _ctrl.value),
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class _PulseWidget extends StatefulWidget {
+  final Widget child;
+  final bool enabled;
+  final Color accentColor;
+  const _PulseWidget({required this.child, required this.enabled, required this.accentColor});
+
+  @override
+  State<_PulseWidget> createState() => _PulseWidgetState();
+}
+
+class _PulseWidgetState extends State<_PulseWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+    _ctrl.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.enabled) return widget.child;
+
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 60 + (30 * _anim.value),
+              height: 60 + (30 * _anim.value),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: widget.accentColor.withValues(alpha: 0.5 * (1.0 - _anim.value * 0.5)),
+                  width: 2.0,
+                ),
+              ),
+            ),
+            child!,
+          ],
+        );
+      },
+      child: widget.child,
     );
   }
 }

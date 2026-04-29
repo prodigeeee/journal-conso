@@ -48,11 +48,11 @@ class SupabaseService {
     final uniqueProfiles = {for (var p in profiles) p.id: p}.values.toList();
 
     for (var p in uniqueProfiles) {
+      final remoteId = "${ownerId}_${p.id}";
       await _supabase.from('profiles').upsert({
-        'id': p.id,
+        'id': remoteId,
         'owner_id': ownerId,
-        'email':
-            _supabase.auth.currentUser?.email, // On ajoute l'email de l'auth
+        'email': _supabase.auth.currentUser?.email,
         'name': p.name,
         'gender': p.gender,
         'age': p.age,
@@ -74,9 +74,9 @@ class SupabaseService {
     final data = uniqueConsos
         .map(
           (c) => {
-            'id': c.id,
+            'id': "${ownerId}_${c.id}",
             'owner_id': ownerId,
-            'profile_id': c.userId,
+            'profile_id': "${ownerId}_${c.userId}",
             'date': c.date.toUtc().toIso8601String(),
             'moment': c.moment,
             'type': c.type,
@@ -97,7 +97,7 @@ class SupabaseService {
     String ownerId,
   ) async {
     final data = contexts.entries
-        .map((e) => {'id': e.key, 'owner_id': ownerId, 'content': e.value})
+        .map((e) => {'id': "${ownerId}_${e.key}", 'owner_id': ownerId, 'content': e.value})
         .toList();
 
     if (data.isNotEmpty) {
@@ -111,7 +111,7 @@ class SupabaseService {
     String ownerId,
   ) async {
     await _supabase.from('moments_contexts').upsert({
-      'id': key,
+      'id': "${ownerId}_$key",
       'owner_id': ownerId,
       'content': content,
     });
@@ -119,7 +119,7 @@ class SupabaseService {
 
   static Future<void> deleteContext(String key, String ownerId) async {
     await _supabase.from('moments_contexts').delete().match({
-      'id': key,
+      'id': "${ownerId}_$key",
       'owner_id': ownerId,
     });
   }
@@ -127,19 +127,19 @@ class SupabaseService {
   // -- SUPPRESSIONS --
   static Future<void> deleteProfile(String profileId, String ownerId) async {
     await _supabase.from('profiles').delete().match({
-      'id': profileId,
+      'id': "${ownerId}_$profileId",
       'owner_id': ownerId,
     });
     // Supprimer aussi les consommations liées à ce profil
     await _supabase.from('consumptions').delete().match({
-      'profile_id': profileId,
+      'profile_id': "${ownerId}_$profileId",
       'owner_id': ownerId,
     });
   }
 
   static Future<void> deleteConsumption(String id, String ownerId) async {
     await _supabase.from('consumptions').delete().match({
-      'id': id,
+      'id': "${ownerId}_$id",
       'owner_id': ownerId,
     });
   }
@@ -152,57 +152,59 @@ class SupabaseService {
 
   // -- RÉCUPÉRATION FILTRÉE --
   static Future<Map<String, dynamic>> fetchAllData(String ownerId) async {
-    final profileData = await _supabase
-        .from('profiles')
-        .select()
-        .eq('owner_id', ownerId);
-    final consumptionData = await _supabase
-        .from('consumptions')
-        .select()
-        .eq('owner_id', ownerId);
-    final contextData = await _supabase
-        .from('moments_contexts')
-        .select()
-        .eq('owner_id', ownerId);
+    final profileData =
+        await _supabase.from('profiles').select().eq('owner_id', ownerId);
+    final consumptionData =
+        await _supabase.from('consumptions').select().eq('owner_id', ownerId);
+    final contextData =
+        await _supabase.from('moments_contexts').select().eq('owner_id', ownerId);
 
-    final profiles = (profileData as List)
-        .map((json) {
-          return UserProfile(
-            id: json['id'],
-            name: json['name'] ?? '',
-            gender: json['gender'] ?? 'Homme',
-            age: (json['age'] as num).toInt(),
-            weight: (json['weight'] as num?)?.toInt() ?? 70,
-            colorValue: json['color_value'] ?? 0xFFEA9216,
-            imagePath: json['image_path'],
-          );
-        })
-        .toList()
-        .cast<UserProfile>();
+    // Fonction utilitaire pour nettoyer les IDs
+    String cleanId(dynamic id) {
+      String sId = id.toString();
+      if (sId.startsWith("${ownerId}_")) {
+        return sId.replaceFirst("${ownerId}_", "");
+      }
+      return sId;
+    }
 
-    final consumptions = (consumptionData as List)
-        .map((json) {
-          return Consumption(
-            id: json['id'],
-            date: DateTime.parse(json['date']).toLocal(),
-            moment: json['moment'] ?? 'Soir',
-            type: json['type'],
-            volume: json['volume'],
-            degree: (json['degree'] as num).toDouble(),
-            userId: json['profile_id'] ?? '1',
-          );
-        })
-        .toList()
-        .cast<Consumption>();
+    final Map<String, UserProfile> profilesMap = {};
+    for (var json in (profileData as List)) {
+      String localId = cleanId(json['id']);
+      profilesMap[localId] = UserProfile(
+        id: localId,
+        name: json['name'] ?? '',
+        gender: json['gender'] ?? 'Homme',
+        age: (json['age'] as num).toInt(),
+        weight: (json['weight'] as num?)?.toInt() ?? 70,
+        colorValue: json['color_value'] ?? 0xFFEA9216,
+        imagePath: json['image_path'],
+      );
+    }
 
-    final contexts = {
-      for (var item in (contextData as List))
-        item['id'].toString(): item['content']?.toString() ?? '',
-    };
+    final Map<String, Consumption> consosMap = {};
+    for (var json in (consumptionData as List)) {
+      String localId = cleanId(json['id']);
+      consosMap[localId] = Consumption(
+        id: localId,
+        date: DateTime.parse(json['date']).toLocal(),
+        moment: json['moment'] ?? 'Soir',
+        type: json['type'],
+        volume: json['volume'],
+        degree: (json['degree'] as num).toDouble(),
+        userId: cleanId(json['profile_id'] ?? '1'),
+      );
+    }
+
+    final Map<String, String> contexts = {};
+    for (var item in (contextData as List)) {
+      String localId = cleanId(item['id']);
+      contexts[localId] = item['content']?.toString() ?? '';
+    }
 
     return {
-      'profiles': profiles,
-      'consumptions': consumptions,
+      'profiles': profilesMap.values.toList(),
+      'consumptions': consosMap.values.toList(),
       'contexts': contexts,
     };
   }
