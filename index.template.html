@@ -54,7 +54,7 @@
                 <a href="#contact" data-cms-key="nav_link_contact">{{ nav.contact }}</a>
                 <a href="app/" class="nav-login-btn" target="_blank" rel="noopener" data-cms-key="nav_link_login">{{
                     nav.login }}</a>
-                <a href="#download" class="nav-btn" data-cms-key="nav_link_download">{{ nav.download }}</a>
+                <a href="app/" class="nav-btn" target="_blank" rel="noopener">{{ nav.launch }}</a>
             </div>
 
             <!-- Mobile Menu Toggle -->
@@ -83,7 +83,7 @@
                     }}</span></h1>
             <p data-cms-key="hero_desc">{{ hero.description }}</p>
             <div class="hero-actions">
-                <a href="app/" class="gradient-btn">
+                <a href="app/" class="gradient-btn" target="_blank" rel="noopener">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M15 3h6v6" />
@@ -94,15 +94,14 @@
                         <div class="gradient-btn-title">{{ nav.launch }}</div>
                     </div>
                 </a>
-                <div class="btn-dormant">
+                <a href="#features" class="btn-dormant" style="cursor: pointer; opacity: 0.8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 19V5" />
-                        <path d="M5 12l7 7 7-7" />
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m9 12 2 2 4-4" />
                     </svg>
-                    {{ hero.android_soon }}
-                    <span class="badge-soon">STORE</span>
-                </div>
+                    Découvrir
+                </a>
             </div>
         </div>
 
@@ -406,21 +405,11 @@
                         <span class="p-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 20h.01" />
-                                <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-                            </svg>
-                        </span>
-                        <div class="p-text">{{ multi.android }}</div>
-                    </div>
-                    <div class="platform-item">
-                        <span class="p-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
                                 <path d="M12 18h.01" />
                             </svg>
                         </span>
-                        <div class="p-text">{{ multi.ios }}</div>
+                        <div class="p-text">Mobile & Tablet</div>
                     </div>
                     <div class="platform-item">
                         <span class="p-icon">
@@ -538,7 +527,7 @@
                 <a href="#">{{ footer.home }}</a>
                 <a href="#features">Features</a>
                 <a href="#screenshots">{{ nav.overview }}</a>
-                <a href="app/">{{ nav.webapp }}</a>
+                <a href="app/">{{ nav.launch }}</a>
             </div>
 
             <div class="footer-column legal">

@@ -53,7 +53,7 @@
                 <a href="#multiplatform" data-cms-key="nav_link_webapp">Web App</a>
                 <a href="#contact" data-cms-key="nav_link_contact">Contact</a>
                 <a href="app/" class="nav-login-btn" target="_blank" rel="noopener" data-cms-key="nav_link_login">Se connecter</a>
-                <a href="#download" class="nav-btn" data-cms-key="nav_link_download">Télécharger</a>
+                <a href="app/" class="nav-btn" target="_blank" rel="noopener">Lancer l'App</a>
             </div>
 
             <!-- Mobile Menu Toggle -->
@@ -81,7 +81,7 @@
             <h1 data-cms-key="hero_title">Prenez le contrôle<br>avec <span class="highlight">élégance.</span></h1>
             <p data-cms-key="hero_desc">Une application de suivi de consommation premium, conçue pour vous accompagner avec l'aide de l'algorithme de Widmark. 100% hors-ligne, design absolu.</p>
             <div class="hero-actions">
-                <a href="app/" class="gradient-btn">
+                <a href="app/" class="gradient-btn" target="_blank" rel="noopener">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M15 3h6v6" />
@@ -92,15 +92,14 @@
                         <div class="gradient-btn-title">Lancer l'App</div>
                     </div>
                 </a>
-                <div class="btn-dormant">
+                <a href="#features" class="btn-dormant" style="cursor: pointer; opacity: 0.8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 19V5" />
-                        <path d="M5 12l7 7 7-7" />
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m9 12 2 2 4-4" />
                     </svg>
-                    {{ hero.android_soon }}
-                    <span class="badge-soon">STORE</span>
-                </div>
+                    Découvrir
+                </a>
             </div>
         </div>
 
@@ -399,21 +398,11 @@
                         <span class="p-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 20h.01" />
-                                <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-                            </svg>
-                        </span>
-                        <div class="p-text">Android App</div>
-                    </div>
-                    <div class="platform-item">
-                        <span class="p-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
                                 <path d="M12 18h.01" />
                             </svg>
                         </span>
-                        <div class="p-text">iOS (Web App)</div>
+                        <div class="p-text">Mobile & Tablet</div>
                     </div>
                     <div class="platform-item">
                         <span class="p-icon">
@@ -530,7 +519,7 @@
                 <a href="#">Accueil</a>
                 <a href="#features">Features</a>
                 <a href="#screenshots">Aperçu</a>
-                <a href="app/">Web App</a>
+                <a href="app/">Lancer l'App</a>
             </div>
 
             <div class="footer-column legal">
