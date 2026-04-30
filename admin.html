@@ -98,6 +98,12 @@
         .trend-up { color: var(--accent); }
         .trend-down { color: var(--danger); }
 
+        /* INTERACTIVE WIDGETS */
+        .widget.clickable { cursor: pointer; }
+        .widget.clickable:hover { border-color: var(--accent); background: rgba(255,255,255,0.02); }
+        .widget.clickable::after { content: "DÉTAILS →"; position: absolute; bottom: 15px; right: 15px; font-size: 0.5rem; font-weight: 900; color: var(--accent); opacity: 0.3; transition: 0.3s; }
+        .widget.clickable:hover::after { opacity: 1; }
+
         /* SPANS */
         .span-2 { grid-column: span 2; }
         .span-3 { grid-column: span 3; }
@@ -186,87 +192,6 @@
             margin-left: 15px;
         }
 
-        /* LOGIN SCREEN */
-        #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 380px;
-            padding: 40px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            text-align: center;
-        }
-
-        .login-card h2 {
-            margin-bottom: 10px;
-            font-weight: 900;
-            font-size: 1.6rem;
-        }
-
-        .login-card p {
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-
-        .input-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 14px 18px;
-            background: #000;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            outline: none;
-        }
-
-        .login-input:focus {
-            border-color: var(--accent);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--accent);
-            color: #000;
-            border: none;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: 0.2s;
-        }
-
-        .login-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 30px var(--accent-glow);
-        }
-
         /* TABLES */
         .data-table {
             width: 100%;
@@ -296,6 +221,20 @@
             color: var(--accent);
         }
 
+        /* MODAL */
+        #modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); display:none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .modal-content { max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+        .close-modal { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 1.5rem; opacity: 0.5; transition: 0.3s; }
+        .close-modal:hover { opacity: 1; color: var(--accent); }
+
+        /* EDITOR UI */
+        .editor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 16px; }
+        .editor-card { background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 20px; border-radius: 18px; }
+        .editor-textarea { width: 100%; background: #000; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: white; min-height: 100px; resize: vertical; outline: none; margin-top: 10px; font-family: inherit; font-size: 0.85rem; line-height: 1.4; transition: 0.3s; }
+        .editor-textarea:focus { border-color: var(--accent); }
+        .save-btn { background: var(--accent); color: #000; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 800; cursor: pointer; margin-top: 12px; font-size: 0.75rem; transition: 0.3s; }
+        .save-btn:hover { transform: scale(1.05); }
+
         /* TOAST */
         #toast {
             position: fixed;
@@ -307,25 +246,57 @@
             border-radius: 12px;
             font-weight: 800;
             transform: translateY(100px);
-            transition: 0.5s;
-            z-index: 2000;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10001;
         }
         #toast.active { transform: translateY(0); }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
 
-        /* RESPONSIVE */
-        @media (max-width: 1000px) {
-            .bento-grid { grid-template-columns: repeat(2, 1fr); }
-            .span-3 { grid-column: span 2; }
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 40px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            text-align: center;
         }
-        @media (max-width: 600px) {
-            .bento-grid { grid-template-columns: 1fr; }
-            .span-2, .span-3 { grid-column: span 1; }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 15px;
         }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover { transform: scale(1.02); box-shadow: 0 0 30px var(--accent-glow); }
 
         /* SPECIAL WIDGETS */
         .active-dot {
@@ -344,55 +315,38 @@
             100% { opacity: 0.4; }
         }
 
-        .btn-action {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
+        /* TABLES IN MODALS */
+        .cyber-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .cyber-table th { text-align: left; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cyber-table td { padding: 12px 10px; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
 
-        .btn-action:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        #dashboard { display: none; }
-
-        /* EDITOR STYLES */
-        .editor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .editor-card { background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 15px; }
-        .editor-textarea { width: 100%; background: #111; border: 1px solid var(--border); border-radius: 10px; padding: 10px; color: white; min-height: 80px; resize: vertical; outline: none; margin-top: 10px; }
-        .save-btn { background: var(--accent); color: #000; border: none; padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; margin-top: 10px; font-size: 0.7rem; }
     </style>
 </head>
 <body>
     <div class="aura"></div>
     <div id="toast">ACTION EFFECTUÉE</div>
 
+    <div id="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-modal" onclick="closeModal()">×</span>
+            <div id="modal-body" style="padding: 40px;"></div>
+        </div>
+    </div>
+
     <!-- LOGIN SCREEN -->
     <div id="login-screen">
         <div class="login-card">
             <div class="logo-box" style="margin: 0 auto 20px;">J</div>
             <h2>Accès Sécurisé</h2>
-            <p>Veuillez vous authentifier</p>
-            <div class="input-group">
-                <label>Email Admin</label>
-                <input type="email" id="email" class="login-input" placeholder="admin@journalconso.app">
-            </div>
-            <div class="input-group">
-                <label>Mot de passe</label>
-                <input type="password" id="password" class="login-input" placeholder="••••••••">
-            </div>
+            <p style="color:var(--text-muted); margin-bottom: 30px;">Veuillez vous authentifier</p>
+            <input type="email" id="email" class="login-input" placeholder="Email Admin">
+            <input type="password" id="password" class="login-input" placeholder="Mot de passe">
             <button id="btn-login" class="login-btn">AUTHORIZE ACCESS</button>
         </div>
     </div>
 
     <!-- DASHBOARD -->
-    <div id="dashboard">
+    <div id="dashboard" style="display: none;">
         <div class="container">
             <header class="header">
                 <div class="brand">
@@ -442,14 +396,14 @@
                     </div>
 
                     <!-- Widget: Database Profiles -->
-                    <div class="widget">
+                    <div class="widget clickable" onclick="viewAllProfiles()">
                         <div class="widget-title">PROFILS CRÉÉS</div>
                         <div class="widget-val" id="stat-profiles">0</div>
                         <div class="widget-trend">SANTÉ DE LA BASE: OK</div>
                     </div>
 
                     <!-- Widget: Total Events -->
-                    <div class="widget">
+                    <div class="widget clickable" onclick="viewConsosRépartition()">
                         <div class="widget-title">CONSOMMATIONS TOTALES</div>
                         <div class="widget-val" id="stat-events">0</div>
                         <div class="widget-trend trend-up">↑ ACTIVITÉ EN HAUSSE</div>
@@ -486,14 +440,14 @@
                     </div>
 
                     <!-- Widget: Registered Accounts -->
-                    <div class="widget">
+                    <div class="widget clickable" onclick="viewAuthAccounts()">
                         <div class="widget-title">COMPTES UTILISATEURS</div>
                         <div class="widget-val" id="stat-accounts">0</div>
                         <div class="widget-trend">AUTH SYSTEM ACTIF</div>
                     </div>
 
                     <!-- Widget: Contact Emails -->
-                    <div class="widget">
+                    <div class="widget clickable" onclick="viewContactMessages()">
                         <div class="widget-title">MESSAGES CONTACT</div>
                         <div class="widget-val" id="stat-messages">0</div>
                         <div class="widget-trend">SUPPORT CLIENT</div>
@@ -507,7 +461,6 @@
                     </div>
                 </div>
             </div>
-
 
             <!-- CONTENT TAB -->
             <div id="tab-content" style="display:none;">
@@ -551,32 +504,35 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             loadStats();
-            setInterval(loadStats, 30000); // Refresh every 30s
+            setInterval(loadStats, 30000); 
         }
 
         async function loadStats() {
             try {
-                // 1. Site Stats
                 const { data: visits } = await sb.from('site_visits').select('*').order('created_at', { ascending: false });
                 const { data: events } = await sb.from('site_events').select('*');
-                const { data: msgs } = await sb.from('contact_messages').select('*');
+                const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
 
                 if (visits) {
                     document.getElementById('stat-total-visits').innerText = visits.length;
                     const active = events ? events.filter(e => e.event_name === 'heartbeat' && e.created_at >= new Date(Date.now() - 180000).toISOString()).length : 0;
                     document.getElementById('stat-active').innerText = active;
                     renderVisitsChart(visits);
-                    renderRecentAccess(visits.slice(0, 10));
+                    renderRecentAccess(visits.slice(0, 15));
                 }
                 if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
 
-                // 2. App Data Stats
                 const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
                 const { data: consos } = await sb.from('consumptions').select('*');
                 if (profiles) {
                     document.getElementById('stat-profiles').innerText = profiles.length;
-                    const uniqueAccounts = new Set(profiles.map(p => p.owner_id)).size;
-                    document.getElementById('stat-accounts').innerText = uniqueAccounts;
+                    const uniqueAccounts = {};
+                    profiles.forEach(p => {
+                        if (!uniqueAccounts[p.owner_id]) uniqueAccounts[p.owner_id] = [];
+                        uniqueAccounts[p.owner_id].push(p);
+                    });
+                    document.getElementById('stat-accounts').innerText = Object.keys(uniqueAccounts).length;
+                    window.allAccountsData = uniqueAccounts;
                     renderIdentitiesSummary(profiles.slice(0, 50));
                 }
                 if (consos) document.getElementById('stat-events').innerText = consos.length;
@@ -598,6 +554,17 @@
             `).join('');
         }
 
+        function renderIdentitiesSummary(profiles) {
+            const container = document.getElementById('identities-summary');
+            container.innerHTML = profiles.map(p => `
+                <tr>
+                    <td><b style="color:var(--accent)">${p.name || 'ANON'}</b></td>
+                    <td>${p.email || '---'}</td>
+                    <td><span style="opacity:0.5">${new Date(p.created_at).toLocaleDateString()}</span></td>
+                </tr>
+            `).join('');
+        }
+
         function renderVisitsChart(visits) {
             const ctx = document.getElementById('visitsChart').getContext('2d');
             const days = {};
@@ -612,7 +579,6 @@
             });
 
             if (visitsChart) visitsChart.destroy();
-
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
             gradient.addColorStop(0, 'rgba(234, 146, 22, 0.4)');
             gradient.addColorStop(1, 'rgba(234, 146, 22, 0)');
@@ -639,29 +605,115 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-                            ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } }
-                        }
+                        y: { grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } } },
+                        x: { grid: { display: false }, ticks: { color: '#5a5c61', font: { weight: '800', size: 10 } } }
                     }
                 }
             });
         }
 
-        function renderIdentitiesSummary(profiles) {
-            const container = document.getElementById('identities-summary');
-            container.innerHTML = profiles.map(p => `
-                <tr>
-                    <td><b style="color:var(--accent)">${p.name || 'ANON'}</b></td>
-                    <td>${p.email || '---'}</td>
-                    <td><span style="opacity:0.5">${new Date(p.created_at).toLocaleDateString()}</span></td>
-                </tr>
-            `).join('');
-        }
+        /* MODAL FUNCTIONS */
+        window.closeModal = () => { document.getElementById('modal-overlay').style.display = 'none'; };
+        function showToast() { const t = document.getElementById('toast'); t.classList.add('active'); setTimeout(() => t.classList.remove('active'), 2000); }
+
+        window.viewAllProfiles = async () => {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+            body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Chargement des profils...</div>';
+            try {
+                const { data } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                let html = `<h2>Liste des Profils (${data.length})</h2><div style="margin-top:20px; overflow-x:auto;">`;
+                html += `<table class="cyber-table"><thead><tr><th>Nom</th><th>Email</th><th>Age/Sexe</th><th>Créé le</th></tr></thead><tbody>`;
+                data.forEach(p => {
+                    html += `<tr>
+                        <td style="font-weight:700; color:var(--accent);">${p.name || 'ANON'}</td>
+                        <td>${p.email || '-'}</td>
+                        <td>${p.age || '?'} ans / ${p.gender || '?'}</td>
+                        <td style="opacity:0.6;">${new Date(p.created_at).toLocaleDateString()}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+                body.innerHTML = html;
+            } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
+        };
+
+        window.viewConsosRépartition = async () => {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+            body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Analyse de la répartition...</div>';
+            try {
+                const { data } = await sb.from('consumptions').select('type');
+                const counts = {};
+                data.forEach(c => counts[c.type] = (counts[c.type] || 0) + 1);
+                
+                let html = `<h2>Répartition des Consommations</h2>
+                            <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:20px;">Distribution par type de boisson.</p>
+                            <div style="height:350px; width:100%; margin-top:20px;"><canvas id="distChart"></canvas></div>`;
+                body.innerHTML = html;
+                
+                new Chart(document.getElementById('distChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(counts),
+                        datasets: [{
+                            data: Object.values(counts),
+                            backgroundColor: ['#EA9216', '#00f2ff', '#4CAF50', '#f44336', '#ff007f', '#d841e2'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#fff', font: { weight: 'bold' } } } }, cutout: '70%' }
+                });
+            } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
+        };
+
+        window.viewAuthAccounts = async () => {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+            body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Synchronisation des comptes...</div>';
+            try {
+                const accounts = window.allAccountsData || {};
+                let html = `<h2>Comptes Utilisateurs (${Object.keys(accounts).length})</h2><div style="margin-top:20px; overflow-x:auto;">`;
+                html += `<table class="cyber-table"><thead><tr><th>Email Principal</th><th>UID</th><th>Profils</th></tr></thead><tbody>`;
+                Object.entries(accounts).forEach(([uid, profiles]) => {
+                    html += `<tr>
+                        <td style="font-weight:700; color:var(--accent);">${profiles[0].email || 'Inconnu'}</td>
+                        <td style="font-family:monospace; font-size:0.65rem; opacity:0.5;">${uid}</td>
+                        <td style="text-align:center; font-weight:900;">${profiles.length}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+                body.innerHTML = html;
+            } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
+        };
+
+        window.viewContactMessages = async () => {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+            body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Récupération des messages...</div>';
+            try {
+                const { data } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
+                let html = `<h2>Messages Contact (${data.length})</h2><div style="margin-top:20px; max-height:500px; overflow-y:auto; padding-right:10px;">`;
+                if (!data || data.length === 0) html += '<p style="text-align:center; color:var(--text-muted); padding:40px;">Aucun message reçu.</p>';
+                else {
+                    data.forEach(m => {
+                        html += `<div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:18px; margin-bottom:15px; border:1px solid var(--border);">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                        <strong style="color:var(--accent);">${m.name || 'Anonyme'}</strong>
+                                        <span style="font-size:0.65rem; opacity:0.4;">${new Date(m.created_at).toLocaleString()}</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">${m.email || 'Email non renseigné'}</div>
+                                    <p style="font-size:0.9rem; line-height:1.5; white-space: pre-wrap;">${m.message || 'Message vide'}</p>
+                                </div>`;
+                    });
+                }
+                html += `</div>`;
+                body.innerHTML = html;
+            } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
+        };
 
         async function loadCMS() {
             const container = document.getElementById('cms-container');
@@ -683,19 +735,15 @@
         async function saveCMS(key) {
             const val = document.getElementById(`cms-${key}`).value;
             const { error } = await sb.from('site_content').upsert({ key, value: val });
-            if (!error) {
-                const toast = document.getElementById('toast');
-                toast.classList.add('active');
-                setTimeout(() => toast.classList.remove('active'), 2000);
-            }
+            if (!error) showToast();
         }
 
         async function checkSession() {
             const { data: { session } } = await sb.auth.getSession();
             if (session && session.user.email === 'christophek@hotmail.com') showDashboard();
         }
-
         checkSession();
+
     </script>
 </body>
 </html>
