@@ -487,6 +487,29 @@
                         <div class="widget-title">POPULARITÉ DES BOISSONS</div>
                         <div style="height:150px;"><canvas id="topDrinksChart"></canvas></div>
                     </div>
+
+                    <!-- Widget: Activity Timeline -->
+                    <div class="widget span-2">
+                        <div class="widget-title">TIMELINE D'ACTIVITÉ (PAR HEURE)</div>
+                        <div style="height:150px;"><canvas id="activityTimelineChart"></canvas></div>
+                    </div>
+
+                    <!-- Widget: Global Averages -->
+                    <div class="widget">
+                        <div class="widget-title">MOYENNES GLOBALES</div>
+                        <div class="preview-list" style="border:none; padding:0;">
+                            <div class="preview-item"><span>Âge Moyen</span> <b id="avg-age">0</b></div>
+                            <div class="preview-item"><span>Poids Moyen</span> <b id="avg-weight">0</b></div>
+                            <div class="preview-item"><span>Degré Moyen</span> <b id="avg-degree">0</b></div>
+                        </div>
+                    </div>
+
+                    <!-- Widget: Health Alerts -->
+                    <div class="widget clickable" onclick="viewHealthAlerts()">
+                        <div class="widget-title" style="color:var(--danger)">ALERTES SANTÉ (7J)</div>
+                        <div class="widget-val" id="stat-alerts" style="color:var(--danger)">0</div>
+                        <div class="widget-trend">SESSIONS À RISQUE</div>
+                    </div>
                 </div>
             </div>
 
@@ -507,6 +530,7 @@
         let sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let visitsChart = null;
         let topDrinksChart = null;
+        let activityTimelineChart = null;
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
@@ -556,6 +580,17 @@
                         <div class="preview-item"><b>${c.type}</b> <span>${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span></div>
                     `).join('');
                     renderTopDrinksChart(consos);
+                    renderActivityTimelineChart(consos);
+                    
+                    const avgDegree = consos.reduce((acc, c) => acc + (c.degree || 0), 0) / consos.length;
+                    document.getElementById('avg-degree').innerText = avgDegree.toFixed(1) + '%';
+
+                    // Health Alerts (ex: > 4 drinks in one session/day for same user)
+                    // Simplified: sessions with volume > 500 and degree > 10 in last 7 days
+                    const last7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+                    const alerts = consos.filter(c => c.date >= last7d && (c.volume >= 500 && c.degree >= 8));
+                    document.getElementById('stat-alerts').innerText = alerts.length;
+                    window.healthAlerts = alerts;
                 }
 
                 if (profiles) {
@@ -563,6 +598,11 @@
                     document.getElementById('preview-profiles').innerHTML = profiles.slice(0, 5).map(p => `
                         <div class="preview-item"><b>${p.name || 'ANON'}</b> <span>${p.email?.split('@')[0] || ''}</span></div>
                     `).join('');
+
+                    const totalAge = profiles.reduce((acc, p) => acc + (p.age || 0), 0);
+                    const totalWeight = profiles.reduce((acc, p) => acc + (p.weight || 0), 0);
+                    document.getElementById('avg-age').innerText = (totalAge / profiles.length).toFixed(0) + ' ans';
+                    document.getElementById('avg-weight').innerText = (totalWeight / profiles.length).toFixed(0) + ' kg';
 
                     const uniqueAccounts = {};
                     profiles.forEach(p => {
@@ -618,7 +658,7 @@
                         data: data,
                         backgroundColor: '#EA9216',
                         borderRadius: 5,
-                        barThickness: 20
+                        barThickness: 15
                     }]
                 },
                 options: {
@@ -628,11 +668,69 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { display: false }, ticks: { display: false } },
-                        y: { grid: { display: false }, ticks: { color: '#fff', font: { size: 10, weight: '700' } } }
+                        y: { grid: { display: false }, ticks: { color: '#fff', font: { size: 9, weight: '700' } } }
                     }
                 }
             });
         }
+
+        function renderActivityTimelineChart(consos) {
+            const hours = Array(24).fill(0);
+            consos.forEach(c => {
+                const h = new Date(c.date).getHours();
+                hours[h]++;
+            });
+
+            const ctx = document.getElementById('activityTimelineChart').getContext('2d');
+            if (activityTimelineChart) activityTimelineChart.destroy();
+            activityTimelineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours.map((_, i) => i + 'h'),
+                    datasets: [{
+                        data: hours,
+                        borderColor: '#00f2ff',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 242, 255, 0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#5a5c61', font: { size: 8 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { display: false } }
+                    }
+                }
+            });
+        }
+
+        window.viewHealthAlerts = () => {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            modal.style.display = 'flex';
+            const alerts = window.healthAlerts || [];
+            let html = `<h2>Alertes Santé (Consommations à risque - 7j)</h2>
+                        <p style="color:var(--text-muted); margin-bottom:20px;">Critère : Volume > 500ml et Degré > 8%.</p>`;
+            if (alerts.length === 0) html += '<p style="text-align:center; padding:40px; opacity:0.5;">Aucune alerte détectée.</p>';
+            else {
+                html += `<table class="cyber-table"><thead><tr><th>Date</th><th>Profil ID</th><th>Boisson</th><th>Impact</th></tr></thead><tbody>`;
+                alerts.forEach(a => {
+                    html += `<tr>
+                        <td>${new Date(a.date).toLocaleString()}</td>
+                        <td style="font-size:0.6rem; opacity:0.5;">${a.profile_id}</td>
+                        <td style="color:var(--danger); font-weight:700;">${a.type}</td>
+                        <td>${a.volume}ml @ ${a.degree}%</td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+            }
+            body.innerHTML = html;
+        };
 
         function renderRecentAccess(visits) {
             const list = document.getElementById('recent-access-list');
