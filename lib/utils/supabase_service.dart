@@ -52,7 +52,7 @@ class SupabaseService {
       await _supabase.from('profiles').upsert({
         'id': remoteId,
         'owner_id': ownerId,
-        'email': _supabase.auth.currentUser?.email,
+        'email': _supabase.auth.currentUser?.email, // On ajoute l'email de l'auth
         'name': p.name,
         'gender': p.gender,
         'age': p.age,
@@ -168,10 +168,10 @@ class SupabaseService {
       return sId;
     }
 
-    final Map<String, UserProfile> profilesMap = {};
+    final List<UserProfile> profiles = [];
     for (var json in (profileData as List)) {
       String localId = cleanId(json['id']);
-      profilesMap[localId] = UserProfile(
+      profiles.add(UserProfile(
         id: localId,
         name: json['name'] ?? '',
         gender: json['gender'] ?? 'Homme',
@@ -179,13 +179,13 @@ class SupabaseService {
         weight: (json['weight'] as num?)?.toInt() ?? 70,
         colorValue: json['color_value'] ?? 0xFFEA9216,
         imagePath: json['image_path'],
-      );
+      ));
     }
 
-    final Map<String, Consumption> consosMap = {};
+    final List<Consumption> consumptions = [];
     for (var json in (consumptionData as List)) {
       String localId = cleanId(json['id']);
-      consosMap[localId] = Consumption(
+      consumptions.add(Consumption(
         id: localId,
         date: DateTime.parse(json['date']).toLocal(),
         moment: json['moment'] ?? 'Soir',
@@ -193,7 +193,7 @@ class SupabaseService {
         volume: json['volume'],
         degree: (json['degree'] as num).toDouble(),
         userId: cleanId(json['profile_id'] ?? '1'),
-      );
+      ));
     }
 
     final Map<String, String> contexts = {};
@@ -203,8 +203,8 @@ class SupabaseService {
     }
 
     return {
-      'profiles': profilesMap.values.toList(),
-      'consumptions': consosMap.values.toList(),
+      'profiles': profiles,
+      'consumptions': consumptions,
       'contexts': contexts,
     };
   }
