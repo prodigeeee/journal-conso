@@ -320,6 +320,13 @@
         .cyber-table th { text-align: left; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .cyber-table td { padding: 12px 10px; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
 
+        /* PREVIEWS */
+        .preview-list { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 12px; }
+        .preview-item { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+        .preview-item b { color: var(--text-main); }
+        .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .preview-img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; background: #000; border: 1px solid var(--border); }
+
     </style>
 </head>
 <body>
@@ -400,6 +407,7 @@
                         <div class="widget-title">PROFILS CRÉÉS</div>
                         <div class="widget-val" id="stat-profiles">0</div>
                         <div class="widget-trend">SANTÉ DE LA BASE: OK</div>
+                        <div id="preview-profiles" class="preview-list"></div>
                     </div>
 
                     <!-- Widget: Total Events -->
@@ -407,6 +415,7 @@
                         <div class="widget-title">CONSOMMATIONS TOTALES</div>
                         <div class="widget-val" id="stat-events">0</div>
                         <div class="widget-trend trend-up">↑ ACTIVITÉ EN HAUSSE</div>
+                        <div id="preview-events" class="preview-list"></div>
                     </div>
 
                     <!-- Widget: Recent Access List -->
@@ -444,6 +453,7 @@
                         <div class="widget-title">COMPTES UTILISATEURS</div>
                         <div class="widget-val" id="stat-accounts">0</div>
                         <div class="widget-trend">AUTH SYSTEM ACTIF</div>
+                        <div id="preview-accounts" class="preview-list"></div>
                     </div>
 
                     <!-- Widget: Contact Emails -->
@@ -451,6 +461,7 @@
                         <div class="widget-title">MESSAGES CONTACT</div>
                         <div class="widget-val" id="stat-messages">0</div>
                         <div class="widget-trend">SUPPORT CLIENT</div>
+                        <div id="preview-messages" class="preview-list"></div>
                     </div>
 
                     <!-- Widget: Storage -->
@@ -458,6 +469,7 @@
                         <div class="widget-title">PHOTOS PROFIL</div>
                         <div class="widget-val" id="stat-storage">0</div>
                         <div class="widget-trend">STOCKAGE CLOUD</div>
+                        <div id="preview-storage" class="preview-grid"></div>
                     </div>
                 </div>
             </div>
@@ -520,12 +532,26 @@
                     renderVisitsChart(visits);
                     renderRecentAccess(visits.slice(0, 15));
                 }
-                if (msgs) document.getElementById('stat-messages').innerText = msgs.length;
+                
+                if (msgs) {
+                    document.getElementById('stat-messages').innerText = msgs.length;
+                    document.getElementById('preview-messages').innerHTML = msgs.slice(0, 2).map(m => `
+                        <div class="preview-item">
+                            <b>${m.name || 'Anon'}</b>
+                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100px; opacity:0.5;">${m.message || ''}</span>
+                        </div>
+                    `).join('');
+                }
 
                 const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                const { data: consos } = await sb.from('consumptions').select('*');
+                const { data: consos } = await sb.from('consumptions').select('*').order('date', { ascending: false });
+                
                 if (profiles) {
                     document.getElementById('stat-profiles').innerText = profiles.length;
+                    document.getElementById('preview-profiles').innerHTML = profiles.slice(0, 3).map(p => `
+                        <div class="preview-item"><b>${p.name || 'ANON'}</b> <span>${p.email?.split('@')[0] || ''}</span></div>
+                    `).join('');
+
                     const uniqueAccounts = {};
                     profiles.forEach(p => {
                         if (!uniqueAccounts[p.owner_id]) uniqueAccounts[p.owner_id] = [];
@@ -533,12 +559,30 @@
                     });
                     document.getElementById('stat-accounts').innerText = Object.keys(uniqueAccounts).length;
                     window.allAccountsData = uniqueAccounts;
+
+                    document.getElementById('preview-accounts').innerHTML = Object.values(uniqueAccounts).slice(0, 3).map(acc => `
+                        <div class="preview-item"><b>${acc[0].email?.split('@')[0] || 'User'}</b> <span>${acc.length} profil(s)</span></div>
+                    `).join('');
+
                     renderIdentitiesSummary(profiles.slice(0, 50));
                 }
-                if (consos) document.getElementById('stat-events').innerText = consos.length;
 
-                const { data: storage } = await sb.storage.from('profile_images').list('', { limit: 100 });
-                document.getElementById('stat-storage').innerText = (storage || []).length;
+                if (consos) {
+                    document.getElementById('stat-events').innerText = consos.length;
+                    document.getElementById('preview-events').innerHTML = consos.slice(0, 3).map(c => `
+                        <div class="preview-item"><b>${c.type}</b> <span>${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span></div>
+                    `).join('');
+                }
+
+                const { data: storage } = await sb.storage.from('profile_images').list('', { limit: 10, sortBy: { column: 'created_at', order: 'desc' } });
+                if (storage) {
+                    document.getElementById('stat-storage').innerText = storage.length;
+                    const previews = storage.slice(0, 4).map(file => {
+                        const { data } = sb.storage.from('profile_images').getPublicUrl(file.name);
+                        return `<img src="${data.publicUrl}" class="preview-img" onerror="this.src='assets/images/logo.png'">`;
+                    });
+                    document.getElementById('preview-storage').innerHTML = previews.join('');
+                }
 
             } catch (e) { console.error(e); }
         }
