@@ -319,13 +319,24 @@
         .cyber-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .cyber-table th { text-align: left; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .cyber-table td { padding: 12px 10px; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .cyber-table tr.clickable:hover { background: rgba(234, 146, 22, 0.05); cursor: pointer; }
 
         /* PREVIEWS */
-        .preview-list { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 12px; }
-        .preview-item { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
-        .preview-item b { color: var(--text-main); }
-        .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
-        .preview-img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; background: #000; border: 1px solid var(--border); }
+        .preview-list { margin-top: 15px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 12px; }
+        .preview-item { font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+        .preview-item b { color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+        .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 15px; }
+        .preview-img { width: 100%; aspect-ratio: 1; border-radius: 4px; object-fit: cover; background: #000; border: 1px solid var(--border); }
+
+        /* SEARCH BAR */
+        .search-box { width: 100%; padding: 12px 20px; background: #000; border: 1px solid var(--border); border-radius: 12px; color: white; margin-bottom: 20px; outline: none; font-size: 0.9rem; }
+        .search-box:focus { border-color: var(--accent); }
+
+        /* USER DOSSIER */
+        .dossier-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .info-card { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
+        .info-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+        .info-value { font-size: 1rem; font-weight: 700; margin-bottom: 15px; color: var(--accent); }
 
     </style>
 </head>
@@ -466,10 +477,15 @@
 
                     <!-- Widget: Storage -->
                     <div class="widget">
-                        <div class="widget-title">PHOTOS PROFIL</div>
+                        <div class="widget-title">dernières PHOTOS PROFIL</div>
                         <div class="widget-val" id="stat-storage">0</div>
-                        <div class="widget-trend">STOCKAGE CLOUD</div>
                         <div id="preview-storage" class="preview-grid"></div>
+                    </div>
+
+                    <!-- Widget: Top Drinks -->
+                    <div class="widget span-2">
+                        <div class="widget-title">POPULARITÉ DES BOISSONS</div>
+                        <div style="height:150px;"><canvas id="topDrinksChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -490,6 +506,7 @@
         
         let sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let visitsChart = null;
+        let topDrinksChart = null;
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
@@ -533,22 +550,17 @@
                     renderRecentAccess(visits.slice(0, 15));
                 }
                 
-                if (msgs) {
-                    document.getElementById('stat-messages').innerText = msgs.length;
-                    document.getElementById('preview-messages').innerHTML = msgs.slice(0, 2).map(m => `
-                        <div class="preview-item">
-                            <b>${m.name || 'Anon'}</b>
-                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100px; opacity:0.5;">${m.message || ''}</span>
-                        </div>
+                if (consos) {
+                    document.getElementById('stat-events').innerText = consos.length;
+                    document.getElementById('preview-events').innerHTML = consos.slice(0, 5).map(c => `
+                        <div class="preview-item"><b>${c.type}</b> <span>${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span></div>
                     `).join('');
+                    renderTopDrinksChart(consos);
                 }
 
-                const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                const { data: consos } = await sb.from('consumptions').select('*').order('date', { ascending: false });
-                
                 if (profiles) {
                     document.getElementById('stat-profiles').innerText = profiles.length;
-                    document.getElementById('preview-profiles').innerHTML = profiles.slice(0, 3).map(p => `
+                    document.getElementById('preview-profiles').innerHTML = profiles.slice(0, 5).map(p => `
                         <div class="preview-item"><b>${p.name || 'ANON'}</b> <span>${p.email?.split('@')[0] || ''}</span></div>
                     `).join('');
 
@@ -560,24 +572,27 @@
                     document.getElementById('stat-accounts').innerText = Object.keys(uniqueAccounts).length;
                     window.allAccountsData = uniqueAccounts;
 
-                    document.getElementById('preview-accounts').innerHTML = Object.values(uniqueAccounts).slice(0, 3).map(acc => `
+                    document.getElementById('preview-accounts').innerHTML = Object.values(uniqueAccounts).slice(0, 5).map(acc => `
                         <div class="preview-item"><b>${acc[0].email?.split('@')[0] || 'User'}</b> <span>${acc.length} profil(s)</span></div>
                     `).join('');
 
                     renderIdentitiesSummary(profiles.slice(0, 50));
                 }
 
-                if (consos) {
-                    document.getElementById('stat-events').innerText = consos.length;
-                    document.getElementById('preview-events').innerHTML = consos.slice(0, 3).map(c => `
-                        <div class="preview-item"><b>${c.type}</b> <span>${new Date(c.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}</span></div>
+                if (msgs) {
+                    document.getElementById('stat-messages').innerText = msgs.length;
+                    document.getElementById('preview-messages').innerHTML = msgs.slice(0, 4).map(m => `
+                        <div class="preview-item">
+                            <b>${m.name || 'Anon'}</b>
+                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px; opacity:0.5;">${m.message || ''}</span>
+                        </div>
                     `).join('');
                 }
 
-                const { data: storage } = await sb.storage.from('profile_images').list('', { limit: 10, sortBy: { column: 'created_at', order: 'desc' } });
+                const { data: storage } = await sb.storage.from('profile_images').list('', { limit: 12, sortBy: { column: 'created_at', order: 'desc' } });
                 if (storage) {
                     document.getElementById('stat-storage').innerText = storage.length;
-                    const previews = storage.slice(0, 4).map(file => {
+                    const previews = storage.slice(0, 8).map(file => {
                         const { data } = sb.storage.from('profile_images').getPublicUrl(file.name);
                         return `<img src="${data.publicUrl}" class="preview-img" onerror="this.src='assets/images/logo.png'">`;
                     });
@@ -585,6 +600,38 @@
                 }
 
             } catch (e) { console.error(e); }
+        }
+
+        function renderTopDrinksChart(consos) {
+            const counts = {};
+            consos.forEach(c => counts[c.type] = (counts[c.type] || 0) + 1);
+            const labels = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 5);
+            const data = labels.map(l => counts[l]);
+
+            const ctx = document.getElementById('topDrinksChart').getContext('2d');
+            if (topDrinksChart) topDrinksChart.destroy();
+            topDrinksChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: '#EA9216',
+                        borderRadius: 5,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { display: false } },
+                        y: { grid: { display: false }, ticks: { color: '#fff', font: { size: 10, weight: '700' } } }
+                    }
+                }
+            });
         }
 
         function renderRecentAccess(visits) {
@@ -664,20 +711,88 @@
             const modal = document.getElementById('modal-overlay');
             const body = document.getElementById('modal-body');
             modal.style.display = 'flex';
-            body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Chargement des profils...</div>';
+            body.innerHTML = '<h2>Chargement...</h2>';
             try {
                 const { data } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                let html = `<h2>Liste des Profils (${data.length})</h2><div style="margin-top:20px; overflow-x:auto;">`;
-                html += `<table class="cyber-table"><thead><tr><th>Nom</th><th>Email</th><th>Age/Sexe</th><th>Créé le</th></tr></thead><tbody>`;
-                data.forEach(p => {
-                    html += `<tr>
-                        <td style="font-weight:700; color:var(--accent);">${p.name || 'ANON'}</td>
-                        <td>${p.email || '-'}</td>
-                        <td>${p.age || '?'} ans / ${p.gender || '?'}</td>
-                        <td style="opacity:0.6;">${new Date(p.created_at).toLocaleDateString()}</td>
-                    </tr>`;
-                });
-                html += `</tbody></table></div>`;
+                window.cachedProfiles = data;
+                renderProfilesTable(data);
+            } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
+        };
+
+        function renderProfilesTable(profiles) {
+            const body = document.getElementById('modal-body');
+            let html = `<h2>Liste des Profils (${profiles.length})</h2>
+                        <input type="text" class="search-box" placeholder="Rechercher un nom ou un email..." onkeyup="filterProfiles(this.value)">
+                        <div style="margin-top:10px; overflow-x:auto;">`;
+            html += `<table class="cyber-table"><thead><tr><th>Nom</th><th>Email</th><th>Age/Sexe</th><th>Créé le</th></tr></thead><tbody id="profiles-table-body">`;
+            profiles.forEach(p => {
+                html += `<tr class="clickable" onclick="viewUserProfileDetail('${p.id}')">
+                    <td style="font-weight:700; color:var(--accent);">${p.name || 'ANON'}</td>
+                    <td>${p.email || '-'}</td>
+                    <td>${p.age || '?'} ans / ${p.gender || '?'}</td>
+                    <td style="opacity:0.6;">${new Date(p.created_at).toLocaleDateString()}</td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>`;
+            body.innerHTML = html;
+        }
+
+        window.filterProfiles = (val) => {
+            const filtered = window.cachedProfiles.filter(p => 
+                (p.name && p.name.toLowerCase().includes(val.toLowerCase())) || 
+                (p.email && p.email.toLowerCase().includes(val.toLowerCase()))
+            );
+            const tbody = document.getElementById('profiles-table-body');
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="clickable" onclick="viewUserProfileDetail('${p.id}')">
+                    <td style="font-weight:700; color:var(--accent);">${p.name || 'ANON'}</td>
+                    <td>${p.email || '-'}</td>
+                    <td>${p.age || '?'} ans / ${p.gender || '?'}</td>
+                    <td style="opacity:0.6;">${new Date(p.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        };
+
+        window.viewUserProfileDetail = async (profileId) => {
+            const body = document.getElementById('modal-body');
+            body.innerHTML = '<h2>Ouverture du dossier...</h2>';
+            try {
+                const { data: profile } = await sb.from('profiles').select('*').eq('id', profileId).single();
+                const { data: consos } = await sb.from('consumptions').select('*').eq('profile_id', profileId).order('date', { ascending: false });
+                
+                let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                <h2>DOSSIER : ${profile.name || 'ANON'}</h2>
+                                <button class="tab-btn" onclick="viewAllProfiles()">← RETOUR LISTE</button>
+                            </div>
+                            <div class="dossier-grid">
+                                <div class="info-card">
+                                    <div class="info-label">Email de référence</div>
+                                    <div class="info-value">${profile.email || 'Non renseigné'}</div>
+                                    <div class="info-label">Âge & Sexe</div>
+                                    <div class="info-value">${profile.age || '?'} ans / ${profile.gender || '?'}</div>
+                                    <div class="info-label">Poids</div>
+                                    <div class="info-value">${profile.weight || '?'} kg</div>
+                                    <div class="info-label">ID Système</div>
+                                    <div style="font-size:0.6rem; opacity:0.3; word-break:break-all;">${profile.id}</div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-label">HISTORIQUE RÉCENT (${consos.length} entrées)</div>
+                                    <div style="max-height:300px; overflow-y:auto; margin-top:10px;">
+                                        <table class="cyber-table">
+                                            <thead><tr><th>Date</th><th>Boisson</th><th>Vol/Deg</th></tr></thead>
+                                            <tbody>
+                                                ${consos.slice(0, 20).map(c => `
+                                                    <tr>
+                                                        <td>${new Date(c.date).toLocaleDateString()}</td>
+                                                        <td style="color:var(--accent)">${c.type}</td>
+                                                        <td>${c.volume}ml / ${c.degree}%</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>`;
                 body.innerHTML = html;
             } catch(e) { body.innerHTML = 'Erreur: ' + e.message; }
         };
