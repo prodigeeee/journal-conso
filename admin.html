@@ -565,6 +565,8 @@
                 const { data: visits } = await sb.from('site_visits').select('*').order('created_at', { ascending: false });
                 const { data: events } = await sb.from('site_events').select('*');
                 const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
+                const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+                const { data: consos } = await sb.from('consumptions').select('*').order('date', { ascending: false });
 
                 if (visits) {
                     document.getElementById('stat-total-visits').innerText = visits.length;
