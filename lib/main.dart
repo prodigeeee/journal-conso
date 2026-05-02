@@ -2629,15 +2629,20 @@ class _HomeScreenState extends State<HomeScreen> {
             )
             .toList()
           ..sort((a, b) => a.date.compareTo(b.date));
-    IconData icon = (moment == 'Matin')
-        ? Icons.coffee_outlined
-        : (moment == 'Midi')
-        ? Icons.wb_sunny_outlined
-        : (moment == 'Après-midi')
-        ? Icons.wb_cloudy_outlined
-        : (moment == 'Soir')
-        ? Icons.nightlight_round_outlined
-        : Icons.local_bar;
+    IconData icon;
+    if (moment == L10n.s('moments.morning')) {
+      icon = Icons.coffee_outlined;
+    } else if (moment == L10n.s('moments.noon')) {
+      icon = Icons.wb_sunny_outlined;
+    } else if (moment == L10n.s('moments.afternoon')) {
+      icon = Icons.wb_cloudy_outlined;
+    } else if (moment == L10n.s('moments.evening')) {
+      icon = Icons.nightlight_round_outlined;
+    } else if (moment == L10n.s('moments.night')) {
+      icon = Icons.nightlife_rounded;
+    } else {
+      icon = Icons.local_bar;
+    }
 
     return DragTarget<Consumption>(
       onWillAcceptWithDetails: (details) => details.data.moment != moment,
@@ -2645,7 +2650,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final Consumption data = details.data;
         final newTime = _SaisieSheet.getDefaultTimeForMoment(moment);
         DateTime baseDate = _selectedDate;
-        if (moment == 'Soirée' && newTime.hour < 6) {
+        if (moment == L10n.s('moments.night') && newTime.hour < 6) {
           baseDate = baseDate.add(const Duration(days: 1));
         }
 
@@ -6109,16 +6114,15 @@ class _SaisieSheet extends StatefulWidget {
   });
 
   static TimeOfDay getDefaultTimeForMoment(String moment) {
-    if (moment == L10n.s('moments.morning') || moment == 'Matin') {
+    if (moment == L10n.s('moments.morning')) {
       return const TimeOfDay(hour: 8, minute: 0);
-    } else if (moment == L10n.s('moments.noon') || moment == 'Midi') {
+    } else if (moment == L10n.s('moments.noon')) {
       return const TimeOfDay(hour: 12, minute: 30);
-    } else if (moment == L10n.s('moments.afternoon') ||
-        moment == 'Après-midi') {
+    } else if (moment == L10n.s('moments.afternoon')) {
       return const TimeOfDay(hour: 16, minute: 0);
-    } else if (moment == L10n.s('moments.evening') || moment == 'Soir') {
+    } else if (moment == L10n.s('moments.evening')) {
       return const TimeOfDay(hour: 19, minute: 30);
-    } else if (moment == L10n.s('moments.night') || moment == 'Soirée') {
+    } else if (moment == L10n.s('moments.night')) {
       return const TimeOfDay(hour: 23, minute: 0);
     }
     return const TimeOfDay(hour: 19, minute: 30);
@@ -6361,10 +6365,20 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.wb_sunny_rounded,
-                                  color: effectiveAccent,
-                                  size: 12,
-                                ),
+                                 widget.moment == L10n.s('moments.morning')
+                                     ? Icons.coffee_rounded
+                                     : (widget.moment == L10n.s('moments.noon')
+                                         ? Icons.wb_sunny_rounded
+                                         : (widget.moment ==
+                                                 L10n.s('moments.evening')
+                                             ? Icons.nightlight_round_rounded
+                                             : (widget.moment ==
+                                                     L10n.s('moments.night')
+                                                 ? Icons.nightlife_rounded
+                                                 : Icons.wb_cloudy_rounded))),
+                                 color: effectiveAccent,
+                                 size: 14,
+                               ),
                                 const SizedBox(width: 4),
                                 Text(
                                   widget.moment.toUpperCase(),
@@ -6871,8 +6885,8 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                     icon,
                     color: isSel
                         ? Colors.white
-                        : (isDark ? Colors.white60 : Colors.black38),
-                    size: 26,
+                        : (isDark ? Colors.white70 : Colors.black54),
+                    size: 28,
                   ),
           ),
         ],
