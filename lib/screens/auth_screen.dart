@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
+import 'dart:async' show unawaited;
 import 'dart:math' as math;
 import 'dart:io' as io;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -52,6 +53,39 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  /// Insère ou met à jour le profil principal dans la table Supabase `profiles`.
+  /// Utilisé immédiatement après signup/signin pour garantir la visibilité dans l'admin,
+  /// sans attendre le cycle de synchro de l'app principale (30 min / mise en arrière-plan).
+  Future<void> _upsertProfileToSupabase({
+    required String userId,
+    required String email,
+    required String name,
+    required String gender,
+    required int age,
+    required int weight,
+    String? imagePath,
+  }) async {
+    try {
+      final supabase = Supabase.instance.client;
+      // L'ID du profil principal est toujours "{userId}_1"
+      await supabase.from('profiles').upsert({
+        'id': '${userId}_1',
+        'owner_id': userId,
+        'email': email,
+        'name': name,
+        'gender': gender,
+        'age': age,
+        'weight': weight,
+        'color_value': 0xFFEA9216,
+        'image_path': imagePath,
+      });
+      debugPrint('✅ Profil poussé dans Supabase pour $email');
+    } catch (e) {
+      debugPrint('⚠️ Erreur push profil : $e');
+      // Silencieux : l’app principale retentera lors du prochain _pushToCloud
+    }
+  }
+
   Future<void> _handleAuth() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       if (mounted) {
@@ -86,7 +120,17 @@ class _AuthScreenState extends State<AuthScreen> {
           },
         );
         // Si la session est créée immédiatement (auto-confirm)
-        if (res.session != null) {
+        if (res.session != null && res.user != null) {
+          // Push immédiat du profil dans Supabase pour qu'il apparaisse dans l'admin
+          unawaited(_upsertProfileToSupabase(
+            userId: res.user!.id,
+            email: _emailController.text.trim(),
+            name: _nameController.text,
+            gender: _gender,
+            age: int.tryParse(_ageController.text) ?? 35,
+            weight: int.tryParse(_weightController.text) ?? 70,
+            imagePath: finalImagePath,
+          ));
           widget.onAuthSuccess();
           return;
         }
@@ -132,10 +176,23 @@ class _AuthScreenState extends State<AuthScreen> {
           );
         }
       } else {
-        await Supabase.instance.client.auth.signInWithPassword(
+        final signInRes = await Supabase.instance.client.auth.signInWithPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        // Push immédiat du profil pour les comptes existants qui n'ont pas encore
+        // de profil dans la table (ex : inscription ancienne, ou mode offline).
+        if (signInRes.user != null) {
+          unawaited(_upsertProfileToSupabase(
+            userId: signInRes.user!.id,
+            email: _emailController.text.trim(),
+            name: signInRes.user!.userMetadata?['display_name'] ?? 'Moi',
+            gender: signInRes.user!.userMetadata?['gender'] ?? 'Homme',
+            age: (signInRes.user!.userMetadata?['age'] as num?)?.toInt() ?? 35,
+            weight: (signInRes.user!.userMetadata?['weight'] as num?)?.toInt() ?? 70,
+            imagePath: signInRes.user!.userMetadata?['image_path'],
+          ));
+        }
         widget.onAuthSuccess();
       }
     } on AuthException catch (e) {
