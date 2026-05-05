@@ -395,6 +395,38 @@
             <!-- OVERVIEW TAB -->
             <div id="tab-overview">
                 <div class="bento-grid">
+                    <!-- NOUVEAU WIDGET : Dernières Consommations -->
+                    <div class="widget span-3 row-2" style="background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
+                        <div class="widget-title">DERNIÈRES CONSOMMATIONS AJOUTÉES</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>DATE & HEURE</th>
+                                    <th>UTILISATEUR</th>
+                                    <th>PROFIL</th>
+                                    <th>BOISSON</th>
+                                    <th>VOLUME</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-consos-list"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- NOUVEAU WIDGET : Dernières Connexions -->
+                    <div class="widget span-3 row-2" style="background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
+                        <div class="widget-title">DERNIÈRES CONNEXIONS (APP)</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PROFIL</th>
+                                    <th>EMAIL</th>
+                                    <th>DERNIÈRE ACTIVITÉ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-logins-list"></tbody>
+                        </table>
+                    </div>
+
                     <!-- Widget: Visits Chart -->
                     <div class="widget span-3 row-2">
                         <div class="widget-title">
@@ -577,6 +609,48 @@
                 const { data: msgs } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
                 const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
                 const { data: consos } = await sb.from('consumptions').select('*').order('date', { ascending: false });
+
+                const profileMap = {};
+                if (profiles) {
+                    profiles.forEach(p => { profileMap[p.id] = p; });
+                }
+
+                if (consos) {
+                    const sortedConsos = [...consos].sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+                    const consosHtml = sortedConsos.slice(0, 15).map(c => {
+                        const prof = profileMap[c.profile_id] || profileMap[c.owner_id + "_1"] || {};
+                        const userName = prof.email ? prof.email.split('@')[0] : 'Inconnu';
+                        const profName = prof.name || 'Moi';
+                        const dateStr = new Date(c.created_at || c.date).toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+                        return `
+                        <tr>
+                            <td><span style="opacity:0.6">${dateStr}</span></td>
+                            <td><b style="color:var(--accent)">${userName}</b></td>
+                            <td>${profName}</td>
+                            <td>${c.type}</td>
+                            <td>${c.volume}</td>
+                        </tr>
+                        `;
+                    }).join('');
+                    const consosListEl = document.getElementById('recent-consos-list');
+                    if (consosListEl) consosListEl.innerHTML = consosHtml;
+                }
+
+                if (profiles) {
+                    const sortedProfiles = [...profiles].sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+                    const loginsHtml = sortedProfiles.slice(0, 15).map(p => {
+                        const dateStr = new Date(p.updated_at || p.created_at).toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+                        return `
+                        <tr>
+                            <td><b style="color:var(--accent)">${p.name || 'Moi'}</b></td>
+                            <td>${p.email || 'Inconnu'}</td>
+                            <td><span style="opacity:0.6">${dateStr}</span></td>
+                        </tr>
+                        `;
+                    }).join('');
+                    const loginsListEl = document.getElementById('recent-logins-list');
+                    if (loginsListEl) loginsListEl.innerHTML = loginsHtml;
+                }
 
                 if (visits) {
                     document.getElementById('stat-total-visits').innerText = visits.length;
