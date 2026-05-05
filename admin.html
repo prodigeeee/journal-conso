@@ -395,36 +395,41 @@
             <!-- OVERVIEW TAB -->
             <div id="tab-overview">
                 <div class="bento-grid">
-                    <!-- NOUVEAU WIDGET : Dernières Consommations -->
-                    <div class="widget span-3 row-2" style="background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
-                        <div class="widget-title">DERNIÈRES CONSOMMATIONS AJOUTÉES</div>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>DATE & HEURE</th>
-                                    <th>UTILISATEUR</th>
-                                    <th>PROFIL</th>
-                                    <th>BOISSON</th>
-                                    <th>VOLUME</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-consos-list"></tbody>
-                        </table>
-                    </div>
+                    <!-- MODULES CÔTE À CÔTE -->
+                    <div style="grid-column: 1 / -1; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                        
+                        <!-- NOUVEAU WIDGET : Dernières Consommations -->
+                        <div class="widget" style="flex: 1; min-width: 450px; background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
+                            <div class="widget-title">DERNIÈRES CONSOMMATIONS AJOUTÉES</div>
+                            <table class="data-table" style="white-space: nowrap;">
+                                <thead>
+                                    <tr>
+                                        <th>DATE & HEURE</th>
+                                        <th>UTILISATEUR</th>
+                                        <th>PROFIL</th>
+                                        <th>BOISSON</th>
+                                        <th>VOLUME</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-consos-list"></tbody>
+                            </table>
+                        </div>
 
-                    <!-- NOUVEAU WIDGET : Dernières Connexions -->
-                    <div class="widget span-3 row-2" style="background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
-                        <div class="widget-title">DERNIÈRES CONNEXIONS (APP)</div>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>PROFIL</th>
-                                    <th>EMAIL</th>
-                                    <th>DERNIÈRE ACTIVITÉ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-logins-list"></tbody>
-                        </table>
+                        <!-- NOUVEAU WIDGET : Dernières Connexions -->
+                        <div class="widget" style="flex: 1; min-width: 450px; background: rgba(0,0,0,0.3); max-height: 350px; overflow-y: auto;">
+                            <div class="widget-title">DERNIÈRES CONNEXIONS (APP)</div>
+                            <table class="data-table" style="white-space: nowrap;">
+                                <thead>
+                                    <tr>
+                                        <th>PROFIL</th>
+                                        <th>EMAIL</th>
+                                        <th>DERNIÈRE ACTIVITÉ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-logins-list"></tbody>
+                            </table>
+                        </div>
+
                     </div>
 
                     <!-- Widget: Visits Chart -->
