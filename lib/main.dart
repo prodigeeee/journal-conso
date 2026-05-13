@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb; // Ajout pour le support Web
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'widgets/sobriety_test_sheet.dart';
@@ -31,6 +32,8 @@ import 'screens/auth_screen.dart'; // Ajout de l'écran auth
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
 import 'utils/l10n_service.dart'; // Import L10n
 import 'utils/supabase_service.dart'; // Ajout import manquant
+// Widget d'accueil
+import 'package:shared_preferences/shared_preferences.dart'; // Prefs locales
 
 typedef File = io.File;
 
@@ -92,6 +95,14 @@ class _AlcoholTrackerAppState extends State<AlcoholTrackerApp> {
       title: L10n.s('app.title'),
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr', 'FR'),
+      ],
       themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
@@ -129,7 +140,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToHome() async {
     await StorageService.loadAppData();
-    await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
     Navigator.pushReplacement(
@@ -1848,15 +1858,61 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late DateTime _selectedDate;
   late DateTime _focusedMonth;
+  bool _showWidgetPromo = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selectedDate = widget.selectedJournalDate;
     _focusedMonth = DateTime(_selectedDate.year, _selectedDate.month);
+    _loadWidgetPromoState();
+    _checkWidgetIntent();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkWidgetIntent();
+    }
+  }
+
+  Future<void> _checkWidgetIntent() async {
+    if (kIsWeb) return;
+    try {
+      const channel = MethodChannel('com.chrisk.journal_conso/widget');
+      final bool? shouldOpenAdd = await channel.invokeMethod<bool>('checkAndClearWidgetIntent');
+      if (shouldOpenAdd == true && mounted) {
+        // Wait a small delay to allow UI to build before showing bottom sheet
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          _showSaisie(L10n.s('moments.evening')); // default to evening, user can change it
+        }
+      }
+    } catch (e) {
+      debugPrint("Error checking widget intent: $e");
+    }
+  }
+
+  Future<void> _loadWidgetPromoState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool('widget_promo_dismissed') ?? false;
+    if (mounted) setState(() => _showWidgetPromo = !dismissed);
+  }
+
+  Future<void> _dismissWidgetPromo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('widget_promo_dismissed', true);
+    if (mounted) setState(() => _showWidgetPromo = false);
   }
 
   @override
@@ -2201,6 +2257,276 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ─── Dialogue d'explication du widget d'accueil ───────────────────────────
+  void _showWidgetExplainDialog() {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black38,
+      builder: (ctx) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode
+                      ? Colors.white.withValues(alpha: 0.09)
+                      : Colors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: widget.accentColor.withValues(alpha: 0.45),
+                    width: 1.5,
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: widget.accentColor.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.widgets_rounded, color: widget.accentColor, size: 26),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              'Widget d\'accueil',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: widget.isDarkMode ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Ajoutez le widget Journal Conso sur votre écran d\'accueil pour enregistrer une consommation en un seul tap, sans même ouvrir l\'app !',
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _widgetInstructionBlock(
+                        icon: Icons.android,
+                        iconColor: const Color(0xFF3DDC84),
+                        title: 'Android',
+                        steps: const [
+                          '1. Appuyez longuement sur l\'écran d\'accueil',
+                          '2. Sélectionnez « Widgets »',
+                          '3. Cherchez « Journal Conso »',
+                          '4. Appuyez longuement et déposez le widget',
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _widgetInstructionBlock(
+                        icon: Icons.apple,
+                        iconColor: const Color(0xFF888888),
+                        title: 'iPhone (iOS 14+)',
+                        steps: const [
+                          '1. Restez appuyé sur l\'écran d\'accueil',
+                          '2. Touchez le « + » en haut à gauche',
+                          '3. Cherchez « Journal Conso »',
+                          '4. Choisissez la taille et touchez « Ajouter »',
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.accentColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Compris !', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _widgetInstructionBlock({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required List<String> steps,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: widget.isDarkMode
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.isDarkMode ? Colors.white10 : Colors.black12,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: widget.isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...steps.map((s) => Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              s,
+              style: TextStyle(
+                fontSize: 12,
+                color: widget.isDarkMode ? Colors.white60 : Colors.black54,
+                height: 1.4,
+              ),
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // ─── Bandeau d'incitation widget (dismissible) ────────────────────────────
+  Widget _buildWidgetPromoBanner() {
+    if (kIsWeb) return const SizedBox.shrink();
+    
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: _showWidgetPromo
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          widget.accentColor.withValues(alpha: 0.28),
+                          widget.accentColor.withValues(alpha: 0.10),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: widget.accentColor.withValues(alpha: 0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: widget.accentColor.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.widgets_rounded, color: widget.accentColor, size: 17),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '✨ Nouveau',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: widget.accentColor,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Enregistrez vos verres plus vite avec le widget d\'accueil !',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.isDarkMode ? Colors.white : Colors.black87,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _showWidgetExplainDialog,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: widget.accentColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Découvrir',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: _dismissWidgetPromo,
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 17,
+                            color: widget.isDarkMode ? Colors.white38 : Colors.black38,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -2217,9 +2543,11 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 12),
+          _buildWidgetPromoBanner(),
           _buildPartyModeWidget(),
           const SizedBox(height: 15),
+
           glassModule(
             isDarkMode: widget.isDarkMode,
             child: Column(
@@ -2339,6 +2667,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
+  /// Palette heatmap : orange unique, luminosité décroissante selon l'intensité.
+  /// 1 → orange pâle lumineux   6+ → orange brûlé profond et saturé.
+  Color _dayHeatColor(int count) {
+    // count va de 1 à 6+. On mappe sur une plage HSL :
+    //   hue    : 28° (orange chaud, fixe)
+    //   sat    : 75% → 100% (monte avec la conso)
+    //   light  : 72% → 42% (baisse avec la conso → plus sombre/intense)
+    final t = ((count - 1).clamp(0, 5)) / 5.0; // 0.0 (1 conso) → 1.0 (6+)
+    final hsl = HSLColor.fromAHSL(
+      1.0,
+      28.0,                          // hue : orange chaud
+      0.75 + t * 0.25,               // saturation : 75% → 100%
+      0.72 - t * 0.30,               // lightness  : 72% → 42%
+    );
+    return hsl.toColor();
+  }
+
+  /// Variante de [_dayHeatColor] avec la lightness décalée de [lightnessDelta].
+  /// Utilisée pour créer l'effet de dégradé diagonal (highlight/ombre).
+  Color _dayHeatColorShifted(int count, double lightnessDelta) {
+    final t = ((count - 1).clamp(0, 5)) / 5.0;
+    final baseLightness = 0.72 - t * 0.30;
+    final hsl = HSLColor.fromAHSL(
+      1.0,
+      28.0,
+      0.75 + t * 0.25,
+      (baseLightness + lightnessDelta).clamp(0.0, 1.0),
+    );
+    return hsl.toColor();
+  }
+
+
+
   Widget _buildHeatmap(DateTime monthDate) {
     final now = DateTime.now();
     final todayLogical = now.hour < 6
@@ -2405,9 +2767,10 @@ class _HomeScreenState extends State<HomeScreen> {
             final isFuture = date.isAfter(
               DateTime(todayLogical.year, todayLogical.month, todayLogical.day),
             );
-            final hasC = widget.consumptions.any(
-              (c) => belongsToLogicalDay(c.date, date),
-            );
+            final dayConsoCount = widget.consumptions
+                .where((c) => belongsToLogicalDay(c.date, date))
+                .length;
+            final hasC = dayConsoCount > 0;
 
             return GestureDetector(
               onTap: isFuture
@@ -2426,79 +2789,100 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(milliseconds: 300),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: isSel
-                        ? widget.accentColor
-                        : (hasC
-                              ? widget.accentColor.withValues(alpha: 0.4)
-                              : (widget.isDarkMode
-                                    ? Colors.white.withValues(alpha: 0.05)
-                                    : Colors.black.withValues(alpha: 0.03))),
+                    // Dégradé diagonal premium (coin haut-gauche clair → bas-droit sombre)
+                    gradient: hasC
+                        ? LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            stops: const [0.0, 0.45, 1.0],
+                            colors: [
+                              _dayHeatColorShifted(dayConsoCount, 0.18), // highlight
+                              _dayHeatColor(dayConsoCount),               // base
+                              _dayHeatColorShifted(dayConsoCount, -0.12), // ombre
+                            ],
+                          )
+                        : null,
+                    color: !hasC
+                        ? (widget.isDarkMode
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03))
+                        : null,
                     border: Border.all(
                       color: isSel
-                          ? Colors.white.withValues(alpha: 0.5)
-                          : Colors.transparent,
-                      width: 1.5,
+                          ? Colors.white.withValues(alpha: 0.90)
+                          : (hasC
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.transparent),
+                      width: isSel ? 2.0 : 1.0,
                     ),
                     boxShadow: isSel
                         ? [
                             BoxShadow(
-                              color: widget.accentColor.withValues(alpha: 0.4),
-                              blurRadius: 10,
-                              spreadRadius: 1,
+                              color: (hasC
+                                      ? _dayHeatColor(dayConsoCount)
+                                      : widget.accentColor)
+                                  .withValues(alpha: 0.65),
+                              blurRadius: 14,
+                              spreadRadius: 2,
                             ),
                           ]
-                        : [],
+                        : hasC
+                            ? [
+                                BoxShadow(
+                                  color: _dayHeatColor(dayConsoCount)
+                                      .withValues(
+                                    alpha: 0.15 +
+                                        (dayConsoCount.clamp(1, 6) / 6) * 0.25,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                ),
+                              ]
+                            : [],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Stack(
-                      children: [
-                        if (isSel)
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              height: 1.5,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        if (isSel)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.25),
-                                    Colors.white.withValues(alpha: 0.05),
-                                    Colors.transparent,
-                                    Colors.transparent,
-                                  ],
-                                  stops: const [0.0, 0.4, 0.41, 1.0],
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Numéro du jour
+                      Text(
+                        dayNum.toString(),
+                        style: TextStyle(
+                          fontSize: isSel ? 13 : 10,
+                          color: isSel
+                              ? Colors.white
+                              : hasC
+                                  ? const Color(0xFF3D1F00) // brun foncé chaud sur orange
+                                  : (widget.isDarkMode
+                                        ? Colors.white38
+                                        : Colors.black38),
+                          fontWeight: (isSel || hasC)
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      // Micro-point d'intensité en bas
+                      if (hasC)
+                        Positioned(
+                          bottom: 4,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(
+                              dayConsoCount.clamp(1, 4),
+                              (_) => Container(
+                                width: 3,
+                                height: 3,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.70),
                                 ),
                               ),
                             ),
                           ),
-                        Center(
-                          child: Text(
-                            dayNum.toString(),
-                            style: TextStyle(
-                              fontSize: isSel ? 13 : 10,
-                              color: (isSel || hasC)
-                                  ? Colors.white
-                                  : (widget.isDarkMode
-                                        ? Colors.white38
-                                        : Colors.black38),
-                              fontWeight: (isSel || hasC)
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -6143,6 +6527,7 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   final List<String> _volumes = [
     '4cl',
     '8cl',
+    '10cl',
     '12.5cl',
     '15cl',
     '25cl',
@@ -6597,10 +6982,13 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                                     context: context,
                                     initialTime: _time,
                                     builder: (context, child) =>
-                                        _buildThemePicker(
-                                          context,
-                                          child,
-                                          effectiveAccent,
+                                        MediaQuery(
+                                          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                                          child: _buildThemePicker(
+                                            context,
+                                            child,
+                                            effectiveAccent,
+                                          ),
                                         ),
                                   );
                                   if (t != null) setState(() => _time = t);
@@ -7202,13 +7590,11 @@ class _AnimatedCounter extends StatefulWidget {
   final num value;
   final TextStyle style;
   final int decimals;
-  final String suffix;
 
   const _AnimatedCounter({
     required this.value,
     required this.style,
     this.decimals = 0,
-    this.suffix = '',
   });
 
   @override
@@ -7259,7 +7645,7 @@ class _AnimatedCounterState extends State<_AnimatedCounter>
       animation: _anim,
       builder: (context, child) {
         String display = _anim.value.toStringAsFixed(widget.decimals);
-        return Text("$display${widget.suffix}", style: widget.style);
+        return Text(display, style: widget.style);
       },
     );
   }

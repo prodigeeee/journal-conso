@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Journal Conso</string>
+    <string name="widget_description">Ajoutez rapidement une consommation depuis l\'écran d\'accueil</string>
+</resources>

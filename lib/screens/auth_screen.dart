@@ -40,6 +40,7 @@ class _AuthScreenState extends State<AuthScreen> {
   
   bool _isSignUp = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -476,6 +477,22 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, bool isPassword, {bool isNumber = false, Widget? suffix}) {
+    Widget? finalSuffix = suffix;
+    if (isPassword) {
+      final eyeButton = IconButton(
+        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: widget.isDarkMode ? Colors.white54 : Colors.black54, size: 20),
+        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      );
+      if (suffix != null) {
+        finalSuffix = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [suffix, eyeButton],
+        );
+      } else {
+        finalSuffix = eyeButton;
+      }
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: widget.isDarkMode ? Colors.black26 : Colors.white.withValues(alpha: 0.5),
@@ -483,14 +500,14 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
+        obscureText: isPassword ? _obscurePassword : false,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black87),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: widget.isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
           prefixIcon: Icon(icon, color: widget.accentColor, size: 20),
-          suffixIcon: suffix,
+          suffixIcon: finalSuffix,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
