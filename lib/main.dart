@@ -32,6 +32,8 @@ import 'screens/auth_screen.dart'; // Ajout de l'écran auth
 import 'package:supabase_flutter/supabase_flutter.dart'; // Import Supabase
 import 'utils/l10n_service.dart'; // Import L10n
 import 'utils/supabase_service.dart'; // Ajout import manquant
+import 'utils/location_service.dart'; // Géolocalisation automatique du contexte
+import 'utils/notification_service.dart'; // Notifications sobriété
 // Widget d'accueil
 import 'package:shared_preferences/shared_preferences.dart'; // Prefs locales
 
@@ -348,6 +350,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   Future<void> _initApp() async {
+    // Initialiser le service de notifications en premier (avant tout _saveAll())
+    await NotificationService.init();
+
     final user = Supabase.instance.client.auth.currentUser;
     final storedUserId = await StorageService.getSupabaseUserId();
 
@@ -415,6 +420,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     _cloudSyncDebounce = Timer(const Duration(seconds: 3), () {
       _pushToCloud(silent: true);
     });
+
+    // 4. Programmer ou annuler la notification "retour au vert"
+    _scheduleNotification();
+  }
+
+  /// Programme (ou annule) la notification de sobriété pour le profil actif.
+  void _scheduleNotification() {
+    final activeUser = _profiles.isEmpty
+        ? null
+        : _profiles.firstWhere(
+            (p) => p.id == _activeUserId,
+            orElse: () => _profiles.first,
+          );
+    if (activeUser == null) return;
+
+    final userConsos =
+        _allConsumptions.where((c) => c.userId == _activeUserId).toList();
+    final threshold = widget.isYoungDriver ? 0.2 : 0.5;
+
+    NotificationService.scheduleOrCancelSobrietyNotification(
+      gender: activeUser.gender,
+      weight: activeUser.weight,
+      consumptions: userConsos,
+      threshold: threshold,
+      profileName: activeUser.name,
+    );
   }
 
   Future<void> _exportFullProject() async {
@@ -1719,72 +1750,75 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         ],
       ),
       floatingActionButton: _selectedIndex == 0
-          ? _PulseWidget(
-              enabled: userConsos.every(
-                (c) => !belongsToLogicalDay(c.date, DateTime.now()),
-              ),
-              accentColor: widget.accentColor,
-              child: LiquidGlassFAB(
-                accentColor: widget.accentColor,
-                currentBac: calculateBACAt(
-                  activeUser.gender,
-                  activeUser.weight,
-                  userConsos,
-                  DateTime.now(),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _PulseWidget(
+                enabled: userConsos.every(
+                  (c) => !belongsToLogicalDay(c.date, DateTime.now()),
                 ),
-                threshold: widget.isYoungDriver ? 0.2 : 0.5,
-                onPressed: () {
-                  final now = DateTime.now();
-                  final String moment = getMomentFromTime(TimeOfDay.fromDateTime(now));
+                accentColor: widget.accentColor,
+                child: LiquidGlassFAB(
+                  accentColor: widget.accentColor,
+                  currentBac: calculateBACAt(
+                    activeUser.gender,
+                    activeUser.weight,
+                    userConsos,
+                    DateTime.now(),
+                  ),
+                  threshold: widget.isYoungDriver ? 0.2 : 0.5,
+                  onPressed: () {
+                    final now = DateTime.now();
+                    final String moment = getMomentFromTime(TimeOfDay.fromDateTime(now));
 
-                  // Calculer la date logique courante dynamiquement (au moment du tap)
-                  // Si < 6h du matin, on est encore sur la "journée" de la veille
-                  final logicalToday = now.hour < 6
-                      ? now.subtract(const Duration(days: 1))
-                      : now;
+                    // Calculer la date logique courante dynamiquement (au moment du tap)
+                    // Si < 6h du matin, on est encore sur la "journée" de la veille
+                    final logicalToday = now.hour < 6
+                        ? now.subtract(const Duration(days: 1))
+                        : now;
 
-                  // Mettre à jour _currentJournalDate si besoin
-                  _currentJournalDate = DateTime(
-                    logicalToday.year,
-                    logicalToday.month,
-                    logicalToday.day,
-                  );
+                    // Mettre à jour _currentJournalDate si besoin
+                    _currentJournalDate = DateTime(
+                      logicalToday.year,
+                      logicalToday.month,
+                      logicalToday.day,
+                    );
 
-                  // La date passée au sheet est le jour logique (normalisé à minuit)
-                  // _handleSave se chargera d'ajouter +1 jour si heure < 6h
-                  final DateTime sheetDate = _currentJournalDate;
+                    // La date passée au sheet est le jour logique (normalisé à minuit)
+                    // _handleSave se chargera d'ajouter +1 jour si heure < 6h
+                    final DateTime sheetDate = _currentJournalDate;
 
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => _SaisieSheet(
-                      moment: moment,
-                      date: sheetDate,
-                      activeUserId: _activeUserId,
-                      onSave: (conso) async {
-                        setState(() {
-                          _allConsumptions.add(conso);
-                        });
-                        await _saveAll();
-                      },
-                      isDarkMode: widget.isDarkMode,
-                      accentColor: widget.accentColor,
-                      unitMl: widget.unitMl,
-                      contexts: _contexts,
-                      onUpdateContext: (key, val) {
-                        setState(() {
-                          if (val.trim().isEmpty) {
-                            _contexts.remove(key);
-                          } else {
-                            _contexts[key] = val;
-                          }
-                        });
-                        _saveAll();
-                      },
-                    ),
-                  );
-                },
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => _SaisieSheet(
+                        moment: moment,
+                        date: sheetDate,
+                        activeUserId: _activeUserId,
+                        onSave: (conso) async {
+                          setState(() {
+                            _allConsumptions.add(conso);
+                          });
+                          await _saveAll();
+                        },
+                        isDarkMode: widget.isDarkMode,
+                        accentColor: widget.accentColor,
+                        unitMl: widget.unitMl,
+                        contexts: _contexts,
+                        onUpdateContext: (key, val) {
+                          setState(() {
+                            if (val.trim().isEmpty) {
+                              _contexts.remove(key);
+                            } else {
+                              _contexts[key] = val;
+                            }
+                          });
+                          _saveAll();
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
             )
           : null,
@@ -6542,6 +6576,9 @@ class _SaisieSheetState extends State<_SaisieSheet> {
   bool _isListening = false;
   final stt.SpeechToText _speech = stt.SpeechToText();
 
+  /// Indique qu'une recherche de localisation est en cours (spinner dans le champ)
+  bool _isLoadingLocation = false;
+
   void _listen() async {
     if (!_isListening) {
       try {
@@ -6646,6 +6683,41 @@ class _SaisieSheetState extends State<_SaisieSheet> {
     _contextCtrl = TextEditingController(
       text: widget.contexts[contextKey] ?? '',
     );
+
+    // Pré-remplissage automatique par géolocalisation (réseau requis)
+    // On ne lance pas si le champ est déjà renseigné OU si on édite une conso existante
+    if (widget.existingConso == null) {
+      _fetchAndFillLocation();
+    }
+  }
+
+  /// Tente de récupérer le lieu courant et pré-remplit (ou enrichit) le champ contexte.
+  Future<void> _fetchAndFillLocation() async {
+    if (!mounted) return;
+    setState(() => _isLoadingLocation = true);
+
+    final placeName = await LocationService.getPlaceName();
+
+    if (!mounted) return;
+    setState(() => _isLoadingLocation = false);
+
+    if (placeName == null) return;
+
+    final existing = _contextCtrl.text.trim();
+    if (existing.isEmpty) {
+      // Champ vide → on le remplit directement
+      _contextCtrl.text = placeName;
+      _contextCtrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: placeName.length),
+      );
+    } else {
+      // Champ déjà renseigné → on ajoute le lieu après le texte existant
+      final enriched = '$existing · $placeName';
+      _contextCtrl.text = enriched;
+      _contextCtrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: enriched.length),
+      );
+    }
   }
 
   @override
@@ -6824,11 +6896,25 @@ class _SaisieSheetState extends State<_SaisieSheet> {
                               hintStyle: TextStyle(
                                 color: isDark ? Colors.white38 : Colors.black38,
                               ),
-                              prefixIcon: Icon(
-                                Icons.edit,
-                                color: effectiveAccent,
-                                size: 20,
-                              ),
+                              prefixIcon: _isLoadingLocation
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            effectiveAccent,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.edit,
+                                      color: effectiveAccent,
+                                      size: 20,
+                                    ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _isListening
